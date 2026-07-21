@@ -1,0 +1,19 @@
+{
+  "slug": "kovcheg-editorial",
+  "name": "KOVCHEG Editorial",
+  "version": "1.0.0",
+  "type": "public-theme",
+  "description": "Современная тема для авторского блога, журнала разработки и портфолио.",
+  "author": "Ланцет Семён Борисович",
+  "copyright": "Ланцет Семён Борисович",
+  "license": "proprietary / all rights reserved",
+  "supports": [
+    "blog",
+    "pages",
+    "portfolio",
+    "menus",
+    "comments",
+    "reactions",
+    "author-profile"
+  ]
+}
