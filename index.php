@@ -4,8 +4,9 @@ declare(strict_types=1);
 require __DIR__.'/app/bootstrap.php';
 
 $router = new \Kovcheg\Router();
-// Small, focused feature routes are registered first. Router resolves the first
-// matching route, so these handlers can safely harden legacy endpoints.
+// Public blog routes are registered first so the new publishing layer owns
+// the homepage and content URLs while legacy social routes remain available.
+require __DIR__.'/routes/blog.php';
 require __DIR__.'/routes/template-features.php';
 require __DIR__.'/routes/web.php';
 \Kovcheg\Hooks::fire('routes',$router);
