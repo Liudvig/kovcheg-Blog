@@ -58,6 +58,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 require_once BASE_PATH.'/app/Core.php';
 require_once BASE_PATH.'/app/functions.php';
 require_once BASE_PATH.'/app/modern-ui.php';
+require_once BASE_PATH.'/app/Blog.php';
 
 set_exception_handler(static function (Throwable $error): void {
     log_error($error);
