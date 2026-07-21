@@ -1,0 +1,56 @@
+name: KOVCHEG Blog checks
+
+on:
+  push:
+    branches: [main, blog-v1-foundation]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: mbstring, fileinfo, openssl, pdo_mysql
+
+      - name: Lint PHP
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Check JavaScript syntax
+        run: |
+          files=$(find assets themes -type f -name '*.js' 2>/dev/null || true)
+          if [ -n "$files" ]; then
+            while IFS= read -r file; do node --check "$file"; done <<< "$files"
+          fi
+
+      - name: Validate JSON
+        shell: bash
+        run: |
+          while IFS= read -r -d '' file; do
+            php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"
+          done < <(find . -type f -name '*.json' -print0)
+
+      - name: Reject committed secrets and runtime data
+        shell: bash
+        run: |
+          test ! -f config/config.php
+          test ! -f .env
+          if find storage/uploads storage/cache storage/logs storage/backups storage/builds \
+            -type f ! -name '.gitkeep' -print -quit 2>/dev/null | grep -q .; then
+            echo 'Runtime or user data must not be committed.' >&2
+            exit 1
+          fi
+          if grep -RInE --exclude-dir=.git --exclude='*.png' --exclude='*.jpg' --exclude='*.webp' \
+            '(BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|AKIA[0-9A-Z]{16}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9_]{30,}|sk-[A-Za-z0-9]{20,})' .; then
+            echo 'Possible secret found.' >&2
+            exit 1
+          fi
