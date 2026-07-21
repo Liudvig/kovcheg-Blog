@@ -1,5 +1,6 @@
 <?php
 use Kovcheg\Auth;
+use Kovcheg\DB;
 use Kovcheg\Blog\Blog;
 
 $typeLabels = ['post' => 'Публикация', 'page' => 'Страница', 'portfolio' => 'Проект'];
@@ -9,6 +10,7 @@ $reactionMap = [];
 foreach ($reactions as $reaction) $reactionMap[(string)$reaction['reaction']] = (int)$reaction['total'];
 $reactionOptions = ['👍' => 'Нравится', '❤️' => 'Люблю', '👏' => 'Браво', '🔥' => 'Огонь', '💡' => 'Полезно'];
 $categories=$categories??[];$tags=$tags??[];$portfolioMeta=$portfolioMeta??[];$viewCount=(int)($viewCount??0);$relatedEntries=$relatedEntries??[];
+$featuredMediaId=0;if(!empty($entry['featured_image_path']))$featuredMediaId=(int)(DB::one('SELECT id FROM media_library WHERE stored_path=? LIMIT 1',[$entry['featured_image_path']])['id']??0);
 ?>
 <article class="single-entry">
   <header class="single-entry__header">
@@ -24,7 +26,7 @@ $categories=$categories??[];$tags=$tags??[];$portfolioMeta=$portfolioMeta??[];$v
     <?php if($categories||$tags):?><div class="entry-taxonomy"><?php foreach($categories as $category):?><a href="<?=e(app_url('/category/'.rawurlencode($category['slug'])))?>"><?=e($category['name'])?></a><?php endforeach;?><?php foreach($tags as $tag):?><a href="<?=e(app_url('/tag/'.rawurlencode($tag['slug'])))?>">#<?=e($tag['name'])?></a><?php endforeach;?></div><?php endif;?>
   </header>
 
-  <?php if(!empty($entry['featured_image_path'])):?><figure class="single-entry__cover"><img src="<?=e(app_url('/storage/uploads/'.$entry['featured_image_path']))?>" alt="<?=e($entry['title'])?>"></figure><?php endif;?>
+  <?php if($featuredMediaId):?><figure class="single-entry__cover"><img src="<?=e(app_url('/media/'.$featuredMediaId))?>" alt="<?=e($entry['title'])?>"></figure><?php endif;?>
 
   <?php if($type==='portfolio'&&array_filter($portfolioMeta)):?><section class="portfolio-facts"><?php foreach(['client'=>'Проект','year'=>'Год','role'=>'Роль'] as $key=>$label):?><?php if(!empty($portfolioMeta[$key])):?><div><small><?=e($label)?></small><b><?=e($portfolioMeta[$key])?></b></div><?php endif;?><?php endforeach;?><?php if(!empty($portfolioMeta['project_url'])):?><div><small>Ссылка</small><a href="<?=e($portfolioMeta['project_url'])?>" rel="noopener noreferrer">Открыть проект ↗</a></div><?php endif;?></section><?php endif;?>
 
