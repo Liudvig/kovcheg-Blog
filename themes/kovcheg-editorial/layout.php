@@ -35,6 +35,7 @@ if (!empty($_SESSION['flash_success'])) {
 <title><?=e($pageTitle !== '' ? $pageTitle.' — '.$siteName : $siteName)?></title>
 <link rel="icon" href="<?=e($favicon)?>">
 <link rel="stylesheet" href="<?=e($themeAsset('theme.css').'?v='.rawurlencode(ASSET_REVISION))?>">
+<link rel="stylesheet" href="<?=e($themeAsset('content.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <?=\Kovcheg\Hooks::fire('blog.layout.head', '')?>
 </head>
 <body class="blog-theme blog-theme-editorial">
