@@ -1,0 +1,16 @@
+{
+  "name": "KOVCHEG CMS",
+  "short_name": "KOVCHEG",
+  "start_url": "./messages",
+  "display": "standalone",
+  "background_color": "#17212b",
+  "theme_color": "#17212b",
+  "icons": [
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

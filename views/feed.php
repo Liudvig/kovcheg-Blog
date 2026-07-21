@@ -1,0 +1,15 @@
+<?php $current=\Kovcheg\Auth::user()??[];$stories=$stories??[];?>
+<main class="site-page-shell feed-shell feed-shell-090"><?php echo \Kovcheg\View::partial('site-sidebar',['active'=>'feed']);?>
+ <section class="feed-page feed-page-090">
+  <section class="stories-strip" aria-label="Истории">
+   <button type="button" class="story-tile own <?=has_active_story(\Kovcheg\Auth::id())?'has-story':''?>" data-story-create><?=avatar_html($current,'story-tile-avatar')?><span class="story-add">＋</span><b>Ваша история</b></button>
+   <?php foreach($stories as $person):if((int)$person['id']===\Kovcheg\Auth::id())continue;?><button type="button" class="story-tile <?=!empty($person['unseen_count'])?'unseen':'seen'?>" data-story-open="<?=(int)$person['id']?>"><?=avatar_html($person,'story-tile-avatar')?><b><?=e(explode(' ',trim((string)$person['display_name']))[0]??$person['display_name'])?></b></button><?php endforeach;?>
+  </section>
+  <header class="feed-page-head"><div><h1>Лента</h1><p>Публикации коллег и ваши записи.</p></div><nav class="feed-tabs"><a class="<?=$tab==='colleagues'?'active':''?>" href="<?=e(app_url('/feed?tab=colleagues'))?>">Коллеги</a><a class="<?=$tab==='mine'?'active':''?>" href="<?=e(app_url('/feed?tab=mine'))?>">Мои</a><a class="<?=$tab==='all'?'active':''?>" href="<?=e(app_url('/feed?tab=all'))?>">Все</a></nav></header>
+  <?=\Kovcheg\View::partial('wall-composer',['current'=>$current,'action'=>app_url('/feed/post'),'placeholder'=>'Напишите что-нибудь…','composerContext'=>'feed'])?>
+  <div class="feed-list wall-feed-090" data-wall-feed><?php foreach($posts as $post)echo \Kovcheg\View::partial('feed-post',['post'=>$post]);?><?php if(!$posts):?><div class="empty-card empty-card-090">В ленте пока нет публикаций.</div><?php endif;?></div>
+ </section>
+ <aside class="feed-right-column"><?=\Kovcheg\View::partial('weather-widget')?><article class="vk-right-card"><header><b>Дополнительные блоки</b></header><p>Здесь могут появиться рекомендации, сообщества, логотипы и блоки модулей.</p></article></aside>
+</main>
+<div class="modal story-upload-modal" hidden data-story-upload-modal><div class="modal-card"><button class="modal-close" type="button" data-story-upload-close>×</button><h2>Новая история</h2><div class="story-upload-preview" data-story-upload-preview><span>Выберите фото или видео</span></div><label>Подпись<textarea rows="3" maxlength="500" data-story-caption-input placeholder="Необязательно"></textarea></label><p class="muted">История исчезнет через 24 часа.</p><form data-story-upload-form action="<?=e(app_url('/profile/story'))?>" enctype="multipart/form-data" hidden><?=csrf_field()?><input type="file" name="story" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" data-story-file-input></form><div class="button-row"><button type="button" class="btn" data-story-choose>Выбрать файл</button><button type="button" class="btn btn-primary" data-story-publish disabled>Опубликовать</button></div></div></div>
+<?=\Kovcheg\View::partial('story-viewer')?>
