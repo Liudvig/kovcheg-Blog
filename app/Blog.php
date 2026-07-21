@@ -191,7 +191,7 @@ final class Blog
             return false;
         }
 
-        return in_array((string)(Auth::user()['role'] ?? ''), ['owner', 'admin', 'moderator'], true);
+        return in_array((string)(Auth::user()['role'] ?? ''), ['owner', 'admin', 'editor', 'moderator'], true);
     }
 
     public static function excerpt(array $entry, int $length = 220): string
