@@ -1,0 +1,62 @@
+/* KOVCHEG CMS 3.0. */
+
+/* A post is a plain vertical document flow. */
+body[data-template] [data-wall-post].wall-post-card,
+body[data-template] [data-wall-post]{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;align-content:flex-start!important;gap:0!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;padding:0!important;overflow:hidden!important;grid-template:none!important;grid-template-rows:none!important;grid-auto-rows:auto!important}
+body[data-template] [data-wall-post]>*{flex:0 0 auto!important;flex-grow:0!important;flex-shrink:0!important;align-self:stretch!important;height:auto!important;min-height:0!important;max-height:none!important;grid-column:auto!important;grid-row:auto!important}
+body[data-template] [data-wall-post]>.wall-post-head{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;align-items:start!important;gap:10px!important;height:64px!important;min-height:64px!important;max-height:64px!important;margin:0!important;padding:12px 14px!important;overflow:hidden!important}
+body[data-template] [data-wall-post]>.wall-post-head>*{min-height:0!important;max-height:40px!important}
+body[data-template] [data-wall-post]>.wall-post-text:empty{display:none!important;height:0!important;padding:0!important;margin:0!important}
+body[data-template] [data-wall-post]>.wall-media-grid.count-1{display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;aspect-ratio:auto!important;background:transparent!important;border:0!important;overflow:hidden!important;line-height:0!important;transform:none!important;contain:layout paint!important}
+body[data-template] [data-wall-post]>.wall-media-grid.count-1>.wall-media-item{position:static!important;display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;inset:auto!important;aspect-ratio:auto!important;background:transparent!important;border:0!important;border-radius:0!important;overflow:hidden!important;line-height:0!important;transform:none!important}
+body[data-template] [data-wall-post]>.wall-media-grid.count-1>.wall-media-item>img{position:static!important;display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;inset:auto!important;aspect-ratio:auto!important;object-fit:fill!important;object-position:center!important;background:transparent!important;border:0!important;border-radius:0!important;vertical-align:top!important;transform:none!important}
+body[data-template] [data-wall-post]>.wall-media-grid:not(.count-1){margin:0!important;padding:0!important;background:transparent!important}
+body[data-template] [data-wall-post]>.wall-native-videos{margin:0!important;padding:0!important}
+body[data-template] [data-wall-post]>.wall-post-text{margin:0!important;padding:11px 14px!important}
+body[data-template] [data-wall-post]>.wall-post-actions{min-height:50px!important;margin:0!important;padding:7px 12px!important;border-top:1px solid var(--border,#dfe5ea)!important}
+body[data-template] [data-wall-post]>.wall-reaction-summary:empty{display:none!important}
+body[data-template] [data-wall-post]>.wall-comments{margin:0!important}
+
+/* Full player belongs to the Music page. */
+body.vk-app .vk-music-player{display:grid!important;grid-template-columns:44px 44px 44px minmax(0,1fr) auto!important;grid-template-rows:auto auto!important;gap:8px 10px!important;align-items:center!important;padding:14px 16px!important;border-radius:4px!important}
+body.vk-app .vk-music-player button{width:40px!important;height:40px!important;border:0!important;border-radius:50%!important;background:#e5ebf1!important;color:#2a5885!important;font-size:17px!important}
+body.vk-app .vk-music-player [data-vk-player-play]{background:#447bba!important;color:#fff!important;font-size:19px!important}
+body.vk-app .vk-music-player-info{min-width:0!important;display:grid!important;gap:3px!important}
+body.vk-app .vk-music-player-info b{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;color:#2a5885!important}
+body.vk-app .vk-music-player-info small{color:#818c99!important}
+body.vk-app .vk-music-player-progress{grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto 120px!important;gap:10px!important;align-items:center!important}
+body.vk-app .vk-music-player-progress input{padding:0!important;border:0!important;box-shadow:none!important;accent-color:#447bba!important}
+body.vk-app .vk-music-player-progress time{white-space:nowrap!important;color:#818c99!important;font-size:11px!important}
+
+@media(min-width:801px){
+ html:has(body.vk-app),body.vk-app{height:100%!important;min-height:100%!important}
+ body.vk-app .vk-top-inner{width:min(1180px,calc(100vw - 24px))!important;grid-template-columns:150px 300px minmax(0,1fr)!important;gap:14px!important}
+ body.vk-app .vk-wordmark{grid-column:1!important}
+ body.vk-app .vk-search{grid-column:2!important}
+ body.vk-app .vk-header-player-compact{position:absolute!important;right:150px!important;top:9px!important;width:92px!important;min-width:92px!important;max-width:92px!important;height:30px!important;margin:0!important;padding:3px!important;display:grid!important;grid-template-columns:26px 30px 26px!important;gap:2px!important;align-items:center!important;overflow:hidden!important;border:1px solid rgba(20,65,105,.55)!important;border-radius:5px!important;background:rgba(38,91,139,.72)!important;box-shadow:inset 0 1px rgba(255,255,255,.18)!important;z-index:9005!important}
+ body.vk-app .vk-header-player-compact button{width:26px!important;height:22px!important;min-width:26px!important;margin:0!important;padding:0!important;border:0!important;border-radius:3px!important;background:transparent!important;color:#fff!important;font-size:13px!important;line-height:1!important}
+ body.vk-app .vk-header-player-compact .vk-header-player-play{width:30px!important;min-width:30px!important;background:#fff!important;color:#3f6f9b!important}
+ body.vk-app .vk-header-player-compact audio{display:none!important}
+ body.vk-app .vk-top-actions{position:absolute!important;right:0!important;top:4px!important;z-index:9010!important}
+ body.vk-app .vk-page.kov-vk-old-profile-page{width:min(1180px,calc(100vw - 24px))!important;grid-template-columns:150px 300px minmax(0,1fr)!important;gap:14px!important}
+ body.vk-app .kov-vk-old-profile-left{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;align-content:flex-start!important;gap:12px!important;height:100%!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;padding:0 0 64px!important;scrollbar-width:none!important;-ms-overflow-style:none!important;overscroll-behavior:contain!important}
+ body.vk-app .kov-vk-old-profile-left>*{flex:0 0 auto!important;flex-grow:0!important;flex-shrink:0!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important}
+ body.vk-app .kov-vk-old-profile-main,body.vk-app .vk-page.kov-vk-old-profile-page>.vk-side{scrollbar-width:none!important;-ms-overflow-style:none!important}
+ body.vk-app .kov-vk-old-profile-left::-webkit-scrollbar,body.vk-app .kov-vk-old-profile-main::-webkit-scrollbar,body.vk-app .vk-page.kov-vk-old-profile-page>.vk-side::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+ body.vk-app .kov-vk-old-avatar-card{display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:8px!important;overflow:visible!important;background:#fff!important}
+ body.vk-app .kov-vk-avatar-shell,body.vk-app .kov-vk-old-avatar{display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;background:transparent!important;overflow:visible!important}
+ body.vk-app .kov-vk-avatar-open{position:relative!important;display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:3px!important;overflow:hidden!important;background:#15283a!important;line-height:0!important;cursor:zoom-in!important;isolation:auto!important}
+ body.vk-app .kov-vk-avatar-open::before,body.vk-app .kov-vk-avatar-open::after{display:none!important;content:none!important}
+ body.vk-app .kov-vk-avatar-image{position:static!important;display:block!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;aspect-ratio:auto!important;object-fit:contain!important;object-position:center top!important;background:#15283a!important;border:0!important;border-radius:3px!important;transform:none!important}
+ body.vk-app .kov-vk-avatar-open>span{z-index:2!important}
+ body.vk-app .kov-vk-avatar-shell>[data-avatar-menu][hidden]{display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important}
+ body.vk-app .kov-vk-edit-profile{position:static!important;display:flex!important;width:100%!important;min-height:38px!important;max-height:none!important;margin:8px 0 0!important;padding:0 12px!important}
+ html:has(body.vk-app .weather-shell-170),body.vk-app:has(.weather-shell-170){height:100%!important;overflow:hidden!important}
+ body.vk-app:has(.weather-shell-170) #kovcheg-page-content{height:calc(100vh - 48px)!important;min-height:0!important;overflow:hidden!important}
+ body.vk-app .weather-shell-170{width:min(1180px,calc(100vw - 24px))!important;height:100%!important;min-height:0!important;display:grid!important;grid-template-columns:150px minmax(0,1fr)!important;gap:14px!important;align-items:stretch!important;margin:0 auto!important;padding:14px 0 0!important;overflow:hidden!important}
+ body.vk-app .weather-shell-170>.vk-side{height:100%!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-width:none!important;-ms-overflow-style:none!important;overscroll-behavior:contain!important}
+ body.vk-app .weather-shell-170>.vk-side::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+ body.vk-app .weather-page-170{height:100%!important;min-height:0!important;max-height:none!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-width:none!important;-ms-overflow-style:none!important;padding-bottom:72px!important;scroll-behavior:smooth!important}
+ body.vk-app .weather-page-170::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+}
+@media(max-width:800px){body[data-template] [data-wall-post]>.wall-post-head{height:58px!important;min-height:58px!important;max-height:58px!important;padding:10px!important}body.vk-app .vk-header-player-compact{display:none!important}body.vk-app .vk-music-player{grid-template-columns:40px 40px 40px minmax(0,1fr)!important;padding:12px!important}body.vk-app .vk-music-player-progress{grid-template-columns:minmax(0,1fr) auto!important}body.vk-app .vk-music-player-progress [data-vk-player-volume]{display:none!important}body.vk-app .kov-vk-old-profile-left{display:block!important}body.vk-app .kov-vk-old-avatar-card{max-height:none!important;overflow:visible!important}body.vk-app .kov-vk-avatar-open,body.vk-app .kov-vk-avatar-image{width:100%!important;height:auto!important;min-height:0!important;max-height:none!important}body.vk-app .weather-shell-170{display:block!important;width:100%!important;height:auto!important;min-height:100vh!important;padding:8px!important;overflow:visible!important}body.vk-app .weather-page-170{height:auto!important;max-height:none!important;overflow:visible!important;padding-bottom:76px!important}}

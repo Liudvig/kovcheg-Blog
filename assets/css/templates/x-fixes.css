@@ -1,0 +1,42 @@
+/* KOVCHEG CMS 3.0. */
+body.x-app{overflow-x:hidden!important;background:var(--x-bg,#000)!important}
+body.x-app .x-profile-cover{width:100%!important;height:200px!important;background-size:cover!important;background-repeat:no-repeat!important;background-position:center var(--x-banner-position,50%)!important}
+body.x-app .profile-banner-preview{background-size:cover!important;background-repeat:no-repeat!important;background-position:center var(--x-banner-position,50%)!important}
+body.x-app .x-banner-position-control{display:grid!important;gap:6px!important;margin-top:10px!important;color:var(--x-muted)!important}
+body.x-app .x-banner-position-control input{width:100%!important}
+body.x-app .kovcheg-copyright-link{display:block!important;font-weight:700!important;color:var(--x-muted)!important;text-decoration:none!important}
+body.x-app .kovcheg-copyright-link:hover{color:var(--x-text)!important}
+body.x-app [data-wall-composer].is-uploading{pointer-events:none;opacity:.78}
+body.x-app [data-wall-publisher-submit][aria-busy=true]{cursor:wait}
+body.x-app[data-theme=light]{--x-bg:#fff;--x-text:#0f1419;--x-muted:#536471;--x-line:#eff3f4;--x-blue:#1d9bf0;--x-hover:#f7f9f9;--accent:#1d9bf0;--panel:#fff;--panel-2:#f7f9f9;--text:#0f1419;--muted:#536471;--border:#eff3f4;--danger:#f4212e;--success:#00ba7c;background:#fff!important;color:#0f1419!important}
+body.x-app[data-theme=light] .x-layout,body.x-app[data-theme=light] .x-side,body.x-app[data-theme=light] .x-main,body.x-app[data-theme=light] .x-right,body.x-app[data-theme=light] .x-title,body.x-app[data-theme=light] .x-compose,body.x-app[data-theme=light] .x-post,body.x-app[data-theme=light] .wall-create-bar,body.x-app[data-theme=light] .wall-post-card,body.x-app[data-theme=light] .wall-publisher,body.x-app[data-theme=light] .wall-drafts-card,body.x-app[data-theme=light] .wall-post-menu,body.x-app[data-theme=light] .wall-reaction-menu,body.x-app[data-theme=light] .settings-page-060,body.x-app[data-theme=light] .settings-title,body.x-app[data-theme=light] .settings-menu-060,body.x-app[data-theme=light] .settings-content-060,body.x-app[data-theme=light] .settings-form,body.x-app[data-theme=light] .profile-banner-settings{background:#fff!important;color:#0f1419!important;border-color:#eff3f4!important}
+body.x-app[data-theme=light] .x-title{background:rgba(255,255,255,.92)!important}
+body.x-app[data-theme=light] .x-side nav a:hover,body.x-app[data-theme=light] .x-account summary:hover,body.x-app[data-theme=light] .x-post:hover,body.x-app[data-theme=light] .wall-post-card:hover,body.x-app[data-theme=light] .settings-menu-060 a:hover,body.x-app[data-theme=light] .settings-menu-060 a.active{background:#f7f9f9!important}
+body.x-app[data-theme=light] .x-search,body.x-app[data-theme=light] .wall-comment-input-wrap,body.x-app[data-theme=light] .wall-publisher-text,body.x-app[data-theme=light] .top-global-search{background:#eff3f4!important;color:#0f1419!important}
+body.x-app[data-theme=light] input,body.x-app[data-theme=light] textarea,body.x-app[data-theme=light] select{background:#fff!important;color:#0f1419!important;border-color:#cfd9de!important}
+body.x-app[data-theme=light] .x-search input,body.x-app[data-theme=light] .wall-comment-input-wrap textarea,body.x-app[data-theme=light] .wall-publisher-text textarea{background:transparent!important;border:0!important;color:#0f1419!important}
+body.x-app[data-theme=light] .x-box,body.x-app[data-theme=light] .x-profile-info,body.x-app[data-theme=light] .x-tabs,body.x-app[data-theme=light] .x-post,body.x-app[data-theme=light] .wall-post-card,body.x-app[data-theme=light] .wall-comments{border-color:#eff3f4!important}
+body.x-app[data-theme=light] .x-account>div,body.x-app[data-theme=light] .x-drop-panel,body.x-app[data-theme=light] .top-global-results{background:#fff!important;color:#0f1419!important;border-color:#cfd9de!important;box-shadow:0 8px 30px rgba(15,20,25,.14)!important}
+body.x-app[data-theme=light] .x-button{background:#0f1419!important;color:#fff!important}
+body.x-app[data-theme=light] .x-button.blue,body.x-app[data-theme=light] .btn-primary{background:#1d9bf0!important;color:#fff!important}
+body.x-app[data-theme=light] .x-profile-avatar{border-color:#fff!important}
+body.x-app[data-theme=light] .message-toast,body.x-app[data-theme=light] .modal-card{background:#fff!important;color:#0f1419!important;border:1px solid #cfd9de!important}
+body.x-app[data-theme=light] .theme-preview{background:#f7f9f9!important;border-color:#cfd9de!important}
+@media(min-width:701px){
+ html:has(body.x-app .x-layout),body.x-app:has(.x-layout){height:100%!important;min-height:100%!important;overflow:hidden!important}
+ body.x-app:has(.x-layout) #kovcheg-page-content{height:100vh!important;min-height:0!important;overflow:hidden!important}
+ body.x-app .x-layout{height:100vh!important;min-height:0!important;overflow:hidden!important;align-items:stretch!important}
+ body.x-app .x-side{height:100vh!important;min-height:0!important;position:sticky!important;top:0!important;overflow:hidden!important}
+ body.x-app .x-side nav{min-height:0!important;overflow-y:auto!important;scrollbar-width:none!important}
+ body.x-app .x-main{height:100vh!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;scrollbar-gutter:stable!important;overscroll-behavior:contain!important}
+ body.x-app .x-right{height:100vh!important;min-height:0!important;position:sticky!important;top:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;scrollbar-width:thin!important}
+ html:has(body.x-app .settings-page-060),body.x-app:has(.settings-page-060){height:100%!important;overflow:hidden!important}
+ body.x-app:has(.settings-page-060) #kovcheg-page-content{height:100vh!important;min-height:0!important;overflow:hidden!important}
+ body.x-app:has(.settings-page-060) #kovcheg-page-content>.site-page-shell{height:100vh!important;min-height:0!important;overflow:hidden!important;align-items:stretch!important}
+ body.x-app .settings-page-060{height:100%!important;min-height:0!important;display:grid!important;grid-template-rows:auto minmax(0,1fr)!important;overflow:hidden!important;padding-bottom:0!important}
+ body.x-app .settings-title{flex:0 0 auto!important}
+ body.x-app .settings-layout-060{height:100%!important;min-height:0!important;overflow:hidden!important;align-items:stretch!important}
+ body.x-app .settings-menu-060{height:100%!important;min-height:0!important;position:static!important;top:auto!important;max-height:none!important;overflow-y:auto!important;overscroll-behavior:contain!important}
+ body.x-app .settings-content-060{height:100%!important;min-height:0!important;max-height:none!important;overflow-y:auto!important;overflow-x:hidden!important;padding-bottom:64px!important;scrollbar-gutter:stable!important;overscroll-behavior:contain!important}
+}
+@media(max-width:700px){html:has(body.x-app),body.x-app{height:auto!important;overflow-y:auto!important}body.x-app #kovcheg-page-content{height:auto!important;min-height:100vh!important;overflow:visible!important}body.x-app .x-layout{display:block!important;width:100%!important;height:auto!important;min-height:100vh!important;overflow:visible!important}body.x-app .x-main{height:auto!important;min-height:100vh!important;overflow:visible!important}body.x-app .x-right{height:auto!important;overflow:visible!important}body.x-app .settings-page-060,body.x-app .settings-layout-060,body.x-app .settings-content-060{height:auto!important;max-height:none!important;overflow:visible!important}body.x-app .settings-menu-060{position:static!important;max-height:none!important}}

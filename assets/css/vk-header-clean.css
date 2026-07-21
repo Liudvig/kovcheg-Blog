@@ -1,0 +1,50 @@
+/* VK header and desktop alignment: controls are native parts of the blue bar. */
+body.vk-app .vk-top{overflow:visible!important}
+body.vk-app .vk-top-inner{position:relative!important}
+body.vk-app .vk-top-actions{position:absolute!important;right:0!important;top:4px!important;z-index:9010!important}
+body.vk-app .vk-top-actions details{filter:none!important;box-shadow:none!important;text-shadow:none!important;background:transparent!important;border:0!important;outline:0!important}
+body.vk-app .vk-notification-button{appearance:none!important;-webkit-appearance:none!important;position:relative!important;display:grid!important;place-items:center!important;width:34px!important;height:40px!important;min-width:34px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;filter:none!important;text-shadow:none!important;outline:0!important;color:rgba(255,255,255,.92)!important;list-style:none!important;cursor:pointer!important}
+body.vk-app .vk-notification-button::-webkit-details-marker{display:none!important}
+body.vk-app .vk-notification-button:hover,body.vk-app details[open]>.vk-notification-button{background:none!important;box-shadow:none!important;filter:none!important;color:#fff!important;opacity:1!important}
+body.vk-app .vk-bell-icon{display:block!important;width:19px!important;height:19px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.65!important;stroke-linecap:round!important;stroke-linejoin:round!important;filter:none!important;box-shadow:none!important;overflow:visible!important}
+body.vk-app .vk-notification-button em{position:absolute!important;top:2px!important;right:-1px!important;min-width:15px!important;height:15px!important;padding:0 4px!important;border:2px solid #447bba!important;border-radius:8px!important;background:#e64646!important;color:#fff!important;font:700 9px/11px Arial,sans-serif!important;text-align:center!important;box-sizing:border-box!important;box-shadow:none!important}
+body.vk-app .vk-top-actions .vk-drop-panel{position:fixed!important;top:52px;right:max(8px,calc((100vw - min(1180px,calc(100vw - 24px)))/2));left:auto!important;width:min(360px,calc(100vw - 16px))!important;max-height:min(520px,calc(100vh - 64px))!important;margin:0!important;padding:6px!important;overflow:auto!important;border:1px solid #c5ced8!important;border-radius:3px!important;background:#fff!important;color:#222!important;box-shadow:0 8px 25px rgba(30,55,80,.22)!important;z-index:12050!important}
+body.vk-app .vk-top-actions .vk-account-panel{width:min(210px,calc(100vw - 16px))!important}
+body.vk-app .vk-top-actions details:not([open])>.vk-drop-panel{display:none!important}
+body.vk-app .vk-top-actions details[open]>.vk-drop-panel{display:block!important}
+body.vk-app .kov-header-panel>header{position:sticky!important;top:-6px!important;z-index:2!important;margin:-6px -6px 4px!important;padding:10px 12px!important;border-bottom:1px solid #dce1e6!important;background:#f7f8fa!important}
+body.vk-app .notification-note{border-radius:2px!important}
+body.vk-app .notification-note:hover{background:#edf2f7!important}
+body.vk-app .notification-note.unread{background:#eaf1f8!important}
+
+/* Profile photo strip inspired by VK 2010. */
+body.vk-app .kov-vk-profile-photos{overflow:hidden!important;border-radius:3px!important}
+body.vk-app .kov-vk-profile-photos-head{height:34px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:0 12px!important;border-bottom:1px solid #d8e0e8!important;background:#e9edf1!important;color:#45688e!important}
+body.vk-app .kov-vk-profile-photos-head a{color:#45688e!important;font-size:12px!important}
+body.vk-app .kov-vk-profile-photos-head b{font-weight:600!important}
+body.vk-app .kov-vk-profile-photo-row{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:5px!important;padding:8px!important;background:#fff!important}
+body.vk-app .kov-vk-profile-photo{display:block!important;width:100%!important;min-width:0!important;aspect-ratio:4/3!important;margin:0!important;padding:0!important;overflow:hidden!important;border:0!important;border-radius:1px!important;background:#dfe6ed!important;cursor:pointer!important}
+body.vk-app .kov-vk-profile-photo img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;transition:transform .16s ease!important}
+body.vk-app .kov-vk-profile-photo:hover img{transform:scale(1.025)!important}
+body.vk-app .kov-vk-profile-photos-empty{min-height:62px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:12px!important;background:#fff!important;color:#818c99!important}
+body.vk-app .kov-vk-profile-photos-empty a{white-space:nowrap!important;color:#45688e!important}
+
+@media(min-width:801px){
+ body.vk-app .vk-top-inner,body.vk-app .vk-page,body.vk-app .vk-messenger,body.vk-app .weather-shell-170,body.vk-app #kovcheg-page-content>.site-page-shell{width:min(1180px,calc(100vw - 24px))!important;margin-left:auto!important;margin-right:auto!important}
+ body.vk-app .vk-page{grid-template-columns:150px minmax(0,700px) minmax(220px,1fr)!important;gap:12px!important}
+ body.vk-app .vk-page.two{grid-template-columns:150px minmax(0,1fr)!important}
+ body.vk-app .vk-page.kov-vk-old-profile-page{grid-template-columns:150px 300px minmax(0,1fr)!important;gap:12px!important}
+ body.vk-app .vk-side{grid-column:1!important;min-width:150px!important;width:150px!important;margin:0!important}
+ body.vk-app .vk-header-player-compact{position:absolute!important;left:50%!important;right:auto!important;top:4px!important;transform:translateX(-50%)!important;width:82px!important;min-width:82px!important;max-width:82px!important;height:40px!important;margin:0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important;overflow:visible!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;filter:none!important;z-index:9005!important}
+ body.vk-app .vk-header-player-compact button{appearance:none!important;-webkit-appearance:none!important;display:grid!important;place-items:center!important;width:27px!important;height:40px!important;min-width:27px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;filter:none!important;color:rgba(255,255,255,.88)!important;font:700 15px/1 Arial,sans-serif!important;text-shadow:none!important;outline:0!important;cursor:pointer!important}
+ body.vk-app .vk-header-player-compact button:hover,body.vk-app .vk-header-player-compact button:focus-visible{background:none!important;box-shadow:none!important;filter:none!important;color:#fff!important;opacity:1!important}
+ body.vk-app .vk-header-player-compact .vk-header-player-play{width:28px!important;min-width:28px!important;background:none!important;color:#fff!important;font-size:14px!important}
+ body.vk-app .vk-header-player-compact audio{display:none!important}
+}
+@media(max-width:800px){
+ body.vk-app .vk-header-player-compact{display:none!important}
+ body.vk-app .vk-top-actions .vk-drop-panel{top:50px!important;right:8px!important}
+ body.vk-app .kov-vk-profile-photo-row{display:flex!important;overflow-x:auto!important;scrollbar-width:none!important}
+ body.vk-app .kov-vk-profile-photo-row::-webkit-scrollbar{display:none!important}
+ body.vk-app .kov-vk-profile-photo{flex:0 0 124px!important;width:124px!important}
+}

@@ -1,0 +1,49 @@
+/* Shared modern multi-upload and natural wall media for default, VK and X. */
+body[data-template] .wall-create-bar{min-height:48px!important;border-radius:14px!important;padding:7px 9px!important;gap:8px!important}
+body[data-template] .wall-create-primary{min-height:36px!important;border-radius:10px!important;padding:0 14px!important}
+body[data-template] .wall-create-tools{gap:4px!important}
+body[data-template] .wall-create-drafts,body[data-template] .wall-create-search{width:36px!important;height:36px!important;min-width:36px!important;padding:0!important;border-radius:10px!important;display:grid!important;place-items:center!important}
+body[data-template] .wall-create-drafts b{display:none!important}
+body[data-template] .wall-publisher-modal{padding:14px!important;backdrop-filter:blur(7px)}
+body[data-template] .wall-publisher.wall-composer-modern{width:min(680px,100%)!important;max-height:min(92vh,780px)!important;display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important;border-radius:18px!important;overflow:hidden!important}
+body[data-template] .wall-composer-modern .wall-publisher-head{min-height:54px!important;padding:0 16px!important}
+body[data-template] .wall-composer-modern .wall-publisher-step{display:grid!important;align-content:start!important;gap:12px!important;padding:14px 16px!important;overflow-y:auto!important}
+body[data-template] .modern-wall-text{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;align-items:start!important;gap:10px!important;padding:10px 12px!important;border-radius:14px!important}
+body[data-template] .modern-wall-text textarea{min-height:92px!important;max-height:220px!important;padding:4px 0!important;border:0!important;box-shadow:none!important;resize:none!important;background:transparent!important}
+body[data-template] .wall-unified-dropzone{display:grid!important;grid-template-columns:42px minmax(0,1fr) auto!important;align-items:center!important;gap:12px!important;min-height:82px!important;padding:13px!important;border:1.5px dashed color-mix(in srgb,var(--accent,#3390ec) 42%,var(--border,#dfe5ea))!important;border-radius:14px!important;background:color-mix(in srgb,var(--panel-2,#f4f6f8) 86%,transparent)!important;cursor:pointer!important;outline:none!important;transition:.16s ease!important}
+body[data-template] .wall-unified-dropzone:hover,body[data-template] .wall-unified-dropzone:focus-visible,body[data-template] .wall-unified-dropzone.dragging{border-color:var(--accent,#3390ec)!important;background:color-mix(in srgb,var(--accent,#3390ec) 8%,var(--panel,#fff))!important;transform:translateY(-1px)}
+body[data-template] .wall-unified-dropzone .wall-upload-symbol{width:42px!important;height:42px!important;display:grid!important;place-items:center!important;border-radius:12px!important;background:var(--accent,#3390ec)!important;color:#fff!important;font-size:24px!important}
+body[data-template] .wall-unified-dropzone strong,body[data-template] .wall-unified-dropzone small{display:block!important}
+body[data-template] .wall-unified-dropzone small{margin-top:2px!important;color:var(--muted,#708499)!important;font-weight:400!important}
+body[data-template] .wall-unified-dropzone .wall-upload-button{min-height:34px!important;padding:0 12px!important;border:0!important;border-radius:10px!important;background:var(--panel,#fff)!important;color:var(--text,#17212b)!important;font-weight:700!important;box-shadow:0 1px 0 color-mix(in srgb,var(--border,#dfe5ea) 80%,transparent)!important}
+body[data-template] .wall-unified-preview{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+body[data-template] .wall-unified-preview[hidden]{display:none!important}
+body[data-template] .wall-unified-item{position:relative;min-width:0;display:grid;grid-template-columns:56px minmax(0,1fr) 28px;align-items:center;gap:9px;padding:7px;border:1px solid var(--border,#dfe5ea);border-radius:12px;background:var(--panel,#fff)}
+body[data-template] .wall-unified-item-media{width:56px;height:48px;display:grid;place-items:center;overflow:hidden;border-radius:9px;background:var(--panel-2,#f4f6f8);font-size:22px}
+body[data-template] .wall-unified-item-media img,body[data-template] .wall-unified-item-media video{width:100%;height:100%;object-fit:cover}
+body[data-template] .wall-unified-item>div:nth-child(2){min-width:0}
+body[data-template] .wall-unified-item b,body[data-template] .wall-unified-item small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body[data-template] .wall-unified-item small{color:var(--muted,#708499)}
+body[data-template] .wall-unified-item>button{width:28px;height:28px;border:0;border-radius:9px;background:transparent;color:var(--muted,#708499);font-size:20px}
+body[data-template] .wall-unified-item>button:hover{background:color-mix(in srgb,var(--danger,#df3f40) 10%,transparent);color:var(--danger,#df3f40)}
+body[data-template] .wall-publish-options{border:1px solid var(--border,#dfe5ea)!important;border-radius:13px!important;background:var(--panel,#fff)!important;overflow:hidden!important}
+body[data-template] .wall-publish-options summary{display:grid!important;grid-template-columns:24px auto minmax(0,1fr)!important;align-items:center!important;gap:7px!important;padding:11px 13px!important;cursor:pointer!important;list-style:none!important}
+body[data-template] .wall-publish-options summary::-webkit-details-marker{display:none}
+body[data-template] .wall-publish-options summary small{justify-self:end;color:var(--muted,#708499);font-weight:400}
+body[data-template] .wall-publish-options-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;padding:0 13px 13px!important}
+body[data-template] .wall-publish-options-grid .wall-schedule-field{grid-column:1/-1!important}
+body[data-template] .modern-wall-footer{min-height:58px!important;padding:9px 16px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}
+body[data-template] .modern-wall-footer>small{color:var(--muted,#708499)!important;font-weight:500!important}
+body[data-template] .modern-wall-submit{min-width:140px!important;border-radius:11px!important;padding:10px 18px!important}
+body[data-template] .modern-multiple-field{position:relative!important;padding:12px!important;border:1px dashed var(--border,#dfe5ea)!important;border-radius:12px!important;background:var(--panel-2,#f4f6f8)!important}
+body[data-template] .modern-multiple-input{padding:0!important;border:0!important;background:transparent!important}
+body[data-template] .modern-multiple-input::file-selector-button{margin-right:10px;padding:8px 12px;border:0;border-radius:9px;background:var(--accent,#3390ec);color:#fff;font-weight:700;cursor:pointer}
+body[data-template] .modern-multiple-field>[data-modern-multiple-count]{color:var(--muted,#708499)!important;font-weight:400!important}
+/* One photo keeps its real proportions. The container no longer paints empty white fields. */
+body[data-template] .wall-post-card .wall-media-grid.count-1{display:block!important;width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;margin:8px 0!important;background:transparent!important;overflow:visible!important;text-align:center!important}
+body[data-template] .wall-post-card .wall-media-grid.count-1 .wall-media-item{display:inline-block!important;width:auto!important;max-width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;aspect-ratio:auto!important;margin:0 auto!important;padding:0!important;border:0!important;background:transparent!important;overflow:hidden!important;vertical-align:top!important}
+body[data-template] .wall-post-card .wall-media-grid.count-1 img{display:block!important;width:auto!important;max-width:100%!important;height:auto!important;max-height:min(72vh,720px)!important;object-fit:contain!important;object-position:center!important;background:transparent!important}
+body[data-template] .wall-post-card .wall-media-grid:not(.count-1){background:transparent!important;gap:3px!important;overflow:hidden!important}
+body[data-template] .wall-post-card .wall-media-grid:not(.count-1) .wall-media-item{background:color-mix(in srgb,var(--panel-2,#f4f6f8) 88%,transparent)!important;overflow:hidden!important}
+body[data-template] .wall-post-card .wall-media-grid:not(.count-1) img{width:100%!important;height:100%!important;object-fit:cover!important}
+@media(max-width:640px){body[data-template] .wall-publisher-modal{padding:0!important}body[data-template] .wall-publisher.wall-composer-modern{width:100%!important;max-height:100dvh!important;height:100dvh!important;border-radius:0!important}body[data-template] .wall-unified-dropzone{grid-template-columns:38px minmax(0,1fr)!important}body[data-template] .wall-unified-dropzone .wall-upload-button{grid-column:1/-1!important;width:100%!important}body[data-template] .wall-unified-preview{grid-template-columns:1fr!important}body[data-template] .wall-publish-options-grid{grid-template-columns:1fr!important}body[data-template] .modern-wall-footer>small{display:none!important}body[data-template] .modern-wall-submit{width:100%!important}body[data-template] .wall-post-card .wall-media-grid.count-1 img{max-height:76vh!important}}
