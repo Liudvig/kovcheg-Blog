@@ -41,26 +41,24 @@ foreach ($files as $file) {
     }
 
     $statements = preg_split('/;\s*(?:\r?\n|$)/', $sql) ?: [];
-    $pdo->beginTransaction();
 
     try {
+        // MySQL performs implicit commits around CREATE/ALTER statements. Wrapping
+        // mixed DDL migrations in PDO transactions makes commit() fail even when
+        // every statement succeeded, so migrations are applied sequentially and
+        // recorded only after the complete file finishes without an exception.
         foreach ($statements as $statement) {
             $statement = trim($statement);
-            if ($statement !== '') {
-                $pdo->exec($statement);
-            }
+            if ($statement !== '') $pdo->exec($statement);
         }
 
         $record = $pdo->prepare('INSERT INTO migrations (migration,batch,applied_at) VALUES (?,?,CURRENT_TIMESTAMP)');
         $record->execute([$name, $currentBatch]);
-        $pdo->commit();
         $applied++;
         echo "APPLY {$name}\n";
     } catch (Throwable $error) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
         fwrite(STDERR, "FAIL  {$name}: {$error->getMessage()}\n");
+        fwrite(STDERR, "The migration was not recorded. Idempotent statements may be safely retried after fixing the error.\n");
         exit(1);
     }
 }
