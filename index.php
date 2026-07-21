@@ -4,9 +4,11 @@ declare(strict_types=1);
 require __DIR__.'/app/bootstrap.php';
 
 $router = new \Kovcheg\Router();
-// Public blog routes are registered first so the new publishing layer owns
-// the homepage and content URLs while legacy social routes remain available.
+// The publishing and Studio layers are registered before legacy social routes.
+// This lets KOVCHEG Blog own public content URLs and its new control panel
+// without removing stable authentication, profiles and system services.
 require __DIR__.'/routes/blog.php';
+require __DIR__.'/routes/blog-studio.php';
 require __DIR__.'/routes/template-features.php';
 require __DIR__.'/routes/web.php';
 \Kovcheg\Hooks::fire('routes',$router);
