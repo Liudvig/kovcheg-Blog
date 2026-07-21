@@ -2,9 +2,10 @@
 use Kovcheg\Blog\Blog;
 ?>
 <section class="archive-hero">
-  <span class="eyebrow"><?=e($entryType === 'portfolio' ? 'РАБОТЫ И ПРОЕКТЫ' : 'АВТОРСКИЙ ЖУРНАЛ')?></span>
+  <span class="eyebrow"><?=e($entryType === 'portfolio' ? 'РАБОТЫ И ПРОЕКТЫ' : ($entryType==='category'?'РУБРИКА':($entryType==='tag'?'ТЕГ':'АВТОРСКИЙ ЖУРНАЛ')))?></span>
   <h1><?=e($archiveTitle)?></h1>
   <p><?=e($archiveDescription)?></p>
+  <form class="archive-search" method="get" action="<?=e(app_url('/search'))?>"><input type="search" name="q" minlength="2" value="<?=e((string)($searchQuery??''))?>" placeholder="Поиск по публикациям"><button class="button button--dark">Найти</button></form>
 </section>
 
 <section class="content-section archive-section">
@@ -20,7 +21,7 @@ use Kovcheg\Blog\Blog;
           </div>
           <h2><a href="<?=e(Blog::entryUrl($entry))?>"><?=e((string)$entry['title'])?></a></h2>
           <p><?=e(Blog::excerpt($entry, 280))?></p>
-          <footer><span>💬 <?=(int)$entry['comment_count']?></span><span>✦ <?=(int)$entry['reaction_count']?></span></footer>
+          <footer><span>💬 <?=(int)($entry['comment_count']??0)?></span><span>✦ <?=(int)($entry['reaction_count']??0)?></span></footer>
         </div>
         <a class="archive-item__arrow" href="<?=e(Blog::entryUrl($entry))?>" aria-label="Открыть <?=e((string)$entry['title'])?>">↗</a>
       </article>
@@ -29,7 +30,7 @@ use Kovcheg\Blog\Blog;
   <?php else: ?>
     <div class="empty-state">
       <h2>Материалов пока нет</h2>
-      <p>Раздел уже готов и появится на сайте после первой публикации.</p>
+      <p><?=($entryType??'')==='search'?'По вашему запросу ничего не найдено.':'Раздел уже готов и появится на сайте после первой публикации.'?></p>
     </div>
   <?php endif; ?>
 </section>
