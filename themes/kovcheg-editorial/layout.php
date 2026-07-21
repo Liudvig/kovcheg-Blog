@@ -1,5 +1,6 @@
 <?php
 use Kovcheg\Auth;
+use Kovcheg\Blog\Studio;
 
 $pageTitle = trim((string)($title ?? ''));
 $metaDescription = trim((string)($description ?? setting('seo_description', 'Авторский блог, проекты и портфолио.')));
@@ -63,7 +64,7 @@ if (!empty($_SESSION['flash_success'])) {
     <div class="site-account">
       <?php if (Auth::check()): ?>
         <a class="site-account__profile" href="<?=e(app_url('/profile'))?>"><?=avatar_html($currentUser, 'avatar-xs')?> <span><?=e((string)($currentUser['display_name'] ?? 'Профиль'))?></span></a>
-        <?php if (Auth::isAdmin()): ?><a class="button button--quiet" href="<?=e(app_url('/admin'))?>">Управление</a><?php endif; ?>
+        <?php if (Studio::can('comments')): ?><a class="button button--quiet" href="<?=e(app_url('/studio'))?>">Studio</a><?php endif; ?>
       <?php else: ?>
         <a href="<?=e(app_url('/login'))?>">Войти</a>
         <a class="button button--dark" href="<?=e(app_url('/register'))?>">Регистрация</a>
