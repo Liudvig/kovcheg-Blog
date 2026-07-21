@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.0';
-const ASSET_REVISION = '3.0-r1';
+const APP_VERSION = '3.1.0';
+const ASSET_REVISION = '3.1.0-blog-studio';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
@@ -58,7 +58,6 @@ if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 require_once BASE_PATH.'/app/Core.php';
 require_once BASE_PATH.'/app/functions.php';
 require_once BASE_PATH.'/app/modern-ui.php';
-require_once BASE_PATH.'/app/Blog.php';
 
 set_exception_handler(static function (Throwable $error): void {
     log_error($error);
