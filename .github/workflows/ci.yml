@@ -12,6 +12,19 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: kovcheg_ci_root
+          MARIADB_DATABASE: kovcheg_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
     steps:
       - uses: actions/checkout@v4
 
@@ -38,6 +51,19 @@ jobs:
           while IFS= read -r -d '' file; do
             php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"
           done < <(find . -type f -name '*.json' -print0)
+
+      - name: Validate database schema and migrations
+        shell: bash
+        env:
+          MYSQL_PWD: kovcheg_ci_root
+        run: |
+          php -r '$schema=require "database/schema.php"; if(!is_string($schema)||trim($schema)==="") exit(1); file_put_contents("/tmp/kovcheg-schema.sql",$schema);'
+          mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg_ci < /tmp/kovcheg-schema.sql
+          for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+            echo "Applying $migration"
+            mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg_ci < "$migration"
+          done
+          mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='kovcheg_ci' AND table_name IN ('content_entries','content_comments','content_entry_meta','navigation_menus','themes');" | grep -qx '5'
 
       - name: Reject committed secrets and runtime data
         shell: bash
