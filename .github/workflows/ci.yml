@@ -102,10 +102,10 @@ jobs:
               ],
           ];
           PHP
-          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\\DB")||!class_exists("Kovcheg\\Blog\\Layout")) exit(1); if(count(Kovcheg\\Blog\\Layout::zones())<13) exit(2); if(count(Kovcheg\\Blog\\Layout::widgetTypes())<9) exit(3); echo "Runtime and Widget Engine OK\n";'
+          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\DB")||!class_exists("Kovcheg\Blog\Layout")) exit(1); if(count(Kovcheg\Blog\Layout::zones())<13) exit(2); if(count(Kovcheg\Blog\Layout::widgetTypes())<9) exit(3); echo "Runtime and Widget Engine OK\n";'
           php bin/migrate.php
           php bin/publish-scheduled.php
-          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; $html=Kovcheg\\Blog\\Layout::renderZone("header.main",["page_type"=>"home"]); if(!str_contains($html,"default-menu")&&!str_contains($html,"site-navigation")) exit(1); echo "Widget render OK\n";'
+          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; $html=Kovcheg\Blog\Layout::renderZone("header.main",["page_type"=>"home"]); if(!str_contains($html,"site-navigation")) exit(1); echo "Widget render OK\n";'
 
           php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-http.log 2>&1 &
           server_pid=$!
