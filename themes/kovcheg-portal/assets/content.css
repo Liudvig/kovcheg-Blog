@@ -1,3 +1,9 @@
 @import url('../../kovcheg-editorial/assets/content.css');
 .blog-theme-portal .single-entry,.blog-theme-portal .interaction-section,.blog-theme-portal .comments-section,.blog-theme-portal .related-section,.blog-theme-portal .author-hero,.blog-theme-portal .author-section{width:100%}
-.blog-theme-portal .single-entry__header{padding-top:26px}.blog-theme-portal .single-entry__header h1{font-family:Georgia,'Times New Roman',serif;letter-spacing:-.045em}.blog-theme-portal .single-entry__body.prose{font-size:18px;line-height:1.78}.blog-theme-portal .single-entry__cover img{border-radius:4px}.blog-theme-portal .entry-card,.blog-theme-portal .author-card,.blog-theme-portal .comment-card,.blog-theme-portal .interaction-section,.blog-theme-portal .comments-section{border-radius:4px}.blog-theme-portal .content-section{width:100%;padding-inline:0}
+.blog-theme-portal .single-entry__header{margin-bottom:16px;padding:24px;border:1px solid var(--portal-line);border-radius:20px;background:#fff;box-shadow:0 14px 36px rgba(15,23,42,.06)}
+.blog-theme-portal .single-entry__header h1{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:clamp(34px,5vw,64px);line-height:1.02;letter-spacing:-.055em}
+.blog-theme-portal .single-entry__body.prose{padding:28px;border:1px solid var(--portal-line);border-radius:20px;background:#fff;font-size:18px;line-height:1.78;box-shadow:0 14px 36px rgba(15,23,42,.05)}
+.blog-theme-portal .single-entry__cover{overflow:hidden;border-radius:20px}.blog-theme-portal .single-entry__cover img{border-radius:20px}
+.blog-theme-portal .entry-card,.blog-theme-portal .author-card,.blog-theme-portal .comment-card,.blog-theme-portal .interaction-section,.blog-theme-portal .comments-section,.blog-theme-portal .related-section{border:1px solid var(--portal-line);border-radius:18px;background:#fff;box-shadow:0 10px 28px rgba(15,23,42,.05)}
+.blog-theme-portal .content-section{width:100%;padding-inline:0}
+@media(max-width:640px){.blog-theme-portal .single-entry__header,.blog-theme-portal .single-entry__body.prose{padding:18px;border-radius:16px}.blog-theme-portal .single-entry__body.prose{font-size:17px}}

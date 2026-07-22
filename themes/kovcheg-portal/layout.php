@@ -30,7 +30,7 @@ if (!empty($_SESSION['flash_success'])) {$flash[]=['type'=>'success','text'=>(st
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f7f5ef">
+<meta name="theme-color" content="#0f172a">
 <meta name="description" content="<?=e($metaDescription)?>">
 <meta name="robots" content="<?=$indexing?'index,follow,max-image-preview:large':'noindex,nofollow,noarchive'?>">
 <link rel="canonical" href="<?=e($canonical)?>">
@@ -51,25 +51,30 @@ if (!empty($_SESSION['flash_success'])) {$flash[]=['type'=>'success','text'=>(st
 <body class="blog-theme blog-theme-portal">
 <a class="skip-link" href="#main-content">Перейти к содержанию</a>
 <header class="portal-header">
- <?php if($zones['header.top']!==''):?><div class="portal-header__top"><?=$zones['header.top']?></div><?php endif;?>
- <div class="portal-header__main">
-  <?php if($zones['header.main']!==''):?><?=$zones['header.main']?><?php else:?><div class="portal-brand-fallback"><a href="<?=e(app_url('/'))?>" aria-label="<?=e($siteName)?>"><img src="<?=e($logo)?>" alt=""><span><b><?=e($siteName)?></b><small><?=e(setting('blog_tagline','Новости · мнения · проекты'))?></small></span></a></div><?php endif;?>
+ <div class="portal-header__surface">
+  <?php if($zones['header.top']!==''):?><div class="portal-header__top"><?=$zones['header.top']?></div><?php endif;?>
+  <div class="portal-header__main">
+   <?php if($zones['header.main']!==''):?><?=$zones['header.main']?><?php else:?><div class="portal-brand-fallback"><a href="<?=e(app_url('/'))?>" aria-label="<?=e($siteName)?>"><img src="<?=e($logo)?>" alt=""><span><b><?=e($siteName)?></b><small><?=e(setting('blog_tagline','Новости · мнения · проекты'))?></small></span></a></div><?php endif;?>
+  </div>
+  <?php if($zones['header.bottom']!==''):?><div class="portal-header__bottom"><?=$zones['header.bottom']?></div><?php endif;?>
  </div>
- <?php if($zones['header.bottom']!==''):?><div class="portal-header__bottom"><?=$zones['header.bottom']?></div><?php endif;?>
 </header>
 <?php if($flash):?><div class="flash-stack" aria-live="polite"><?php foreach($flash as $message):?><div class="flash flash--<?=e($message['type'])?>"><?=e($message['text'])?></div><?php endforeach;?></div><?php endif;?>
-<?php if($zones['page.before']!==''):?><div class="portal-page-zone portal-page-zone--before"><?=$zones['page.before']?></div><?php endif;?>
-<div class="portal-grid <?=$gridClass?>">
- <?php if($hasLeft):?><aside class="portal-sidebar portal-sidebar--left" aria-label="Левая колонка"><?=$zones['layout.left']?></aside><?php endif;?>
- <main id="main-content" class="portal-content"><?=$zones['content.before']?><?=$content?><?=$zones['content.after']?></main>
- <?php if($hasRight):?><aside class="portal-sidebar portal-sidebar--right" aria-label="Правая колонка"><?=$zones['layout.right']?></aside><?php endif;?>
+<div class="portal-viewport">
+ <?php if($zones['page.before']!==''):?><div class="portal-page-zone portal-page-zone--before"><?=$zones['page.before']?></div><?php endif;?>
+ <div class="portal-grid <?=$gridClass?>">
+  <?php if($hasLeft):?><aside class="portal-sidebar portal-sidebar--left" aria-label="Левая колонка"><div class="portal-sidebar__scroll"><?=$zones['layout.left']?></div></aside><?php endif;?>
+  <main id="main-content" class="portal-content"><?=$zones['content.before']?><?=$content?><?=$zones['content.after']?></main>
+  <?php if($hasRight):?><aside class="portal-sidebar portal-sidebar--right" aria-label="Правая колонка"><div class="portal-sidebar__scroll"><?=$zones['layout.right']?></div></aside><?php endif;?>
+ </div>
+ <?php if($zones['page.after']!==''):?><div class="portal-page-zone portal-page-zone--after"><?=$zones['page.after']?></div><?php endif;?>
 </div>
-<?php if($zones['page.after']!==''):?><div class="portal-page-zone portal-page-zone--after"><?=$zones['page.after']?></div><?php endif;?>
 <footer class="portal-footer">
- <?php if($zones['footer.top']!==''):?><div class="portal-footer__top"><?=$zones['footer.top']?></div><?php endif;?>
- <?php if($zones['footer.columns']!==''):?><div class="portal-footer__columns"><?=$zones['footer.columns']?></div><?php else:?><div class="portal-footer__fallback"><div><b><?=e($siteName)?></b><p><?=e(setting('blog_footer_text','Информационный сайт на KOVCHEG Blog.'))?></p></div><div><span>KOVCHEG Blog <?=e(APP_VERSION)?></span><span>Все права защищены</span></div></div><?php endif;?>
- <?php if($zones['footer.bottom']!==''):?><div class="portal-footer__bottom"><?=$zones['footer.bottom']?></div><?php endif;?>
- <div class="portal-footer__copyright"><span><?=e($copyright)?></span><span>Автор и правообладатель · KOVCHEG Blog · Все права защищены</span><?php if(setting('seo_rss_enabled','1')==='1'):?><a href="<?=e(app_url('/feed.xml'))?>">RSS</a><?php endif;?></div>
+ <div class="portal-footer__inner">
+  <div class="portal-footer__brand"><b><?=e($siteName)?></b><span><?=e(setting('blog_footer_text','Информационный сайт на KOVCHEG Blog.'))?></span></div>
+  <div class="portal-footer__widgets"><?php if($zones['footer.top']!==''):?><?=$zones['footer.top']?><?php endif;?><?php if($zones['footer.columns']!==''):?><?=$zones['footer.columns']?><?php endif;?><?php if($zones['footer.bottom']!==''):?><?=$zones['footer.bottom']?><?php endif;?></div>
+  <div class="portal-footer__copyright"><span><?=e($copyright)?></span><span>KOVCHEG Blog <?=e(APP_VERSION)?> · Все права защищены</span><?php if(setting('seo_rss_enabled','1')==='1'):?><a href="<?=e(app_url('/feed.xml'))?>">RSS</a><?php endif;?></div>
+ </div>
 </footer>
 <script src="<?=e(app_url('/assets/js/blog-widgets.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 <?=\Kovcheg\Hooks::fire('blog.layout.scripts','')?>

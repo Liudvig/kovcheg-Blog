@@ -18,6 +18,11 @@ $router->get('/studio/widgets', function () {
         LayoutRepair::ensure();
         $layoutId = max(0, (int)($_GET['layout'] ?? 0));
         $state = Layout::studioState($layoutId);
+        // Do not expose the current scheme as $layout: Studio::render uses that
+        // name internally for the shell template path. The old collision caused
+        // the entire Studio page to appear inside the scheme select.
+        $state['currentLayout'] = $state['layout'];
+        unset($state['layout']);
         $state['menus'] = DB::all('SELECT id,name,slug FROM navigation_menus WHERE is_active=1 ORDER BY name,id');
         Studio::render('widgets', ['studioSection'=>'widgets','studioTitle'=>'Виджеты и зоны'] + $state);
     } catch (Throwable $error) {
