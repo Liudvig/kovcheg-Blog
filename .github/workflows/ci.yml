@@ -36,7 +36,13 @@ jobs:
           extensions: mbstring, fileinfo, openssl, pdo_mysql, zip
 
       - name: Lint PHP
-        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+        shell: bash
+        run: |
+          find . \
+            -path './.git' -prune -o \
+            -path './vendor' -prune -o \
+            -type f -name '*.php' -print0 \
+            | xargs -0 -r -n1 php -l
 
       - name: Check JavaScript syntax
         run: |
@@ -50,7 +56,7 @@ jobs:
         run: |
           while IFS= read -r -d '' file; do
             php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"
-          done < <(find . -type f -name '*.json' -print0)
+          done < <(find . -path './.git' -prune -o -type f -name '*.json' -print0)
 
       - name: Validate database schema and migrations
         shell: bash
