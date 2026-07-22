@@ -29,6 +29,10 @@ jobs:
         if: always()
         continue-on-error: true
         run: php -l app/BlogModules.php
+      - name: Lint bootstrap and index
+        if: always()
+        continue-on-error: true
+        run: php -l app/bootstrap.php && php -l index.php
       - name: Lint builder routes
         if: always()
         continue-on-error: true
@@ -37,6 +41,22 @@ jobs:
         if: always()
         continue-on-error: true
         run: php -l views/studio/editor.php
-      - name: Lint new Studio views
+      - name: Lint Studio layout
         if: always()
-        run: find views/studio -maxdepth 1 -type f \( -name 'patterns.php' -o -name 'users.php' -o -name 'presets.php' -o -name 'modules.php' \) -print0 | xargs -0 -n1 php -l
+        continue-on-error: true
+        run: php -l views/studio/layout.php
+      - name: Lint Studio media
+        if: always()
+        continue-on-error: true
+        run: php -l views/studio/media.php
+      - name: Lint new Studio views individually
+        if: always()
+        continue-on-error: true
+        run: |
+          php -l views/studio/patterns.php
+          php -l views/studio/users.php
+          php -l views/studio/presets.php
+          php -l views/studio/modules.php
+      - name: Lint portfolio theme
+        if: always()
+        run: find themes/kovcheg-portfolio -maxdepth 1 -type f -name '*.php' -print0 | xargs -0 -n1 php -l
