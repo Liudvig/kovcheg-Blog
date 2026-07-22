@@ -1,0 +1,17 @@
+{
+  "slug": "artist",
+  "name": "Художник и фотограф",
+  "description": "Визуальное портфолио, серии работ, выставки и авторский журнал.",
+  "icon": "◐",
+  "theme": "kovcheg-portfolio",
+  "settings": {
+    "blog_theme": "kovcheg-portfolio",
+    "site_name": "Имя автора",
+    "blog_tagline": "Работы · выставки · процесс",
+    "blog_description": "Авторский журнал о новых работах, выставках и творческом процессе.",
+    "portfolio_description": "Избранные серии, проекты, выставки и заказы.",
+    "blog_footer_text": "Авторское портфолио на KOVCHEG Blog.",
+    "seo_description": "Портфолио художника или фотографа: работы, проекты и контакты.",
+    "search_indexing": "0"
+  }
+}
