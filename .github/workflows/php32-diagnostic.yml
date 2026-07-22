@@ -14,37 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          coverage: none
-      - name: Lint root PHP
-        continue-on-error: true
-        run: find . -maxdepth 1 -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
-      - name: Lint app PHP
-        if: always()
-        continue-on-error: true
-        run: find app -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
-      - name: Lint routes PHP
-        if: always()
-        continue-on-error: true
-        run: find routes -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
-      - name: Lint views PHP
-        if: always()
-        continue-on-error: true
-        run: find views -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
-      - name: Lint themes PHP
-        if: always()
-        continue-on-error: true
-        run: find themes -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
-      - name: Lint config and database PHP
-        if: always()
-        continue-on-error: true
-        run: find config database migrations -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
-      - name: Lint modules and remaining PHP
-        if: always()
-        continue-on-error: true
-        run: find modules bin docs assets storage -type f -name '*.php' -print0 2>/dev/null | xargs -0 -r -n1 php -l
-      - name: Lint all PHP final
-        if: always()
-        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -r -n1 php -l
+      - name: Report exact PHP lint failure
+        shell: bash
+        run: |
+          failed=0
+          while IFS= read -r -d '' file; do
+            if ! output=$(php -l "$file" 2>&1); then
+              echo "FAILED_FILE=$file"
+              echo "$output"
+              echo "::error file=$file::$output"
+              failed=1
+              break
+            fi
+          done < <(find . -path './.git' -prune -o -path './vendor' -prune -o -type f -name '*.php' -print0)
+          exit "$failed"
