@@ -53,6 +53,7 @@ require __DIR__.'/routes/blog-layout.php';
 require __DIR__.'/routes/blog-builder.php';
 require __DIR__.'/routes/blog.php';
 require __DIR__.'/routes/blog-studio.php';
+require __DIR__.'/routes/account.php';
 require __DIR__.'/routes/template-features.php';
 require __DIR__.'/routes/web.php';
 \Kovcheg\Hooks::fire('routes',$router);
