@@ -19,10 +19,20 @@ require __DIR__.'/routes/web.php';
 \Kovcheg\Hooks::fire('routes',$router);
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
-    $redirect = \Kovcheg\Blog\SiteManager::redirectFor(request_path());
+    $currentPath = request_path();
+    $redirect = \Kovcheg\Blog\SiteManager::redirectFor($currentPath);
     if ($redirect) {
-        header('Location: '.(string)$redirect['url'], true, (int)$redirect['status']);
-        exit;
+        $target = (string)$redirect['url'];
+        $targetParts = parse_url($target) ?: [];
+        $targetPath = (string)($targetParts['path'] ?? '/');
+        $targetHost = strtolower((string)($targetParts['host'] ?? ''));
+        $currentHost = strtolower(explode(':', (string)($_SERVER['HTTP_HOST'] ?? ''))[0]);
+        $sameHost = $targetHost === '' || $targetHost === $currentHost;
+
+        if (!$sameHost || $targetPath !== $currentPath) {
+            header('Location: '.$target, true, (int)$redirect['status']);
+            exit;
+        }
     }
 }
 
