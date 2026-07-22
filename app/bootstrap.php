@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.1.0';
-const ASSET_REVISION = '3.1.0-blog-studio';
+const APP_VERSION = '3.2.0';
+const ASSET_REVISION = '3.2.0-visual-builder';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
@@ -43,7 +43,7 @@ header('Content-Security-Policy: '.$csp);
 if ($secure) header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 
 session_name('KOVCHEGSESSID');
-$sessionLifetime=15552000; // 180 days
+$sessionLifetime=15552000;
 @ini_set('session.use_strict_mode','1');
 @ini_set('session.use_only_cookies','1');
 @ini_set('session.cookie_httponly','1');
@@ -59,6 +59,10 @@ require_once BASE_PATH.'/app/Core.php';
 require_once BASE_PATH.'/app/functions.php';
 require_once BASE_PATH.'/app/modern-ui.php';
 require_once BASE_PATH.'/app/Blog.php';
+require_once BASE_PATH.'/app/BlogStudio.php';
+require_once BASE_PATH.'/app/BlogBuilder.php';
+require_once BASE_PATH.'/app/BlogStudio32.php';
+require_once BASE_PATH.'/app/BlogModules.php';
 
 set_exception_handler(static function (Throwable $error): void {
     log_error($error);
