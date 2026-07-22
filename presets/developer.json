@@ -1,0 +1,17 @@
+{
+  "slug": "developer",
+  "name": "Разработчик и продукт",
+  "description": "Дневник разработки, релизы, документация и портфолио цифровых продуктов.",
+  "icon": "</>",
+  "theme": "kovcheg-editorial",
+  "settings": {
+    "blog_theme": "kovcheg-editorial",
+    "site_name": "Название проекта",
+    "blog_tagline": "Разработка · релизы · документация",
+    "blog_description": "Новости разработки, архитектурные решения и история продукта.",
+    "portfolio_description": "Приложения, сайты, модули и завершённые цифровые проекты.",
+    "blog_footer_text": "Проект работает на KOVCHEG Blog.",
+    "seo_description": "Разработка программного продукта: новости, релизы, документация и проекты.",
+    "search_indexing": "0"
+  }
+}

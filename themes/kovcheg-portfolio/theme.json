@@ -1,0 +1,11 @@
+{
+  "slug": "kovcheg-portfolio",
+  "name": "KOVCHEG Portfolio",
+  "version": "1.0.0",
+  "description": "Контрастная визуальная тема для музыкантов, художников, мастеров и профессионального портфолио.",
+  "author": "Ланцет Семён Борисович",
+  "copyright": "Ланцет Семён Борисович",
+  "license": "proprietary / all rights reserved",
+  "preview": "",
+  "supports": ["blog", "pages", "portfolio", "authors", "comments", "builder-3.2"]
+}
