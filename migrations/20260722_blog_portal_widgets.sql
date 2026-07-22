@@ -17,3 +17,9 @@ ON DUPLICATE KEY UPDATE
   description=VALUES(description),
   enabled=1,
   updated_at=CURRENT_TIMESTAMP;
+
+UPDATE themes
+SET version='1.1.0',
+    description='Современная трёхколоночная тема портала с компактной закреплённой шапкой, боковыми колонками, подвалом и модульными каруселями.',
+    updated_at=CURRENT_TIMESTAMP
+WHERE slug='kovcheg-portal';
