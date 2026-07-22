@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.4.0';
-const ASSET_REVISION = '3.4.0-layout-widget-engine';
+const APP_VERSION = '3.5.0';
+const ASSET_REVISION = '3.5.0-portal-theme';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
