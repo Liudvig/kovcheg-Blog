@@ -18,45 +18,33 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Lint BlogBuilder
+      - name: Lint root PHP
         continue-on-error: true
-        run: php -l app/BlogBuilder.php
-      - name: Lint BlogStudio32
+        run: find . -maxdepth 1 -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
+      - name: Lint app PHP
         if: always()
         continue-on-error: true
-        run: php -l app/BlogStudio32.php
-      - name: Lint BlogModules
+        run: find app -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
+      - name: Lint routes PHP
         if: always()
         continue-on-error: true
-        run: php -l app/BlogModules.php
-      - name: Lint bootstrap and index
+        run: find routes -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
+      - name: Lint views PHP
         if: always()
         continue-on-error: true
-        run: php -l app/bootstrap.php && php -l index.php
-      - name: Lint builder routes
+        run: find views -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
+      - name: Lint themes PHP
         if: always()
         continue-on-error: true
-        run: php -l routes/blog-builder.php
-      - name: Lint editor view
+        run: find themes -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
+      - name: Lint config and database PHP
         if: always()
         continue-on-error: true
-        run: php -l views/studio/editor.php
-      - name: Lint Studio layout
+        run: find config database migrations -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
+      - name: Lint modules and remaining PHP
         if: always()
         continue-on-error: true
-        run: php -l views/studio/layout.php
-      - name: Lint Studio media
+        run: find modules bin docs assets storage -type f -name '*.php' -print0 2>/dev/null | xargs -0 -r -n1 php -l
+      - name: Lint all PHP final
         if: always()
-        continue-on-error: true
-        run: php -l views/studio/media.php
-      - name: Lint new Studio views individually
-        if: always()
-        continue-on-error: true
-        run: |
-          php -l views/studio/patterns.php
-          php -l views/studio/users.php
-          php -l views/studio/presets.php
-          php -l views/studio/modules.php
-      - name: Lint portfolio theme
-        if: always()
-        run: find themes/kovcheg-portfolio -maxdepth 1 -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -r -n1 php -l
