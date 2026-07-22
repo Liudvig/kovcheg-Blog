@@ -1,0 +1,51 @@
+name: KOVCHEG Blog 3.5 focused lint
+
+on:
+  push:
+    branches: [release/3.5-unified-portal-studio]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint35:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Core and repair
+        run: |
+          php -l app/bootstrap.php
+          php -l app/BlogLayoutRepair.php
+          php -l app/BlogModules.php
+      - name: Routes
+        run: |
+          php -l routes/account.php
+          php -l routes/blog-builder.php
+          php -l routes/blog-layout.php
+      - name: Studio views
+        run: |
+          php -l views/account-shell.php
+          php -l views/studio/layout.php
+          php -l views/studio/editor.php
+          php -l views/studio/media.php
+          php -l views/studio/modules.php
+          php -l views/studio/widgets-error.php
+      - name: Public themes
+        run: |
+          php -l themes/kovcheg-editorial/layout.php
+          php -l themes/kovcheg-portal/layout.php
+          php -l themes/kovcheg-portal/home.php
+          php -l themes/kovcheg-portal/archive.php
+          php -l themes/kovcheg-portal/entry.php
+          php -l themes/kovcheg-portal/author.php
+      - name: Audits
+        run: |
+          php -l scripts/audit-studio-shell.php
+          php -l scripts/audit-account-actions.php
+          php -l scripts/audit-unified-portal.php
