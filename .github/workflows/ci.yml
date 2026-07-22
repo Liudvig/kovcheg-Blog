@@ -55,6 +55,8 @@ jobs:
         shell: bash
         run: |
           while IFS= read -r -d '' file; do php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"; done < <(find . -path './.git' -prune -o -type f -name '*.json' -print0)
+      - name: Audit Studio shell and persistent login
+        run: php scripts/audit-studio-shell.php
       - name: Validate schema and migrations on MariaDB and MySQL
         shell: bash
         run: |
@@ -102,7 +104,7 @@ jobs:
               ],
           ];
           PHP
-          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\DB")||!class_exists("Kovcheg\Blog\Layout")) exit(1); if(count(Kovcheg\Blog\Layout::zones())<13) exit(2); if(count(Kovcheg\Blog\Layout::widgetTypes())<9) exit(3); echo "Runtime and Widget Engine OK\n";'
+          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\\DB")||!class_exists("Kovcheg\\Blog\\Layout")) exit(1); if(count(Kovcheg\Blog\Layout::zones())<13) exit(2); if(count(Kovcheg\Blog\Layout::widgetTypes())<9) exit(3); echo "Runtime and Widget Engine OK\n";'
           php bin/migrate.php
           php bin/publish-scheduled.php
           php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; $html=Kovcheg\Blog\Layout::renderZone("header.main",["page_type"=>"home"]); if(!str_contains($html,"site-navigation")) exit(1); echo "Widget render OK\n";'
