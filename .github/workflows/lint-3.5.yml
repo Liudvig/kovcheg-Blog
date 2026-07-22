@@ -32,20 +32,35 @@ jobs:
         run: php -l views/account-shell.php
       - name: Studio layout
         run: php -l views/studio/layout.php
-      - name: Studio editor
-        run: php -l views/studio/editor.php
-      - name: Studio media
-        run: php -l views/studio/media.php
-      - name: Studio modules
-        run: php -l views/studio/modules.php
-      - name: Studio widget error
-        run: php -l views/studio/widgets-error.php
-      - name: Editorial theme
-        run: php -l themes/kovcheg-editorial/layout.php
-      - name: Portal layout
-        run: php -l themes/kovcheg-portal/layout.php
-      - name: Portal content views
+      - name: Capture Studio editor lint
+        id: editor_lint
+        shell: bash
         run: |
+          set +e
+          php -l views/studio/editor.php > editor-lint.log 2>&1
+          status=$?
+          cat editor-lint.log
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Upload editor lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-lint-report
+          path: editor-lint.log
+          if-no-files-found: error
+      - name: Enforce Studio editor lint
+        if: steps.editor_lint.outputs.status != '0'
+        run: exit 1
+      - name: Remaining Studio views
+        run: |
+          php -l views/studio/media.php
+          php -l views/studio/modules.php
+          php -l views/studio/widgets-error.php
+      - name: Public themes
+        run: |
+          php -l themes/kovcheg-editorial/layout.php
+          php -l themes/kovcheg-portal/layout.php
           php -l themes/kovcheg-portal/home.php
           php -l themes/kovcheg-portal/archive.php
           php -l themes/kovcheg-portal/entry.php
