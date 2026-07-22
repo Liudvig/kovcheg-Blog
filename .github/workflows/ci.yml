@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth]
+    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime]
   pull_request:
     branches: [main]
 
@@ -73,6 +73,35 @@ jobs:
           }
           apply_database "MariaDB 11" 3306 kovcheg_ci kovcheg_ci_root
           apply_database "MySQL 8.4" 3307 kovcheg_mysql_ci kovcheg_mysql_root
+      - name: Runtime bootstrap and CLI smoke test
+        shell: bash
+        run: |
+          mkdir -p config storage/logs storage/cache storage/uploads storage/backups storage/builds
+          cat > config/config.php <<'PHP'
+          <?php
+          return [
+              'app' => [
+                  'name' => 'KOVCHEG Blog CI',
+                  'url' => 'http://localhost',
+                  'timezone' => 'UTC',
+                  'debug' => true,
+                  'key' => 'base64:'.base64_encode(str_repeat('K', 32)),
+              ],
+              'database' => [
+                  'driver' => 'mysql',
+                  'host' => '127.0.0.1',
+                  'port' => 3306,
+                  'name' => 'kovcheg_ci',
+                  'user' => 'root',
+                  'password' => 'kovcheg_ci_root',
+                  'charset' => 'utf8mb4',
+              ],
+          ];
+          PHP
+          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\\DB")) exit(1); echo "Runtime bootstrap OK\n";'
+          php bin/migrate.php
+          php bin/publish-scheduled.php
+          rm -f config/config.php
       - name: Reject committed secrets and runtime data
         shell: bash
         run: |
