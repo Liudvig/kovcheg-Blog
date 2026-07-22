@@ -3,6 +3,8 @@ name: KOVCHEG Blog 3.2 PHP diagnostic
 on:
   push:
     branches: [blog-v3.2-builder]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
