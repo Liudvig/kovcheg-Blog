@@ -1,0 +1,7 @@
+<?php
+$notifications=$notifications??[];
+?>
+<section class="notifications-page">
+ <header class="notifications-header"><div><span class="eyebrow">ЛИЧНЫЙ КАБИНЕТ</span><h1>Уведомления</h1><p>Ответы на комментарии и события обсуждений, за которыми вы следите.</p></div><?php if($notifications):?><form method="post" action="<?=e(app_url('/notifications/read'))?>"><?=csrf_field()?><button class="button button--light" type="submit">Отметить всё прочитанным</button></form><?php endif;?></header>
+ <?php if($notifications):?><div class="notification-list"><?php foreach($notifications as $item):$url=trim((string)($item['url']??'/notifications'));if(!preg_match('~^https?://~i',$url))$url=app_url('/'.ltrim($url,'/'));?><a class="notification-card <?=empty($item['read_at'])?'is-unread':''?>" href="<?=e($url)?>"><?=avatar_html($item,'avatar-xs')?><div class="notification-card__body"><b><?=e((string)$item['title'])?></b><?php if(!empty($item['actor_name'])):?><span><?=e((string)$item['actor_name'])?></span><?php endif;?><?php if(!empty($item['body'])):?><p><?=e((string)$item['body'])?></p><?php endif;?><small><?=e(human_time((string)$item['created_at']))?></small></div></a><?php endforeach;?></div><?php else:?><div class="notification-empty"><h2>Новых уведомлений нет</h2><p>Подпишитесь на обсуждение под публикацией, чтобы получать ответы здесь.</p><a class="button button--dark" href="<?=e(app_url('/blog'))?>">Перейти в блог</a></div><?php endif;?>
+</section>
