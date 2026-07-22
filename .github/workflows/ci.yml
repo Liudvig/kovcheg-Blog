@@ -104,6 +104,7 @@ jobs:
           php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\\DB")||!class_exists("Kovcheg\\Blog\\Layout")) exit(1); if(count(Kovcheg\Blog\Layout::zones())<13) exit(2); if(count(Kovcheg\Blog\Layout::widgetTypes())<12) exit(3); foreach(["portal.photo-carousel","portal.video-carousel","portal.content-slider"] as $type) if(!Kovcheg\Blog\Layout::widgetType($type)) exit(4); echo "Runtime and modular widgets OK\n";'
           php bin/migrate.php
           php bin/publish-scheduled.php
+          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; Kovcheg\Blog\Studio::setSetting("blog_theme","kovcheg-portal"); Kovcheg\DB::run("UPDATE themes SET is_active=(slug=?)",["kovcheg-portal"]); echo "Portal activated for HTTP smoke test\n";'
           php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; require_once "app/BlogLayoutRepair.php"; Kovcheg\Blog\LayoutRepair::ensure(); $html=Kovcheg\Blog\Layout::renderZone("header.main",["page_type"=>"home"]); if(!str_contains($html,"site-navigation")) exit(1); echo "Widget repair/render OK\n";'
           php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-http.log 2>&1 &
           server_pid=$!
@@ -116,6 +117,7 @@ jobs:
           check_route / text/html
           grep -q 'data-layout-zone="header.main"' /tmp/body
           grep -q 'portal-footer' /tmp/body
+          grep -q 'Ланцет Семён Борисович' /tmp/body
           for path in /blog /portfolio; do check_route "$path" text/html; check_header "$path" text/html; check_query "$path" text/html; done
           for spec in '/sitemap.xml application/xml' '/feed.xml application/rss+xml' '/robots.txt text/plain'; do set -- $spec; check_route "$1" "$2"; check_header "$1" "$2"; check_query "$1" "$2"; done
           kill "$server_pid"; wait "$server_pid" 2>/dev/null || true; trap - EXIT; rm -f config/config.php
