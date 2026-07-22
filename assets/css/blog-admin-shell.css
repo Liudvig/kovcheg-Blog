@@ -4,14 +4,17 @@
  */
 
 html:has(.admin-shell),
-body.auth-shell:has(.admin-shell){
+html.has-admin-shell,
+body.auth-shell:has(.admin-shell),
+body.auth-shell.admin-shell-active{
  height:100%;
  min-height:100%;
  overflow:hidden;
  overscroll-behavior:none;
 }
 
-body.auth-shell:has(.admin-shell) #kovcheg-page-content{
+body.auth-shell:has(.admin-shell) #kovcheg-page-content,
+body.auth-shell.admin-shell-active #kovcheg-page-content{
  height:calc(100vh - var(--topbar-height,58px));
  min-height:0;
  overflow:hidden;
@@ -78,6 +81,8 @@ body.auth-shell:has(.admin-shell) #kovcheg-page-content{
 }
 
 .admin-content{
+ --admin-content-gutter:clamp(18px,3vw,42px);
+ --admin-content-gutter-negative:clamp(-42px,-3vw,-18px);
  height:100%;
  min-width:0;
  min-height:0;
@@ -88,14 +93,17 @@ body.auth-shell:has(.admin-shell) #kovcheg-page-content{
  display:flex;
  flex-direction:column;
  gap:0;
- padding:26px clamp(18px,3vw,42px) 0;
+ padding:26px var(--admin-content-gutter) 0;
 }
 
 .admin-content>.admin-footer{
  flex:0 0 auto;
- width:calc(100% + clamp(36px,6vw,84px));
- margin:auto calc(clamp(18px,3vw,42px) * -1) 0;
- padding:18px clamp(18px,3vw,42px) calc(18px + env(safe-area-inset-bottom));
+ width:calc(100% + var(--admin-content-gutter) + var(--admin-content-gutter));
+ margin-top:auto;
+ margin-right:var(--admin-content-gutter-negative);
+ margin-bottom:0;
+ margin-left:var(--admin-content-gutter-negative);
+ padding:18px var(--admin-content-gutter) calc(18px + env(safe-area-inset-bottom));
  display:flex;
  align-items:center;
  justify-content:space-between;
@@ -135,8 +143,14 @@ body.auth-shell:has(.admin-shell) #kovcheg-page-content{
  display:none;
 }
 
+html.admin-menu-locked,
+html.admin-menu-locked body{
+ overflow:hidden!important;
+}
+
 @media (max-width:980px){
- body.auth-shell:has(.admin-shell) #kovcheg-page-content{
+ body.auth-shell:has(.admin-shell) #kovcheg-page-content,
+ body.auth-shell.admin-shell-active #kovcheg-page-content{
   height:calc(100vh - var(--topbar-height,58px));
  }
 
@@ -211,8 +225,10 @@ body.auth-shell:has(.admin-shell) #kovcheg-page-content{
  }
 
  .admin-content{
+  --admin-content-gutter:14px;
+  --admin-content-gutter-negative:-14px;
   height:100%;
-  padding:0 14px;
+  padding-top:0;
  }
 
  .admin-content>.page-head,
@@ -238,10 +254,6 @@ body.auth-shell:has(.admin-shell) #kovcheg-page-content{
  }
 
  .admin-content>.admin-footer{
-  width:calc(100% + 28px);
-  margin:auto -14px 0;
-  padding-left:14px;
-  padding-right:14px;
   align-items:flex-start;
   flex-direction:column;
  }
@@ -261,14 +273,11 @@ body.auth-shell:has(.admin-shell) #kovcheg-page-content{
  }
 
  .admin-content{
-  padding-left:10px;
-  padding-right:10px;
+  --admin-content-gutter:10px;
+  --admin-content-gutter-negative:-10px;
  }
 
  .admin-content>.admin-footer{
-  width:calc(100% + 20px);
-  margin-left:-10px;
-  margin-right:-10px;
   padding-left:12px;
   padding-right:12px;
  }
