@@ -43,3 +43,50 @@ header('Content-Security-Policy: '.$csp);
 if ($secure) header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 
 session_name('KOVCHEGSESSID');
+$sessionLifetime=15552000;
+@ini_set('session.use_strict_mode','1');
+@ini_set('session.use_only_cookies','1');
+@ini_set('session.cookie_httponly','1');
+@ini_set('session.cookie_secure',$secure?'1':'0');
+@ini_set('session.gc_maxlifetime',(string)$sessionLifetime);
+@ini_set('session.cookie_lifetime',(string)$sessionLifetime);
+$scriptDir=str_replace('\\','/',dirname((string)($_SERVER['SCRIPT_NAME']??'/')));
+$cookiePath=rtrim($scriptDir,'/').'/';if($cookiePath==='//')$cookiePath='/';
+session_set_cookie_params(['lifetime'=>$sessionLifetime,'path'=>$cookiePath,'secure'=>$secure,'httponly'=>true,'samesite'=>'Lax']);
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+
+require_once BASE_PATH.'/app/Core.php';
+require_once BASE_PATH.'/app/functions.php';
+require_once BASE_PATH.'/app/modern-ui.php';
+require_once BASE_PATH.'/app/Blog.php';
+require_once BASE_PATH.'/app/BlogStudio.php';
+require_once BASE_PATH.'/app/BlogBuilder.php';
+require_once BASE_PATH.'/app/BlogStudio32.php';
+require_once BASE_PATH.'/app/BlogModules.php';
+require_once BASE_PATH.'/app/BlogSiteManager.php';
+
+set_exception_handler(static function (Throwable $error): void {
+    log_error($error);
+    if (cfg('app.debug', false)) render_system_error(500, 'Внутренняя ошибка', $error->getMessage());
+    render_system_error(500, 'Внутренняя ошибка', 'Подробности записаны в журнал системы.');
+});
+register_shutdown_function(static function (): void {
+    $last = error_get_last();
+    if (!$last || !in_array((int)$last['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) return;
+    $error = new ErrorException((string)$last['message'], 0, (int)$last['type'], (string)$last['file'], (int)$last['line']);
+    log_error($error);
+    if (!headers_sent()) render_system_error(500, 'Критическая ошибка', 'Подробности записаны в журнал системы.');
+});
+
+try { \Kovcheg\DB::connect($CONFIG['database']); }
+catch (Throwable $e) { log_error($e); render_system_error(500, 'KOVCHEG CMS', 'Не удалось подключиться к базе данных.'); }
+
+try { \Kovcheg\Auth::user(); } catch (Throwable $e) { log_error($e); }
+$requestMethod = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+$requestPath = (string)(parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+$readOnlyRequest = (string)($_SERVER['HTTP_X_KOVCHEG_SOFT_NAVIGATION'] ?? '') === '1'
+    || str_starts_with($requestPath, rtrim($cookiePath, '/').'/ajax/')
+    || str_starts_with($requestPath, rtrim($cookiePath, '/').'/api/');
+if ($requestMethod === 'GET' && $readOnlyRequest && session_status() === PHP_SESSION_ACTIVE) session_write_close();
+
+\Kovcheg\Modules::boot();
