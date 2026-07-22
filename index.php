@@ -4,8 +4,12 @@ declare(strict_types=1);
 require __DIR__.'/app/bootstrap.php';
 
 $router = new \Kovcheg\Router();
-// Small, focused feature routes are registered first. Router resolves the first
-// matching route, so these handlers can safely harden legacy endpoints.
+// Security-sensitive media and report handlers are registered first.
+require __DIR__.'/routes/blog-preflight.php';
+// The publishing and Studio layers own public content URLs and the new panel
+// while stable authentication, profiles and system services remain available.
+require __DIR__.'/routes/blog.php';
+require __DIR__.'/routes/blog-studio.php';
 require __DIR__.'/routes/template-features.php';
 require __DIR__.'/routes/web.php';
 \Kovcheg\Hooks::fire('routes',$router);
