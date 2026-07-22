@@ -4,6 +4,7 @@ if(!empty($_SESSION['flash_error'])){$flash[]=['type'=>'error','text'=>(string)$
 if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(string)$_SESSION['flash_success']];unset($_SESSION['flash_success']);}
 $nav=[
  'dashboard'=>['Обзор','/studio','⌂','comments'],
+ 'homepage'=>['Главная','/studio/homepage','▤','site'],
  'content'=>['Материалы','/studio/content','✎','content'],
  'patterns'=>['Конструктор','/studio/patterns','⊞','content'],
  'categories'=>['Рубрики','/studio/categories','≡','content'],
@@ -12,6 +13,7 @@ $nav=[
  'menus'=>['Меню','/studio/menus','☷','menus'],
  'appearance'=>['Темы','/studio/appearance','◇','themes'],
  'presets'=>['Пресеты','/studio/presets','✦','site'],
+ 'seo'=>['SEO','/studio/seo','⌁','site'],
  'users'=>['Пользователи','/studio/users','◎','site'],
  'modules'=>['Модули','/studio/modules','⬡','site'],
  'settings'=>['Настройки','/studio/settings','⚙','settings'],
@@ -26,11 +28,12 @@ $nav=[
 <title><?=e($studioTitle)?> — KOVCHEG Studio</title>
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-builder.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-site-manager.css?v='.rawurlencode(ASSET_REVISION)))?>">
 </head>
 <body class="studio-body" data-studio-section="<?=e($studioSection)?>">
 <div class="studio-shell">
  <aside class="studio-sidebar" id="studio-sidebar">
-  <header class="studio-brand"><a href="<?=e(app_url('/studio'))?>"><span>K</span><div><b>KOVCHEG Studio</b><small>Visual Builder 3.2</small></div></a><button type="button" data-studio-close aria-label="Закрыть">×</button></header>
+  <header class="studio-brand"><a href="<?=e(app_url('/studio'))?>"><span>K</span><div><b>KOVCHEG Studio</b><small>Site Manager 3.3</small></div></a><button type="button" data-studio-close aria-label="Закрыть">×</button></header>
   <nav class="studio-nav">
    <?php foreach($nav as $key=>$item):if(!\Kovcheg\Blog\Studio::can($item[3]))continue;?>
    <a class="<?=$studioSection===$key?'active':''?>" href="<?=e(app_url($item[1]))?>"><i><?=$item[2]?></i><span><?=$item[0]?></span></a>
