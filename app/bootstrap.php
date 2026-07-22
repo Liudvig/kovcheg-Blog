@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.3.3';
-const ASSET_REVISION = '3.3.3-fastpanel-query-route';
+const APP_VERSION = '3.4.0';
+const ASSET_REVISION = '3.4.0-layout-widget-engine';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
@@ -66,6 +66,7 @@ require_once BASE_PATH.'/app/BlogBuilder.php';
 require_once BASE_PATH.'/app/BlogStudio32.php';
 require_once BASE_PATH.'/app/BlogModules.php';
 require_once BASE_PATH.'/app/BlogGrowth.php';
+require_once BASE_PATH.'/app/BlogLayout.php';
 
 set_exception_handler(static function (Throwable $error): void {
     log_error($error);
@@ -91,4 +92,5 @@ $readOnlyRequest = (string)($_SERVER['HTTP_X_KOVCHEG_SOFT_NAVIGATION'] ?? '') ==
     || str_starts_with($requestPath, rtrim($cookiePath, '/').'/api/');
 if ($requestMethod === 'GET' && $readOnlyRequest && session_status() === PHP_SESSION_ACTIVE) session_write_close();
 
+\Kovcheg\Blog\Layout::bootCore();
 \Kovcheg\Modules::boot();
