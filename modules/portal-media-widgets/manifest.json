@@ -1,0 +1,11 @@
+{
+  "slug": "portal-media-widgets",
+  "name": "KOVCHEG Portal Media Widgets",
+  "version": "1.0.0",
+  "min_core": "3.5.1",
+  "type": "module",
+  "description": "Фотокарусель, видеокарусель и слайдер контента для KOVCHEG Blog.",
+  "author": "Ланцет Семён Борисович",
+  "copyright": "Ланцет Семён Борисович",
+  "license": "proprietary / all rights reserved"
+}
