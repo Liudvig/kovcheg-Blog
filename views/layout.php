@@ -50,6 +50,7 @@ $liveMessageLast=0;if(Auth::check())try{$liveMessageLast=(int)(\Kovcheg\DB::one(
 <link rel="manifest" href="<?=e(app_url('/manifest.webmanifest'))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/kovcheg-core.css?v='.$assetRevision))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-admin-shell.css?v='.$assetRevision))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-account.css?v='.$assetRevision))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/templates/'.$siteTemplate.'.css?v='.$assetRevision))?>">
 <?=\Kovcheg\Hooks::fire('layout.head','')?>
 </head>
@@ -78,9 +79,11 @@ $liveMessageLast=0;if(Auth::check())try{$liveMessageLast=(int)(\Kovcheg\DB::one(
    <details class="kov-header-menu kov-account-menu" data-kov-header-menu="account">
     <summary class="top-profile kov-header-account-button" aria-label="Меню пользователя"><?=avatar_html($currentUser,'avatar-xs')?><span><?=e($currentUser['display_name']??'Профиль')?><?=verified_badge($currentUser)?></span><i aria-hidden="true">⌄</i></summary>
     <section class="kov-header-panel kov-header-account">
-     <a class="kov-header-account-profile" href="<?=e(app_url('/profile'))?>"><?=avatar_html($currentUser,'avatar-xs')?><span><b>Профиль</b><small>@<?=e($currentUser['username']??'profile')?></small></span></a>
+     <a class="kov-header-account-profile" href="<?=e(app_url('/account'))?>"><?=avatar_html($currentUser,'avatar-xs')?><span><b>Личный кабинет</b><small>Профиль, настройки и безопасность</small></span></a>
+     <a href="<?=e(app_url('/profile'))?>"><span class="menu-symbol">👤</span><span><b>Мой профиль</b><small>@<?=e($currentUser['username']??'profile')?></small></span></a>
      <div class="profile-theme-row"><span>Оформление</span><div><button type="button" data-quick-theme="dark" class="<?=$theme==='dark'?'active':''?>">Тёмная</button><button type="button" data-quick-theme="black" class="<?=$theme==='black'?'active':''?>">Чёрная</button><button type="button" data-quick-theme="light" class="<?=$theme==='light'?'active':''?>">Светлая</button></div></div>
-     <?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/admin'))?>"><span class="menu-symbol">⚙</span><span><b>Админка</b><small>Управление KOVCHEG Blog</small></span></a><?php endif;?>
+     <?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio'))?>"><span class="menu-symbol">✦</span><span><b>KOVCHEG Studio</b><small>Управление сайтом и публикациями</small></span></a><?php endif;?>
+     <?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/admin'))?>"><span class="menu-symbol">⚙</span><span><b>Системная админка</b><small>Пользователи и настройки системы</small></span></a><?php endif;?>
      <form method="post" action="<?=e(app_url('/logout'))?>"><?=csrf_field()?><button type="submit" class="profile-logout"><span class="menu-symbol">↪</span><span><b>Выйти</b><small>Завершить сеанс вручную</small></span></button></form>
     </section>
    </details>

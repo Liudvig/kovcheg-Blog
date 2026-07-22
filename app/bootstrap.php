@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.4.1';
-const ASSET_REVISION = '3.4.1-studio-shell-session';
+const APP_VERSION = '3.4.2';
+const ASSET_REVISION = '3.4.2-account-studio-actions';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }

@@ -29,21 +29,37 @@ $nav=[
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-builder.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-widgets.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-account.css?v='.rawurlencode(ASSET_REVISION)))?>">
 </head>
 <body class="studio-body" data-studio-section="<?=e($studioSection)?>">
 <div class="studio-shell">
  <aside class="studio-sidebar" id="studio-sidebar">
-  <header class="studio-brand"><a href="<?=e(app_url('/studio'))?>"><span>K</span><div><b>KOVCHEG Studio</b><small>Layout & Widgets 3.4</small></div></a><button type="button" data-studio-close aria-label="Закрыть">×</button></header>
+  <header class="studio-brand"><a href="<?=e(app_url('/studio'))?>"><span>K</span><div><b>KOVCHEG Studio</b><small>Layout & Widgets <?=e(APP_VERSION)?></small></div></a><button type="button" data-studio-close aria-label="Закрыть">×</button></header>
   <nav class="studio-nav">
    <?php foreach($nav as $key=>$item):if(!\Kovcheg\Blog\Studio::can($item[3]))continue;?>
    <a class="<?=$studioSection===$key?'active':''?>" href="<?=e(app_url($item[1]))?>"><i><?=$item[2]?></i><span><?=$item[0]?></span></a>
    <?php endforeach;?>
   </nav>
-  <footer class="studio-sidebar-footer"><a href="<?=e(app_url('/'))?>">↗ Открыть сайт</a><a href="<?=e(app_url('/profile'))?>">Профиль</a><small><?=e((string)($currentUser['display_name']??''))?> · <?=e($studioRole)?> · <?=e(APP_VERSION)?></small></footer>
+  <footer class="studio-sidebar-footer">
+   <a href="<?=e(app_url('/'))?>" target="_blank" rel="noopener">↗ Перейти на сайт</a>
+   <a href="<?=e(app_url('/account'))?>">◉ Личный кабинет</a>
+   <a href="<?=e(app_url('/profile'))?>">👤 Мой профиль</a>
+   <form method="post" action="<?=e(app_url('/logout'))?>"><?=csrf_field()?><button class="button studio-sidebar-logout" type="submit">↪ Выйти</button></form>
+   <small><?=e((string)($currentUser['display_name']??''))?> · <?=e($studioRole)?> · <?=e(APP_VERSION)?></small>
+  </footer>
  </aside>
  <button class="studio-overlay" type="button" data-studio-overlay hidden></button>
  <main class="studio-main">
-  <header class="studio-topbar"><button type="button" class="studio-menu-button" data-studio-open>☰</button><div><small>KOVCHEG Blog</small><b><?=e($studioTitle)?></b></div><div class="studio-top-actions"><?php if(\Kovcheg\Blog\Studio::can('content')):?><a class="button primary" href="<?=e(app_url('/studio/content/new'))?>">+ Новый материал</a><?php endif;?></div></header>
+  <header class="studio-topbar">
+   <button type="button" class="studio-menu-button" data-studio-open>☰</button>
+   <div><small>KOVCHEG Blog</small><b><?=e($studioTitle)?></b></div>
+   <div class="studio-top-actions">
+    <a class="button studio-site-action" href="<?=e(app_url('/'))?>" target="_blank" rel="noopener"><span class="studio-action-icon">↗</span><span class="studio-action-label">Перейти на сайт</span></a>
+    <a class="button studio-account-action" href="<?=e(app_url('/account'))?>"><span class="studio-action-icon">◉</span><span class="studio-action-label">Личный кабинет</span></a>
+    <?php if(\Kovcheg\Blog\Studio::can('content')):?><a class="button primary" href="<?=e(app_url('/studio/content/new'))?>"><span class="studio-action-icon">+</span><span class="studio-action-label">Новый материал</span></a><?php endif;?>
+    <form method="post" action="<?=e(app_url('/logout'))?>"><?=csrf_field()?><button class="button studio-logout-action" type="submit"><span class="studio-action-icon">↪</span><span class="studio-action-label">Выйти</span></button></form>
+   </div>
+  </header>
   <?php if($flash):?><div class="studio-flashes"><?php foreach($flash as $message):?><div class="studio-flash <?=$message['type']==='error'?'error':'success'?>"><?=e($message['text'])?></div><?php endforeach;?></div><?php endif;?>
   <section class="studio-content"><?=$content?></section>
  </main>

@@ -4,8 +4,8 @@ use Kovcheg\Auth;
 $path=(string)(parse_url((string)($_SERVER['REQUEST_URI']??'/'),PHP_URL_PATH)?:'/');
 $base=(string)(parse_url(app_url('/'),PHP_URL_PATH)?:'');
 if($base!==''&&$base!=='/'&&str_starts_with($path,rtrim($base,'/'))) $path=substr($path,strlen(rtrim($base,'/')))?:'/';
-$active=str_starts_with($path,'/messages')?'messages':(str_starts_with($path,'/profile')?'profile':(str_starts_with($path,'/colleagues')?'colleagues':(str_starts_with($path,'/admin')?'admin':'feed')));
-$items=[['feed','/feed','⌂','Лента'],['profile','/profile','👤','Профиль'],['messages','/messages','💬','Сообщения'],['colleagues','/colleagues','👥','Коллеги']];
+$active=str_starts_with($path,'/messages')?'messages':(str_starts_with($path,'/account')?'account':(str_starts_with($path,'/profile')?'profile':(str_starts_with($path,'/colleagues')?'colleagues':(str_starts_with($path,'/admin')?'admin':'feed'))));
+$items=[['feed','/feed','⌂','Лента'],['profile','/profile','👤','Профиль'],['account','/account','◉','Личный кабинет'],['messages','/messages','💬','Сообщения'],['colleagues','/colleagues','👥','Коллеги']];
 $items=\Kovcheg\Hooks::fire('sidebar.items',$items);
 $normalized=[];
 foreach($items as $item){if(!is_array($item)||count($item)<4)continue;$normalized[(string)$item[0]]=array_slice($item,0,4);}

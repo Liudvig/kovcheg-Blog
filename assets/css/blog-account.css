@@ -1,0 +1,65 @@
+/* KOVCHEG Blog 3.4.2 — account and Studio actions
+ * Copyright © Ланцет Семён Борисович. All rights reserved.
+ */
+
+.account-page-shell{align-items:start}
+.account-page{min-width:0;padding:24px clamp(14px,3vw,34px) 48px}
+.account-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px;border:1px solid var(--border);border-radius:18px;background:var(--panel);box-shadow:var(--shadow)}
+.account-identity{display:flex;align-items:center;gap:18px;min-width:0}
+.account-identity h1{margin:2px 0 4px;font-size:clamp(24px,4vw,38px);line-height:1.08}
+.account-identity p,.account-identity blockquote{margin:0;color:var(--muted)}
+.account-identity blockquote{margin-top:8px;font-style:normal}
+.account-kicker{display:block;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+.account-hero-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.account-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+.account-stats article{padding:18px;border:1px solid var(--border);border-radius:15px;background:var(--panel)}
+.account-stats strong{display:block;font-size:28px;line-height:1.1}
+.account-stats span{display:block;margin-top:5px;color:var(--muted)}
+.account-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.account-card{padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--panel);box-shadow:var(--shadow)}
+.account-card>header{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.account-card>header>span{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:var(--panel-2);font-size:20px}
+.account-card h2{margin:0;font-size:19px}
+.account-card header p,.account-card>p{margin:4px 0 0;color:var(--muted)}
+.account-card nav{display:grid;gap:8px}
+.account-card nav a{display:block;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--panel-2)}
+.account-card nav a:hover{border-color:var(--accent)}
+.account-card nav b,.account-card nav small{display:block}
+.account-card nav small{margin-top:3px;color:var(--muted)}
+.account-exit-card form{margin-top:16px}
+.account-logout-button{background:#fff0f0!important;border-color:#efb7b7!important;color:#a52626!important}
+
+.studio-top-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.studio-top-actions form{margin:0}
+.studio-top-actions .button{white-space:nowrap}
+.studio-top-actions .studio-site-action{background:#111820;border-color:#111820;color:#fff}
+.studio-top-actions .studio-account-action{background:#eef4ff;border-color:#c9d8fb;color:#1746a2}
+.studio-top-actions .studio-logout-action{background:#fff0ee;border-color:#f2c6c1;color:#9f241d}
+.studio-sidebar-footer form{margin:0}
+.studio-sidebar-footer .studio-sidebar-logout{width:100%;justify-content:flex-start;background:transparent;border-color:#3b4856;color:#f7c6c0}
+
+@media(max-width:1100px){
+ .account-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .account-hero{align-items:flex-start;flex-direction:column}
+ .account-hero-actions{justify-content:flex-start}
+ .studio-top-actions .studio-action-label{display:none}
+}
+
+@media(max-width:720px){
+ .account-page{padding:12px 10px 34px}
+ .account-hero{padding:17px}
+ .account-identity{align-items:flex-start}
+ .account-identity .profile-avatar{width:76px;height:76px}
+ .account-grid{grid-template-columns:1fr}
+ .account-stats{grid-template-columns:1fr 1fr}
+ .studio-top-actions{gap:5px}
+ .studio-top-actions .button{padding:9px 10px;font-size:0}
+ .studio-top-actions .button .studio-action-icon{font-size:17px}
+ .studio-top-actions form .button{font-size:0}
+}
+
+@media(max-width:420px){
+ .account-stats{grid-template-columns:1fr}
+ .account-identity{display:block}
+ .account-identity .profile-avatar{margin-bottom:12px}
+}
