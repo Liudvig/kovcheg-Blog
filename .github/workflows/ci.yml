@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime, hotfix/3.3-http-route-smoke, hotfix/3.3-original-uri-proxy, hotfix/3.3-query-route-fallback]
+    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime, hotfix/3.3-http-route-smoke, hotfix/3.3-original-uri-proxy, hotfix/3.3-query-route-fallback, blog-v3.4-layout-widgets]
   pull_request:
     branches: [main]
 
@@ -67,13 +67,17 @@ jobs:
             for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < "$migration"; done
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_builder.sql
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_growth.sql
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_layout_widgets.sql
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('content_entries','content_comments','content_patterns','content_autosaves','content_redirects','content_subscriptions','content_publication_log');" | grep -qx '7'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('site_layouts','site_widget_instances','site_widget_placements','site_layout_revisions');" | grep -qx '4'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_instances WHERE system_key IN ('default-logo','default-menu','default-account','default-subscription');" | grep -qx '4'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_placements;" | grep -qx '4'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='media_library' AND column_name IN ('folder_id','caption','usage_count');" | grep -qx '3'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='modules' AND column_name IN ('manifest_json','package_format','health_status');" | grep -qx '3'
           }
           apply_database "MariaDB 11" 3306 kovcheg_ci kovcheg_ci_root
           apply_database "MySQL 8.4" 3307 kovcheg_mysql_ci kovcheg_mysql_root
-      - name: Runtime bootstrap, CLI and HTTP route smoke tests
+      - name: Runtime bootstrap, widgets and HTTP route smoke tests
         shell: bash
         run: |
           mkdir -p config storage/logs storage/cache storage/uploads storage/backups storage/builds
@@ -98,9 +102,10 @@ jobs:
               ],
           ];
           PHP
-          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\\DB")) exit(1); echo "Runtime bootstrap OK\n";'
+          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\DB")||!class_exists("Kovcheg\Blog\Layout")) exit(1); if(count(Kovcheg\Blog\Layout::zones())<13) exit(2); if(count(Kovcheg\Blog\Layout::widgetTypes())<9) exit(3); echo "Runtime and Widget Engine OK\n";'
           php bin/migrate.php
           php bin/publish-scheduled.php
+          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; $html=Kovcheg\Blog\Layout::renderZone("header.main",["page_type"=>"home"]); if(!str_contains($html,"site-navigation")) exit(1); echo "Widget render OK\n";'
 
           php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-http.log 2>&1 &
           server_pid=$!
@@ -143,6 +148,7 @@ jobs:
           }
 
           check_route / text/html
+          grep -q 'data-layout-zone="header.main"' /tmp/kovcheg-response
           check_route /blog text/html
           check_route /portfolio text/html
           check_route /sitemap.xml application/xml

@@ -10,6 +10,7 @@ $nav=[
  'comments'=>['Комментарии','/studio/comments','◌','comments'],
  'media'=>['Медиатека','/studio/media','▧','media'],
  'menus'=>['Меню','/studio/menus','☷','menus'],
+ 'widgets'=>['Виджеты и зоны','/studio/widgets','▦','site'],
  'appearance'=>['Темы','/studio/appearance','◇','themes'],
  'presets'=>['Пресеты','/studio/presets','✦','site'],
  'growth'=>['SEO и рост','/studio/growth','↗','site'],
@@ -27,11 +28,12 @@ $nav=[
 <title><?=e($studioTitle)?> — KOVCHEG Studio</title>
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-builder.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-widgets.css?v='.rawurlencode(ASSET_REVISION)))?>">
 </head>
 <body class="studio-body" data-studio-section="<?=e($studioSection)?>">
 <div class="studio-shell">
  <aside class="studio-sidebar" id="studio-sidebar">
-  <header class="studio-brand"><a href="<?=e(app_url('/studio'))?>"><span>K</span><div><b>KOVCHEG Studio</b><small>Growth Suite 3.3</small></div></a><button type="button" data-studio-close aria-label="Закрыть">×</button></header>
+  <header class="studio-brand"><a href="<?=e(app_url('/studio'))?>"><span>K</span><div><b>KOVCHEG Studio</b><small>Layout & Widgets 3.4</small></div></a><button type="button" data-studio-close aria-label="Закрыть">×</button></header>
   <nav class="studio-nav">
    <?php foreach($nav as $key=>$item):if(!\Kovcheg\Blog\Studio::can($item[3]))continue;?>
    <a class="<?=$studioSection===$key?'active':''?>" href="<?=e(app_url($item[1]))?>"><i><?=$item[2]?></i><span><?=$item[0]?></span></a>
@@ -47,5 +49,6 @@ $nav=[
  </main>
 </div>
 <script src="<?=e(app_url('/assets/js/blog-studio.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
+<script src="<?=e(app_url('/assets/js/blog-widgets.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 </body>
 </html>

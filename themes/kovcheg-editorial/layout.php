@@ -1,6 +1,7 @@
 <?php
 use Kovcheg\Auth;
 use Kovcheg\Blog\Studio;
+use Kovcheg\Blog\Layout;
 
 $pageTitle = trim((string)($title ?? ''));
 $siteSeoTitle = trim(setting('seo_site_title','')) ?: $siteName;
@@ -9,15 +10,22 @@ $canonical = current_absolute_url();
 $indexing = setting('seo_robots_index', setting('search_indexing','0')) === '1';
 $logo = app_url('/brand/logo?v='.rawurlencode(APP_VERSION));
 $favicon = app_url('/brand/favicon?v='.rawurlencode(APP_VERSION));
+$layoutContext = is_array($layoutContext ?? null) ? $layoutContext : ['page_type'=>'default'];
+$headerTop = Layout::renderZone('header.top',$layoutContext);
+$headerMain = Layout::renderZone('header.main',$layoutContext);
+$headerBottom = Layout::renderZone('header.bottom',$layoutContext);
+$pageBefore = Layout::renderZone('page.before',$layoutContext);
+$leftZone = Layout::renderZone('layout.left',$layoutContext);
+$contentBefore = Layout::renderZone('content.before',$layoutContext);
+$contentAfter = Layout::renderZone('content.after',$layoutContext);
+$rightZone = Layout::renderZone('layout.right',$layoutContext);
+$pageAfter = Layout::renderZone('page.after',$layoutContext);
+$footerTop = Layout::renderZone('footer.top',$layoutContext);
+$footerColumns = Layout::renderZone('footer.columns',$layoutContext);
+$footerBottom = Layout::renderZone('footer.bottom',$layoutContext);
 $flash = [];
-if (!empty($_SESSION['flash_error'])) {
-    $flash[] = ['type' => 'error', 'text' => (string)$_SESSION['flash_error']];
-    unset($_SESSION['flash_error']);
-}
-if (!empty($_SESSION['flash_success'])) {
-    $flash[] = ['type' => 'success', 'text' => (string)$_SESSION['flash_success']];
-    unset($_SESSION['flash_success']);
-}
+if (!empty($_SESSION['flash_error'])) {$flash[]=['type'=>'error','text'=>(string)$_SESSION['flash_error']];unset($_SESSION['flash_error']);}
+if (!empty($_SESSION['flash_success'])) {$flash[]=['type'=>'success','text'=>(string)$_SESSION['flash_success']];unset($_SESSION['flash_success']);}
 ?><!doctype html>
 <html lang="ru">
 <head>
@@ -38,21 +46,25 @@ if (!empty($_SESSION['flash_success'])) {
 <link rel="icon" href="<?=e($favicon)?>">
 <link rel="stylesheet" href="<?=e($themeAsset('theme.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <link rel="stylesheet" href="<?=e($themeAsset('content.css').'?v='.rawurlencode(ASSET_REVISION))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-widgets.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <?=\Kovcheg\Hooks::fire('blog.layout.head', '')?>
 </head>
 <body class="blog-theme blog-theme-editorial">
 <a class="skip-link" href="#main-content">Перейти к содержанию</a>
-<header class="site-header"><div class="site-header__inner">
-<a class="site-brand" href="<?=e(app_url('/'))?>" aria-label="<?=e($siteName)?>"><img src="<?=e($logo)?>" alt="" class="site-brand__logo"><span class="site-brand__text"><b><?=e($siteName)?></b><small><?=e(setting('blog_tagline', 'Разработки · проекты · опыт'))?></small></span></a>
-<button class="site-menu-button" type="button" aria-expanded="false" aria-controls="site-navigation" data-site-menu-button>Меню</button>
-<nav class="site-navigation" id="site-navigation" aria-label="Главное меню" data-site-navigation>
-<?php foreach ($menuItems as $item):$itemUrl=trim((string)($item['url']??'/'));if($itemUrl==='')$itemUrl='/';if(!preg_match('~^(?:https?:)?//~i',$itemUrl))$itemUrl=app_url('/'.ltrim($itemUrl,'/'));?><a href="<?=e($itemUrl)?>"><?=e((string)($item['label']??'Раздел'))?></a><?php endforeach;?>
-</nav>
-<div class="site-account"><?php if(Auth::check()):?><a class="site-account__profile" href="<?=e(app_url('/profile'))?>"><?=avatar_html($currentUser,'avatar-xs')?> <span><?=e((string)($currentUser['display_name']??'Профиль'))?></span></a><?php if(Studio::can('comments')):?><a class="button button--quiet" href="<?=e(app_url('/studio'))?>">Studio</a><?php endif;?><?php else:?><a href="<?=e(app_url('/login'))?>">Войти</a><a class="button button--dark" href="<?=e(app_url('/register'))?>">Регистрация</a><?php endif;?></div>
-</div></header>
+<header class="site-header">
+<?=$headerTop?>
+<?php if($headerMain!==''):?><?=$headerMain?><?php else:?><div class="site-header__inner"><a class="site-brand" href="<?=e(app_url('/'))?>" aria-label="<?=e($siteName)?>"><img src="<?=e($logo)?>" alt="" class="site-brand__logo"><span class="site-brand__text"><b><?=e($siteName)?></b><small><?=e(setting('blog_tagline','Разработки · проекты · опыт'))?></small></span></a><button class="site-menu-button" type="button" aria-expanded="false" aria-controls="site-navigation" data-widget-menu-button>Меню</button><nav class="site-navigation" id="site-navigation" aria-label="Главное меню" data-widget-menu><?php foreach($menuItems as $item):$itemUrl=trim((string)($item['url']??'/'))?:'/';if(!preg_match('~^(?:https?:)?//~i',$itemUrl))$itemUrl=app_url('/'.ltrim($itemUrl,'/'));?><a href="<?=e($itemUrl)?>"><?=e((string)($item['label']??'Раздел'))?></a><?php endforeach;?></nav><div class="site-account"><?php if(Auth::check()):?><a class="site-account__profile" href="<?=e(app_url('/profile'))?>"><?=avatar_html($currentUser,'avatar-xs')?> <span><?=e((string)($currentUser['display_name']??'Профиль'))?></span></a><?php if(Studio::can('comments')):?><a class="button button--quiet" href="<?=e(app_url('/studio'))?>">Studio</a><?php endif;?><?php else:?><a href="<?=e(app_url('/login'))?>">Войти</a><a class="button button--dark" href="<?=e(app_url('/register'))?>">Регистрация</a><?php endif;?></div></div><?php endif;?>
+<?=$headerBottom?>
+</header>
 <?php if($flash):?><div class="flash-stack" aria-live="polite"><?php foreach($flash as $message):?><div class="flash flash--<?=e($message['type'])?>"><?=e($message['text'])?></div><?php endforeach;?></div><?php endif;?>
-<main id="main-content" class="site-main"><?=$content?></main>
-<footer class="site-footer"><div class="site-footer__inner"><div><b><?=e($siteName)?></b><p><?=e(setting('blog_footer_text','Авторский сайт, созданный на KOVCHEG Blog.'))?></p><?php if(setting('subscriptions_enabled','1')==='1'):?><form class="footer-subscribe" method="post" action="<?=e(app_url('/subscribe'))?>"><?=csrf_field()?><input type="hidden" name="source" value="footer"><label><span>Получать новые публикации</span><input type="email" name="email" placeholder="email@example.com" required maxlength="190"></label><button class="button button--dark">Подписаться</button></form><?php endif;?></div><div class="site-footer__meta"><span><?=e(setting('copyright','© '.date('Y').' KOVCHEG CMS'))?></span><span>Автор системы: Ланцет Семён Борисович</span><?php if(setting('seo_rss_enabled','1')==='1'):?><a href="<?=e(app_url('/feed.xml'))?>">RSS</a><?php endif;?></div></div></footer>
-<script nonce="<?=e((string)($GLOBALS['CSP_NONCE']??''))?>">(()=>{const button=document.querySelector('[data-site-menu-button]');const nav=document.querySelector('[data-site-navigation]');if(!button||!nav)return;button.addEventListener('click',()=>{const open=button.getAttribute('aria-expanded')==='true';button.setAttribute('aria-expanded',open?'false':'true');nav.classList.toggle('is-open',!open);});})();</script>
+<?=$pageBefore?>
+<div class="site-layout-grid <?=$leftZone!==''?'has-left':''?> <?=$rightZone!==''?'has-right':''?>">
+<?php if($leftZone!==''):?><aside class="site-layout-grid__left" aria-label="Левая колонка"><?=$leftZone?></aside><?php endif;?>
+<main id="main-content" class="site-main site-layout-grid__main"><?=$contentBefore?><?=$content?><?=$contentAfter?></main>
+<?php if($rightZone!==''):?><aside class="site-layout-grid__right" aria-label="Правая колонка"><?=$rightZone?></aside><?php endif;?>
+</div>
+<?=$pageAfter?>
+<?php if($footerTop!==''||$footerColumns!==''||$footerBottom!==''):?><footer class="site-footer"><?=$footerTop?><?=$footerColumns?><?=$footerBottom?></footer><?php else:?><footer class="site-footer"><div class="site-footer__inner"><div><b><?=e($siteName)?></b><p><?=e(setting('blog_footer_text','Авторский сайт, созданный на KOVCHEG Blog.'))?></p><?php if(setting('subscriptions_enabled','1')==='1'):?><form class="footer-subscribe" method="post" action="<?=e(app_url('/subscribe'))?>"><?=csrf_field()?><input type="hidden" name="source" value="footer"><label><span>Получать новые публикации</span><input type="email" name="email" placeholder="email@example.com" required maxlength="190"></label><button class="button button--dark">Подписаться</button></form><?php endif;?></div><div class="site-footer__meta"><span><?=e(setting('copyright','© '.date('Y').' KOVCHEG CMS'))?></span><span>Автор системы: Ланцет Семён Борисович</span><?php if(setting('seo_rss_enabled','1')==='1'):?><a href="<?=e(app_url('/feed.xml'))?>">RSS</a><?php endif;?></div></div></footer><?php endif;?>
+<script src="<?=e(app_url('/assets/js/blog-widgets.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 <?=\Kovcheg\Hooks::fire('blog.layout.scripts','')?>
 </body></html>

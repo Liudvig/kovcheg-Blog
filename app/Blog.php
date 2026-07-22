@@ -45,6 +45,12 @@ final class Blog
         $menuItems = self::menu('header');
         $currentUser = Auth::user() ?? [];
         $themeAsset = static fn(string $path): string => self::themeAsset($path);
+        $layoutContext = [
+            'page_type' => $safeView !== '' ? $safeView : 'default',
+            'view' => $safeView,
+            'entry_type' => isset($entry) && is_array($entry) ? (string)($entry['type'] ?? '') : '',
+            'entry_id' => isset($entry) && is_array($entry) ? (int)($entry['id'] ?? 0) : 0,
+        ];
 
         ob_start();
         require $viewFile;
