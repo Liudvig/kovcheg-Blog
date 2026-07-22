@@ -1,5 +1,15 @@
 # История изменений KOVCHEG Blog
 
+## 3.3.2 — FASTPANEL proxy routing hotfix
+
+Исправлена работа красивых URL через двухуровневую схему FASTPANEL Nginx → backend.
+
+- фронт-контроллер принимает исходный URI из служебного заголовка `X-Kovcheg-Original-URI`;
+- `/blog`, `/portfolio`, `/sitemap.xml`, `/feed.xml` и `/robots.txt` корректно маршрутизируются через `index.php`;
+- заголовок проверяется по длине, формату и отсутствию переводов строк;
+- добавлен HTTP smoke test, имитирующий реальный proxy-запрос FASTPANEL;
+- версия приложения поднята до 3.3.2.
+
 ## 3.3.1 — Runtime bootstrap hotfix
 
 Критическое исправление загрузки ядра после релиза Growth Suite.
