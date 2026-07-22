@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration]
+    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-site-manager]
   pull_request:
     branches: [main]
 
@@ -93,10 +93,16 @@ jobs:
             echo "=== ${label}: idempotent retry of 3.2 migration ==="
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_builder.sql
 
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('content_entries','content_comments','content_entry_meta','navigation_menus','themes','content_patterns','media_folders','content_autosaves','module_migrations','user_role_history');" | grep -qx '10'
+            echo "=== ${label}: idempotent retry of 3.3 migration ==="
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_site_manager.sql
+
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('content_entries','content_comments','content_entry_meta','navigation_menus','themes','content_patterns','media_folders','content_autosaves','module_migrations','user_role_history','site_home_sections','content_subscriptions','content_comment_reactions','blog_notifications','seo_redirects');" | grep -qx '15'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='media_library' AND column_name IN ('folder_id','caption','usage_count');" | grep -qx '3'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema='${database}' AND table_name='media_library' AND index_name='idx_media_folder';" | grep -qx '2'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='modules' AND column_name IN ('manifest_json','package_format','health_status');" | grep -qx '3'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='content_entries' AND column_name IN ('canonical_url','seo_image_path','seo_noindex','og_type');" | grep -qx '4'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='content_comments' AND column_name='edited_at';" | grep -qx '1'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM ${database}.site_home_sections;" | grep -qx '4'
           }
 
           apply_database "MariaDB 11" 3306 kovcheg_ci kovcheg_ci_root
