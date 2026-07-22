@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, blog-v1-foundation]
+    branches: [main, blog-v1-foundation, blog-v3.2-builder]
   pull_request:
     branches: [main]
 
@@ -33,7 +33,7 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-          extensions: mbstring, fileinfo, openssl, pdo_mysql
+          extensions: mbstring, fileinfo, openssl, pdo_mysql, zip
 
       - name: Lint PHP
         run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
@@ -63,7 +63,8 @@ jobs:
             echo "Applying $migration"
             mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg_ci < "$migration"
           done
-          mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='kovcheg_ci' AND table_name IN ('content_entries','content_comments','content_entry_meta','navigation_menus','themes');" | grep -qx '5'
+          mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='kovcheg_ci' AND table_name IN ('content_entries','content_comments','content_entry_meta','navigation_menus','themes','content_patterns','media_folders','content_autosaves','module_migrations','user_role_history');" | grep -qx '10'
+          mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='kovcheg_ci' AND table_name='modules' AND column_name IN ('manifest_json','package_format','health_status');" | grep -qx '3'
 
       - name: Reject committed secrets and runtime data
         shell: bash
