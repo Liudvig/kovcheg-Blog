@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime, hotfix/3.3-http-route-smoke]
+    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime, hotfix/3.3-http-route-smoke, hotfix/3.3-original-uri-proxy]
   pull_request:
     branches: [main]
 
@@ -111,18 +111,29 @@ jobs:
             sleep 1
           done
 
-          check_route() {
-            local path="$1" expected_type="$2" code type
+          check_response() {
+            local label="$1" expected_type="$2" code type
+            shift 2
             : > /tmp/kovcheg-headers
-            code=$(curl -sS -D /tmp/kovcheg-headers -o /tmp/kovcheg-response -w '%{http_code}' "http://127.0.0.1:8099${path}")
+            code=$(curl -sS -D /tmp/kovcheg-headers -o /tmp/kovcheg-response -w '%{http_code}' "$@")
             type=$(awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' /tmp/kovcheg-headers | tr -d '\r' | tail -n1)
-            echo "$code $path $type"
+            echo "$code $label $type"
             if [ "$code" != "200" ]; then
-              echo "Response body for $path:" >&2
+              echo "Response body for $label:" >&2
               cat /tmp/kovcheg-response >&2
               exit 1
             fi
-            case "$type" in *"$expected_type"*) ;; *) echo "Unexpected content type for $path" >&2; cat /tmp/kovcheg-response >&2; exit 1;; esac
+            case "$type" in *"$expected_type"*) ;; *) echo "Unexpected content type for $label" >&2; cat /tmp/kovcheg-response >&2; exit 1;; esac
+          }
+
+          check_route() {
+            local path="$1" expected_type="$2"
+            check_response "$path" "$expected_type" "http://127.0.0.1:8099${path}"
+          }
+
+          check_proxy_route() {
+            local path="$1" expected_type="$2"
+            check_response "proxy:${path}" "$expected_type" -H "X-Kovcheg-Original-URI: ${path}" "http://127.0.0.1:8099/index.php"
           }
 
           check_route / text/html
@@ -131,6 +142,12 @@ jobs:
           check_route /sitemap.xml application/xml
           check_route /feed.xml application/rss+xml
           check_route /robots.txt text/plain
+
+          check_proxy_route /blog text/html
+          check_proxy_route /portfolio text/html
+          check_proxy_route /sitemap.xml application/xml
+          check_proxy_route /feed.xml application/rss+xml
+          check_proxy_route /robots.txt text/plain
 
           kill "$server_pid"
           wait "$server_pid" 2>/dev/null || true
