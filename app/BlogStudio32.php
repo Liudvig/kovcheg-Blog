@@ -55,7 +55,7 @@ final class Studio32
                 'layout_width'=>in_array((string)($input['layout_width']??''),['narrow','normal','wide','full'],true)?(string)$input['layout_width']:'normal',
                 'accent'=>preg_match('/^#[0-9a-fA-F]{6}$/',(string)($input['accent']??''))?(string)$input['accent']:'',
             ]);
-            DB::run('DELETE FROM content_autosaves WHERE entry_id=? AND user_id=?',[$id,$authorId]);
+            DB::run("DELETE FROM content_autosaves WHERE user_id=? AND (entry_id=? OR autosave_key='new')",[$authorId,$id]);
             DB::pdo()->commit();
         }catch(Throwable $e){if(DB::pdo()->inTransaction())DB::pdo()->rollBack();throw $e;}
         audit($current?'blog.entry.update':'blog.entry.create','content_entry',$id,['type'=>$type,'status'=>$status,'builder'=>'3.2']);
@@ -78,7 +78,8 @@ final class Studio32
         $entryId=max(0,$entryId);
         if($entryId&&!DB::one('SELECT id FROM content_entries WHERE id=? AND deleted_at IS NULL',[$entryId]))abort(404,'Материал не найден.');
         $normalized=Builder::normalize($contentJson);
-        DB::run('INSERT INTO content_autosaves (entry_id,user_id,title,excerpt,content_json,saved_at) VALUES (?,?,?,?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE title=VALUES(title),excerpt=VALUES(excerpt),content_json=VALUES(content_json),saved_at=CURRENT_TIMESTAMP',[$entryId?:null,$userId,mb_substr(trim($title),0,255),mb_substr(trim($excerpt),0,2000),$normalized]);
+        $key=$entryId>0?'entry:'.$entryId:'new';
+        DB::run('INSERT INTO content_autosaves (entry_id,user_id,autosave_key,title,excerpt,content_json,saved_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE entry_id=VALUES(entry_id),title=VALUES(title),excerpt=VALUES(excerpt),content_json=VALUES(content_json),saved_at=CURRENT_TIMESTAMP',[$entryId?:null,$userId,$key,mb_substr(trim($title),0,255),mb_substr(trim($excerpt),0,2000),$normalized]);
     }
 
     public static function presets():array
