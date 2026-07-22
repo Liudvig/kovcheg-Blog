@@ -8,6 +8,7 @@ $router = new \Kovcheg\Router();
 require __DIR__.'/routes/blog-preflight.php';
 // Blog 3.3 owns the homepage, SEO endpoints and enhanced discussions.
 require __DIR__.'/routes/blog-site-manager.php';
+require __DIR__.'/routes/blog-site-manager-moderation.php';
 // Blog 3.2 remains the Visual Builder and module-management fallback.
 require __DIR__.'/routes/blog-builder.php';
 // Public content and the stable Studio 3.1 fallback routes remain available.
