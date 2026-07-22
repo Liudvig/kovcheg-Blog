@@ -6,6 +6,13 @@ use Kovcheg\Blog\Studio;
 $meta=SiteManager::meta(['title'=>$title??'','description'=>$description??'','entry'=>$entry??null]);
 $pageTitle=(string)$meta['rawTitle'];
 $siteName=(string)($siteName??setting('site_name','KOVCHEG Blog'));
+$canonical=(string)$meta['canonical'];
+if(str_starts_with($canonical,'/')){
+ $parts=parse_url(current_absolute_url())?:[];$scheme=(string)($parts['scheme']??'https');$host=(string)($parts['host']??($_SERVER['HTTP_HOST']??'localhost'));$port=isset($parts['port'])?':'.(int)$parts['port']:'';$canonical=$scheme.'://'.$host.$port.$canonical;$meta['canonical']=$canonical;
+}
+if($meta['image']===''){$defaultImage=trim((string)setting('seo_default_image',''));if(filter_var($defaultImage,FILTER_VALIDATE_URL))$meta['image']=$defaultImage;}
+$schemaData=json_decode((string)$meta['jsonLd'],true);if(!is_array($schemaData))$schemaData=[];$schemaData['url']=$canonical;if($meta['image']!=='')$schemaData['image']=$meta['image'];
+$safeJsonLd=json_encode($schemaData,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
 $logo=app_url('/brand/logo?v='.rawurlencode(APP_VERSION));
 $favicon=app_url('/brand/favicon?v='.rawurlencode(APP_VERSION));
 $unreadNotifications=Auth::check()?SiteManager::unreadCount(Auth::id()):0;
@@ -20,14 +27,14 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
 <meta name="theme-color" content="#f4f3ef">
 <meta name="description" content="<?=e($meta['description'])?>">
 <meta name="robots" content="<?=e($meta['robots'])?>">
-<link rel="canonical" href="<?=e($meta['canonical'])?>">
+<link rel="canonical" href="<?=e($canonical)?>">
 <?php if(setting('seo_feed_enabled','1')==='1'):?><link rel="alternate" type="application/rss+xml" title="<?=e($siteName)?> RSS" href="<?=e(app_url('/feed.xml'))?>"><?php endif;?>
 <?php if(setting('seo_google_verification','')!==''):?><meta name="google-site-verification" content="<?=e(setting('seo_google_verification',''))?>"><?php endif;?>
 <?php if(setting('seo_yandex_verification','')!==''):?><meta name="yandex-verification" content="<?=e(setting('seo_yandex_verification',''))?>"><?php endif;?>
 <meta property="og:site_name" content="<?=e($siteName)?>">
 <meta property="og:title" content="<?=e($meta['title'])?>">
 <meta property="og:description" content="<?=e($meta['description'])?>">
-<meta property="og:url" content="<?=e($meta['canonical'])?>">
+<meta property="og:url" content="<?=e($canonical)?>">
 <meta property="og:type" content="<?=e($meta['ogType'])?>">
 <?php if($meta['image']!==''):?><meta property="og:image" content="<?=e($meta['image'])?>"><?php endif;?>
 <meta name="twitter:card" content="<?=$meta['image']!==''?'summary_large_image':'summary'?>">
@@ -39,7 +46,7 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
 <link rel="stylesheet" href="<?=e($themeAsset('theme.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <link rel="stylesheet" href="<?=e($themeAsset('content.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-public-33.css?v='.rawurlencode(ASSET_REVISION)))?>">
-<script type="application/ld+json" nonce="<?=e((string)($GLOBALS['CSP_NONCE']??''))?>"><?=$meta['jsonLd']?></script>
+<script type="application/ld+json" nonce="<?=e((string)($GLOBALS['CSP_NONCE']??''))?>"><?=$safeJsonLd?></script>
 <?=\Kovcheg\Hooks::fire('blog.layout.head','')?>
 </head>
 <body class="blog-theme blog-theme-editorial">
