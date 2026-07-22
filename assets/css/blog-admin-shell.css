@@ -1,0 +1,275 @@
+/* KOVCHEG Blog Studio shell 3.4.1
+ * Fixed desktop navigation, independently scrolling content and hidden scrollbars.
+ * Copyright © Ланцет Семён Борисович. All rights reserved.
+ */
+
+html:has(.admin-shell),
+body.auth-shell:has(.admin-shell){
+ height:100%;
+ min-height:100%;
+ overflow:hidden;
+ overscroll-behavior:none;
+}
+
+body.auth-shell:has(.admin-shell) #kovcheg-page-content{
+ height:calc(100vh - var(--topbar-height,58px));
+ min-height:0;
+ overflow:hidden;
+}
+
+.admin-shell{
+ width:100%;
+ height:100%;
+ min-height:0;
+ display:grid;
+ grid-template-columns:280px minmax(0,1fr);
+ grid-template-rows:minmax(0,1fr);
+ overflow:hidden;
+ background:var(--bg);
+}
+
+.admin-nav{
+ position:relative;
+ inset:auto;
+ width:280px;
+ height:100%;
+ min-height:0;
+ overflow-x:hidden;
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ scrollbar-width:none;
+ -ms-overflow-style:none;
+ border-right:1px solid var(--line,var(--border));
+ box-shadow:8px 0 28px rgba(0,0,0,.08);
+ z-index:80;
+}
+
+.admin-nav::-webkit-scrollbar,
+.admin-content::-webkit-scrollbar,
+.admin-nav-groups::-webkit-scrollbar,
+.docs-layout>aside::-webkit-scrollbar,
+.table-wrap::-webkit-scrollbar{
+ width:0;
+ height:0;
+ display:none;
+}
+
+.admin-nav,
+.admin-content,
+.admin-nav-groups,
+.docs-layout>aside,
+.table-wrap{
+ scrollbar-width:none;
+ -ms-overflow-style:none;
+}
+
+.admin-nav-head{
+ position:sticky;
+ top:0;
+ z-index:5;
+ padding-top:max(14px,env(safe-area-inset-top));
+ background:inherit;
+}
+
+.admin-nav-groups{
+ min-height:0;
+ overflow:visible;
+ padding-bottom:24px;
+}
+
+.admin-content{
+ height:100%;
+ min-width:0;
+ min-height:0;
+ overflow-x:hidden;
+ overflow-y:auto;
+ overscroll-behavior:contain;
+ scroll-behavior:smooth;
+ display:flex;
+ flex-direction:column;
+ gap:0;
+ padding:26px clamp(18px,3vw,42px) 0;
+}
+
+.admin-content>.admin-footer{
+ flex:0 0 auto;
+ width:calc(100% + clamp(36px,6vw,84px));
+ margin:auto calc(clamp(18px,3vw,42px) * -1) 0;
+ padding:18px clamp(18px,3vw,42px) calc(18px + env(safe-area-inset-bottom));
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:14px 24px;
+ flex-wrap:wrap;
+ border-top:1px solid var(--line,var(--border));
+ background:color-mix(in srgb,var(--panel) 94%,transparent);
+ color:var(--muted);
+ font-size:12px;
+ line-height:1.5;
+ backdrop-filter:blur(14px);
+}
+
+.admin-content>.admin-footer b{
+ color:var(--text);
+ font-size:13px;
+}
+
+.admin-content>.admin-footer span{
+ display:flex;
+ align-items:center;
+ justify-content:flex-end;
+ gap:6px;
+ flex-wrap:wrap;
+}
+
+.admin-content>.admin-footer a{
+ color:var(--accent);
+ font-weight:700;
+}
+
+.admin-mobile-bar{
+ display:none;
+}
+
+.admin-nav-overlay{
+ display:none;
+}
+
+@media (max-width:980px){
+ body.auth-shell:has(.admin-shell) #kovcheg-page-content{
+  height:calc(100vh - var(--topbar-height,58px));
+ }
+
+ .admin-shell{
+  display:block;
+  position:relative;
+ }
+
+ .admin-mobile-bar{
+  position:sticky;
+  top:0;
+  z-index:65;
+  min-height:52px;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  border-bottom:1px solid var(--line,var(--border));
+  background:color-mix(in srgb,var(--panel) 94%,transparent);
+  backdrop-filter:blur(16px);
+ }
+
+ .admin-mobile-bar strong{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  text-align:center;
+ }
+
+ .admin-mobile-menu-button{
+  width:auto;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  border:0;
+  border-radius:10px;
+  padding:8px 10px;
+  background:var(--panel-2);
+  color:var(--text);
+ }
+
+ .admin-nav{
+  position:fixed;
+  top:var(--topbar-height,58px);
+  bottom:0;
+  left:0;
+  width:min(310px,88vw);
+  height:auto;
+  transform:translateX(-104%);
+  transition:transform .2s ease;
+  box-shadow:18px 0 48px rgba(0,0,0,.38);
+  z-index:120;
+ }
+
+ .admin-shell.admin-nav-open .admin-nav{
+  transform:translateX(0);
+ }
+
+ .admin-nav-overlay{
+  position:fixed;
+  inset:var(--topbar-height,58px) 0 0;
+  z-index:110;
+  display:block;
+  border:0;
+  background:rgba(5,12,19,.56);
+  backdrop-filter:blur(2px);
+ }
+
+ .admin-nav-overlay[hidden]{
+  display:none!important;
+ }
+
+ .admin-content{
+  height:100%;
+  padding:0 14px;
+ }
+
+ .admin-content>.page-head,
+ .admin-content>.stats,
+ .admin-content>.table-wrap,
+ .admin-content>.cards,
+ .admin-content>.settings-columns,
+ .admin-content>.settings-form,
+ .admin-content>.docs-layout,
+ .admin-content>.studio-layout,
+ .admin-content>.role-management-grid,
+ .admin-content>.user-editor,
+ .admin-content>h1,
+ .admin-content>h2,
+ .admin-content>p,
+ .admin-content>.admin-notifications-list{
+  margin-left:0;
+  margin-right:0;
+ }
+
+ .admin-content>.page-head:first-of-type{
+  margin-top:18px;
+ }
+
+ .admin-content>.admin-footer{
+  width:calc(100% + 28px);
+  margin:auto -14px 0;
+  padding-left:14px;
+  padding-right:14px;
+  align-items:flex-start;
+  flex-direction:column;
+ }
+
+ .admin-content>.admin-footer span{
+  justify-content:flex-start;
+ }
+}
+
+@media (max-width:620px){
+ .admin-mobile-bar{
+  grid-template-columns:auto minmax(0,1fr) auto;
+ }
+
+ .admin-mobile-menu-button b{
+  display:none;
+ }
+
+ .admin-content{
+  padding-left:10px;
+  padding-right:10px;
+ }
+
+ .admin-content>.admin-footer{
+  width:calc(100% + 20px);
+  margin-left:-10px;
+  margin-right:-10px;
+  padding-left:12px;
+  padding-right:12px;
+ }
+}
