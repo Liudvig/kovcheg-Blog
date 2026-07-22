@@ -23,7 +23,7 @@ $css = $read('assets/css/blog-admin-shell.css');
 $js = $read('assets/js/blog-admin-shell.js');
 
 $required = [
-    [str_contains($bootstrap, "const APP_VERSION = '3.4.1';"), 'Версия приложения должна быть 3.4.1.'],
+    [str_contains($bootstrap, "const APP_VERSION = '3.4.2';"), 'Версия приложения должна быть 3.4.2.'],
     [str_contains($bootstrap, '$sessionLifetime=315360000;'), 'Сессионная cookie должна продлеваться на 10 лет.'],
     [str_contains($bootstrap, 'setcookie(session_name(),session_id(),$sessionCookieOptions)'), 'Сессионная cookie должна обновляться при активном использовании.'],
     [str_contains($core, 'private const REMEMBER_DAYS = 3650;'), 'Постоянный вход должен продлеваться на 10 лет.'],
