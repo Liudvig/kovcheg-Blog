@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime, hotfix/3.3-http-route-smoke, hotfix/3.3-original-uri-proxy, hotfix/3.3-query-route-fallback, blog-v3.4-layout-widgets]
+    branches: [main, release/3.5-unified-portal-studio]
   pull_request:
     branches: [main]
 
@@ -45,21 +45,24 @@ jobs:
           extensions: mbstring, fileinfo, openssl, pdo_mysql, zip
       - name: Lint PHP
         shell: bash
-        run: |
-          find . -path './.git' -prune -o -path './vendor' -prune -o -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
+        run: find . -path './.git' -prune -o -path './vendor' -prune -o -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
       - name: Check JavaScript syntax
+        shell: bash
         run: |
           files=$(find assets themes -type f -name '*.js' 2>/dev/null || true)
           if [ -n "$files" ]; then while IFS= read -r file; do node --check "$file"; done <<< "$files"; fi
       - name: Validate JSON
         shell: bash
+        run: while IFS= read -r -d '' file; do php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"; done < <(find . -path './.git' -prune -o -type f -name '*.json' -print0)
+      - name: Run product audits
         run: |
-          while IFS= read -r -d '' file; do php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"; done < <(find . -path './.git' -prune -o -type f -name '*.json' -print0)
-      - name: Audit Studio shell and persistent login
-        run: php scripts/audit-studio-shell.php
+          php scripts/audit-studio-shell.php
+          php scripts/audit-account-actions.php
+          php scripts/audit-unified-portal.php
       - name: Validate schema and migrations on MariaDB and MySQL
         shell: bash
         run: |
+          set -euo pipefail
           php -r '$schema=require "database/schema.php"; if(!is_string($schema)||trim($schema)==="") exit(1); file_put_contents("/tmp/kovcheg-schema.sql",$schema);'
           apply_database() {
             local label="$1" port="$2" database="$3" password="$4"
@@ -70,109 +73,48 @@ jobs:
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_builder.sql
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_growth.sql
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_layout_widgets.sql
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_portal_theme.sql
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('content_entries','content_comments','content_patterns','content_autosaves','content_redirects','content_subscriptions','content_publication_log');" | grep -qx '7'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('site_layouts','site_widget_instances','site_widget_placements','site_layout_revisions');" | grep -qx '4'
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_instances WHERE system_key IN ('default-logo','default-menu','default-account','default-subscription');" | grep -qx '4'
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_placements;" | grep -qx '4'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_instances WHERE system_key IN ('default-logo','default-menu','default-account','default-subscription','portal-left-categories','portal-left-menu','portal-right-search','portal-right-latest');" | grep -qx '8'
+            placements=$(MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_placements;")
+            test "$placements" -ge 8
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_placements WHERE zone IN ('layout.left','layout.right');" | grep -qx '4'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM themes WHERE slug='kovcheg-portal' AND version='1.0.0';" | grep -qx '1'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='media_library' AND column_name IN ('folder_id','caption','usage_count');" | grep -qx '3'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='modules' AND column_name IN ('manifest_json','package_format','health_status');" | grep -qx '3'
           }
           apply_database "MariaDB 11" 3306 kovcheg_ci kovcheg_ci_root
           apply_database "MySQL 8.4" 3307 kovcheg_mysql_ci kovcheg_mysql_root
-      - name: Runtime bootstrap, widgets and HTTP route smoke tests
+      - name: Runtime, Widget Engine repair and HTTP smoke tests
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p config storage/logs storage/cache storage/uploads storage/backups storage/builds
           cat > config/config.php <<'PHP'
           <?php
           return [
-              'app' => [
-                  'name' => 'KOVCHEG Blog CI',
-                  'url' => 'http://127.0.0.1:8099',
-                  'timezone' => 'UTC',
-                  'debug' => true,
-                  'key' => 'base64:'.base64_encode(str_repeat('K', 32)),
-              ],
-              'database' => [
-                  'driver' => 'mysql',
-                  'host' => '127.0.0.1',
-                  'port' => 3306,
-                  'name' => 'kovcheg_ci',
-                  'user' => 'root',
-                  'password' => 'kovcheg_ci_root',
-                  'charset' => 'utf8mb4',
-              ],
+              'app' => ['name'=>'KOVCHEG Blog CI','url'=>'http://127.0.0.1:8099','timezone'=>'UTC','debug'=>true,'key'=>'base64:'.base64_encode(str_repeat('K',32))],
+              'database' => ['driver'=>'mysql','host'=>'127.0.0.1','port'=>3306,'name'=>'kovcheg_ci','user'=>'root','password'=>'kovcheg_ci_root','charset'=>'utf8mb4'],
           ];
           PHP
           php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\\DB")||!class_exists("Kovcheg\\Blog\\Layout")) exit(1); if(count(Kovcheg\Blog\Layout::zones())<13) exit(2); if(count(Kovcheg\Blog\Layout::widgetTypes())<9) exit(3); echo "Runtime and Widget Engine OK\n";'
           php bin/migrate.php
           php bin/publish-scheduled.php
-          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; $html=Kovcheg\Blog\Layout::renderZone("header.main",["page_type"=>"home"]); if(!str_contains($html,"site-navigation")) exit(1); echo "Widget render OK\n";'
-
+          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; require_once "app/BlogLayoutRepair.php"; Kovcheg\Blog\LayoutRepair::ensure(); $html=Kovcheg\Blog\Layout::renderZone("header.main",["page_type"=>"home"]); if(!str_contains($html,"site-navigation")) exit(1); echo "Widget repair/render OK\n";'
           php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-http.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/kovcheg-http.log || true' EXIT
-
-          for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi
-            sleep 1
-          done
-
-          check_response() {
-            local label="$1" expected_type="$2" code type
-            shift 2
-            : > /tmp/kovcheg-headers
-            code=$(curl -sS -D /tmp/kovcheg-headers -o /tmp/kovcheg-response -w '%{http_code}' "$@")
-            type=$(awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' /tmp/kovcheg-headers | tr -d '\r' | tail -n1)
-            echo "$code $label $type"
-            if [ "$code" != "200" ]; then
-              echo "Response body for $label:" >&2
-              cat /tmp/kovcheg-response >&2
-              exit 1
-            fi
-            case "$type" in *"$expected_type"*) ;; *) echo "Unexpected content type for $label" >&2; cat /tmp/kovcheg-response >&2; exit 1;; esac
-          }
-
-          check_route() {
-            local path="$1" expected_type="$2"
-            check_response "$path" "$expected_type" "http://127.0.0.1:8099${path}"
-          }
-
-          check_header_proxy_route() {
-            local path="$1" expected_type="$2"
-            check_response "header-proxy:${path}" "$expected_type" -H "X-Kovcheg-Original-URI: ${path}" "http://127.0.0.1:8099/index.php"
-          }
-
-          check_query_proxy_route() {
-            local path="$1" expected_type="$2" encoded
-            encoded=$(php -r 'echo rawurlencode($argv[1]);' "$path")
-            check_response "query-proxy:${path}" "$expected_type" "http://127.0.0.1:8099/index.php?__kovcheg_route=${encoded}"
-          }
-
+          for attempt in $(seq 1 30); do if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi; sleep 1; done
+          check_response() { local label="$1" expected="$2" code type; shift 2; : > /tmp/headers; code=$(curl -sS -D /tmp/headers -o /tmp/body -w '%{http_code}' "$@"); type=$(awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' /tmp/headers | tr -d '\r' | tail -n1); echo "$code $label $type"; test "$code" = "200"; case "$type" in *"$expected"*) ;; *) cat /tmp/body; exit 1;; esac; }
+          check_route() { check_response "$1" "$2" "http://127.0.0.1:8099$1"; }
+          check_header() { check_response "header:$1" "$2" -H "X-Kovcheg-Original-URI: $1" http://127.0.0.1:8099/index.php; }
+          check_query() { local encoded; encoded=$(php -r 'echo rawurlencode($argv[1]);' "$1"); check_response "query:$1" "$2" "http://127.0.0.1:8099/index.php?__kovcheg_route=${encoded}"; }
           check_route / text/html
-          grep -q 'data-layout-zone="header.main"' /tmp/kovcheg-response
-          check_route /blog text/html
-          check_route /portfolio text/html
-          check_route /sitemap.xml application/xml
-          check_route /feed.xml application/rss+xml
-          check_route /robots.txt text/plain
-
-          check_header_proxy_route /blog text/html
-          check_header_proxy_route /portfolio text/html
-          check_header_proxy_route /sitemap.xml application/xml
-          check_header_proxy_route /feed.xml application/rss+xml
-          check_header_proxy_route /robots.txt text/plain
-
-          check_query_proxy_route /blog text/html
-          check_query_proxy_route /portfolio text/html
-          check_query_proxy_route /sitemap.xml application/xml
-          check_query_proxy_route /feed.xml application/rss+xml
-          check_query_proxy_route /robots.txt text/plain
-
-          kill "$server_pid"
-          wait "$server_pid" 2>/dev/null || true
-          trap - EXIT
-          rm -f config/config.php
+          grep -q 'data-layout-zone="header.main"' /tmp/body
+          for path in /blog /portfolio; do check_route "$path" text/html; check_header "$path" text/html; check_query "$path" text/html; done
+          for spec in '/sitemap.xml application/xml' '/feed.xml application/rss+xml' '/robots.txt text/plain'; do set -- $spec; check_route "$1" "$2"; check_header "$1" "$2"; check_query "$1" "$2"; done
+          kill "$server_pid"; wait "$server_pid" 2>/dev/null || true; trap - EXIT; rm -f config/config.php
       - name: Reject committed secrets and runtime data
         shell: bash
         run: |
