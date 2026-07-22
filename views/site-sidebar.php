@@ -1,7 +1,13 @@
 <?php
 $active=$active??'';
 $counts=\Kovcheg\Auth::check()?profile_counts(\Kovcheg\Auth::id()):['requests'=>0];
-$items=[['feed','/feed','⌂','Лента'],['profile','/profile','👤','Профиль'],['messages','/messages','💬','Сообщения'],['colleagues','/colleagues','👥','Коллеги']];
+$items=[
+ ['feed','/feed','⌂','Лента'],
+ ['account','/account','◉','Личный кабинет'],
+ ['profile','/profile','👤','Профиль'],
+ ['messages','/messages','💬','Сообщения'],
+ ['colleagues','/colleagues','👥','Коллеги'],
+];
 $items=\Kovcheg\Hooks::fire('sidebar.items',$items);
 if(\Kovcheg\Auth::isAdmin())$items[]=['admin','/admin','🛡','Админка'];
 $primary=['feed','messages','music','profile'];
