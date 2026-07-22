@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime, hotfix/3.3-http-route-smoke, hotfix/3.3-original-uri-proxy]
+    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime, hotfix/3.3-http-route-smoke, hotfix/3.3-original-uri-proxy, hotfix/3.3-query-route-fallback]
   pull_request:
     branches: [main]
 
@@ -131,9 +131,15 @@ jobs:
             check_response "$path" "$expected_type" "http://127.0.0.1:8099${path}"
           }
 
-          check_proxy_route() {
+          check_header_proxy_route() {
             local path="$1" expected_type="$2"
-            check_response "proxy:${path}" "$expected_type" -H "X-Kovcheg-Original-URI: ${path}" "http://127.0.0.1:8099/index.php"
+            check_response "header-proxy:${path}" "$expected_type" -H "X-Kovcheg-Original-URI: ${path}" "http://127.0.0.1:8099/index.php"
+          }
+
+          check_query_proxy_route() {
+            local path="$1" expected_type="$2" encoded
+            encoded=$(php -r 'echo rawurlencode($argv[1]);' "$path")
+            check_response "query-proxy:${path}" "$expected_type" "http://127.0.0.1:8099/index.php?__kovcheg_route=${encoded}"
           }
 
           check_route / text/html
@@ -143,11 +149,17 @@ jobs:
           check_route /feed.xml application/rss+xml
           check_route /robots.txt text/plain
 
-          check_proxy_route /blog text/html
-          check_proxy_route /portfolio text/html
-          check_proxy_route /sitemap.xml application/xml
-          check_proxy_route /feed.xml application/rss+xml
-          check_proxy_route /robots.txt text/plain
+          check_header_proxy_route /blog text/html
+          check_header_proxy_route /portfolio text/html
+          check_header_proxy_route /sitemap.xml application/xml
+          check_header_proxy_route /feed.xml application/rss+xml
+          check_header_proxy_route /robots.txt text/plain
+
+          check_query_proxy_route /blog text/html
+          check_query_proxy_route /portfolio text/html
+          check_query_proxy_route /sitemap.xml application/xml
+          check_query_proxy_route /feed.xml application/rss+xml
+          check_query_proxy_route /robots.txt text/plain
 
           kill "$server_pid"
           wait "$server_pid" 2>/dev/null || true
