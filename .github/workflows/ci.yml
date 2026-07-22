@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime]
+    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth, hotfix/3.3-bootstrap-runtime, hotfix/3.3-http-route-smoke]
   pull_request:
     branches: [main]
 
@@ -73,7 +73,7 @@ jobs:
           }
           apply_database "MariaDB 11" 3306 kovcheg_ci kovcheg_ci_root
           apply_database "MySQL 8.4" 3307 kovcheg_mysql_ci kovcheg_mysql_root
-      - name: Runtime bootstrap and CLI smoke test
+      - name: Runtime bootstrap, CLI and HTTP route smoke tests
         shell: bash
         run: |
           mkdir -p config storage/logs storage/cache storage/uploads storage/backups storage/builds
@@ -82,7 +82,7 @@ jobs:
           return [
               'app' => [
                   'name' => 'KOVCHEG Blog CI',
-                  'url' => 'http://localhost',
+                  'url' => 'http://127.0.0.1:8099',
                   'timezone' => 'UTC',
                   'debug' => true,
                   'key' => 'base64:'.base64_encode(str_repeat('K', 32)),
@@ -101,6 +101,35 @@ jobs:
           php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; if(!class_exists("Kovcheg\\DB")) exit(1); echo "Runtime bootstrap OK\n";'
           php bin/migrate.php
           php bin/publish-scheduled.php
+
+          php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/kovcheg-http.log || true' EXIT
+
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi
+            sleep 1
+          done
+
+          check_route() {
+            local path="$1" expected_type="$2" code type
+            code=$(curl -sS -o /tmp/kovcheg-response -w '%{http_code}' "http://127.0.0.1:8099${path}")
+            type=$(curl -sSI "http://127.0.0.1:8099${path}" | awk -F': ' 'tolower($1)=="content-type"{print tolower($2)}' | tr -d '\r' | head -n1)
+            echo "$code $path $type"
+            test "$code" = "200"
+            case "$type" in *"$expected_type"*) ;; *) echo "Unexpected content type for $path" >&2; exit 1;; esac
+          }
+
+          check_route / text/html
+          check_route /blog text/html
+          check_route /portfolio text/html
+          check_route /sitemap.xml application/xml
+          check_route /feed.xml application/rss+xml
+          check_route /robots.txt text/plain
+
+          kill "$server_pid"
+          wait "$server_pid" 2>/dev/null || true
+          trap - EXIT
           rm -f config/config.php
       - name: Reject committed secrets and runtime data
         shell: bash
