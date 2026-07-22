@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.4.0';
-const ASSET_REVISION = '3.4.0-layout-widget-engine';
+const APP_VERSION = '3.4.1';
+const ASSET_REVISION = '3.4.1-studio-shell-session';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
@@ -13,17 +13,17 @@ if (!is_file(BASE_PATH.'/config/config.php')) {
 
 $CONFIG = require BASE_PATH.'/config/config.php';
 if (!is_array($CONFIG) || !isset($CONFIG['app'], $CONFIG['database'])) {
-    error_log('KOVCHEG CMS: invalid config/config.php structure.');
+    error_log('KOVCHEG Blog: invalid config/config.php structure.');
     http_response_code(500);
-    exit('KOVCHEG CMS configuration error.');
+    exit('KOVCHEG Blog configuration error.');
 }
 
 $appKey=(string)($CONFIG['app']['key']??'');
 $decodedKey=str_starts_with($appKey,'base64:')?base64_decode(substr($appKey,7),true):false;
 if($decodedKey===false||strlen($decodedKey)<32){
-    error_log('KOVCHEG CMS: application key is missing or too short.');
+    error_log('KOVCHEG Blog: application key is missing or too short.');
     http_response_code(500);
-    exit('KOVCHEG CMS application key is not configured.');
+    exit('KOVCHEG Blog application key is not configured.');
 }
 
 date_default_timezone_set((string)($CONFIG['app']['timezone'] ?? 'UTC'));
@@ -45,7 +45,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 session_name('KOVCHEGSESSID');
-$sessionLifetime=15552000;
+$sessionLifetime=315360000; // 10 years, extended while the owner uses Studio.
 @ini_set('session.use_strict_mode','1');
 @ini_set('session.use_only_cookies','1');
 @ini_set('session.cookie_httponly','1');
@@ -54,8 +54,10 @@ $sessionLifetime=15552000;
 @ini_set('session.cookie_lifetime',(string)$sessionLifetime);
 $scriptDir=str_replace('\\','/',dirname((string)($_SERVER['SCRIPT_NAME']??'/')));
 $cookiePath=rtrim($scriptDir,'/').'/';if($cookiePath==='//')$cookiePath='/';
+$sessionCookieOptions=['expires'=>time()+$sessionLifetime,'path'=>$cookiePath,'secure'=>$secure,'httponly'=>true,'samesite'=>'Lax'];
 session_set_cookie_params(['lifetime'=>$sessionLifetime,'path'=>$cookiePath,'secure'=>$secure,'httponly'=>true,'samesite'=>'Lax']);
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+if(PHP_SAPI!=='cli'&&!headers_sent()&&session_id()!=='')setcookie(session_name(),session_id(),$sessionCookieOptions);
 
 require_once BASE_PATH.'/app/Core.php';
 require_once BASE_PATH.'/app/functions.php';
@@ -82,7 +84,7 @@ register_shutdown_function(static function (): void {
 });
 
 try { \Kovcheg\DB::connect($CONFIG['database']); }
-catch (Throwable $e) { log_error($e); render_system_error(500, 'KOVCHEG CMS', 'Не удалось подключиться к базе данных.'); }
+catch (Throwable $e) { log_error($e); render_system_error(500, 'KOVCHEG Blog', 'Не удалось подключиться к базе данных.'); }
 
 try { \Kovcheg\Auth::user(); } catch (Throwable $e) { log_error($e); }
 $requestMethod = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET'));

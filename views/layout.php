@@ -1,14 +1,15 @@
 <?php
 use Kovcheg\Auth;
 use Kovcheg\Csrf;
-$siteName=setting('site_name',cfg('app.name','KOVCHEG CMS'));
+$configuredSiteName=trim((string)setting('site_name',''));
+$siteName=in_array($configuredSiteName,['','KOVCHEG CMS','KOVCHEG Core','KOVCHEG Blog Core'],true)?'KOVCHEG Blog':$configuredSiteName;
 $theme=Auth::check()?user_setting('theme',setting('default_theme','dark')):setting('default_theme','dark');if(!in_array($theme,['light','dark','black'],true))$theme='dark';
 $siteTemplate=isset($layoutTemplate)?(string)$layoutTemplate:(string)setting('site_template','default');if(!in_array($siteTemplate,['default','vk','x'],true))$siteTemplate='default';
 $assetRevision=rawurlencode(ASSET_REVISION);
 $canonical=current_absolute_url();
 $cspNonce=(string)($GLOBALS['CSP_NONCE']??'');
-$description=(string)setting('seo_description','Закрытая рабочая платформа для общения и обмена документами');
-$keywords=(string)setting('seo_keywords','KOVCHEG CMS, рабочий мессенджер');
+$description=(string)setting('seo_description','Блог, портфолио и страницы на модульной платформе KOVCHEG Blog');
+$keywords=(string)setting('seo_keywords','KOVCHEG Blog, блог, портфолио, CMS');
 $indexing=setting('search_indexing','0')==='1';
 $logoPath=(string)setting('logo_path','');$faviconPath=(string)setting('favicon_path','');
 $notificationSettings=Auth::check()?[
@@ -48,6 +49,7 @@ $liveMessageLast=0;if(Auth::check())try{$liveMessageLast=(int)(\Kovcheg\DB::one(
 <link rel="icon" id="kovcheg-favicon" data-base-favicon="<?=e($faviconPath!==''?app_url('/brand/favicon?v='.rawurlencode(APP_VERSION)):app_url('/assets/icons/icon.svg?v='.rawurlencode(APP_VERSION)))?>" href="<?=e($faviconPath!==''?app_url('/brand/favicon?v='.rawurlencode(APP_VERSION)):app_url('/assets/icons/icon.svg?v='.rawurlencode(APP_VERSION)))?>">
 <link rel="manifest" href="<?=e(app_url('/manifest.webmanifest'))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/kovcheg-core.css?v='.$assetRevision))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-admin-shell.css?v='.$assetRevision))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/templates/'.$siteTemplate.'.css?v='.$assetRevision))?>">
 <?=\Kovcheg\Hooks::fire('layout.head','')?>
 </head>
@@ -78,8 +80,8 @@ $liveMessageLast=0;if(Auth::check())try{$liveMessageLast=(int)(\Kovcheg\DB::one(
     <section class="kov-header-panel kov-header-account">
      <a class="kov-header-account-profile" href="<?=e(app_url('/profile'))?>"><?=avatar_html($currentUser,'avatar-xs')?><span><b>Профиль</b><small>@<?=e($currentUser['username']??'profile')?></small></span></a>
      <div class="profile-theme-row"><span>Оформление</span><div><button type="button" data-quick-theme="dark" class="<?=$theme==='dark'?'active':''?>">Тёмная</button><button type="button" data-quick-theme="black" class="<?=$theme==='black'?'active':''?>">Чёрная</button><button type="button" data-quick-theme="light" class="<?=$theme==='light'?'active':''?>">Светлая</button></div></div>
-     <?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/admin'))?>"><span class="menu-symbol">⚙</span><span><b>Админка</b><small>Управление системой</small></span></a><?php endif;?>
-     <form method="post" action="<?=e(app_url('/logout'))?>"><?=csrf_field()?><button type="submit" class="profile-logout"><span class="menu-symbol">↪</span><span><b>Выйти</b><small>Завершить сеанс</small></span></button></form>
+     <?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/admin'))?>"><span class="menu-symbol">⚙</span><span><b>Админка</b><small>Управление KOVCHEG Blog</small></span></a><?php endif;?>
+     <form method="post" action="<?=e(app_url('/logout'))?>"><?=csrf_field()?><button type="submit" class="profile-logout"><span class="menu-symbol">↪</span><span><b>Выйти</b><small>Завершить сеанс вручную</small></span></button></form>
     </section>
    </details>
   </nav>
@@ -93,9 +95,10 @@ $liveMessageLast=0;if(Auth::check())try{$liveMessageLast=(int)(\Kovcheg\DB::one(
 <div id="kovcheg-page-content" data-kovcheg-page-content><?=$content??''?></div>
 <?php if(Auth::check()) require __DIR__.'/mobile-navigation.php'; ?>
 <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
-<?php if(!Auth::check()):?><footer class="footer"><b><?=e(setting('copyright','© KOVCHEG CMS'))?></b> · Автор проекта: Ланцет Семён Борисович · Все права защищены · <?=date('Y')?></footer><?php endif;?>
+<?php if(!Auth::check()):?><footer class="footer"><b><?=e(setting('copyright','© KOVCHEG Blog'))?></b> · Автор проекта: Ланцет Семён Борисович · Все права защищены · <?=date('Y')?></footer><?php endif;?>
 <script nonce="<?=e($cspNonce)?>">window.KOVCHEG={version:<?=json_encode(APP_VERSION)?>,baseUrl:<?=json_encode(rtrim(app_url('/'),'/'))?>,csrf:<?=json_encode(Csrf::token())?>,polling:<?=json_encode(max(3000,(int)setting('polling_ms','3000')))?>,userId:<?=json_encode(Auth::id())?>,isAdmin:<?=json_encode(Auth::isAdmin())?>,notificationLast:<?=json_encode((int)($userNotes[0]['id']??0))?>,liveMessageLast:<?=json_encode($liveMessageLast)?>,messageUnread:<?=json_encode($messageUnread)?>,pushPublicKey:<?=json_encode((string)setting('push_vapid_public_key',''))?>,notifications:<?=json_encode($notificationSettings,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?>,flash:<?=json_encode($flash,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)?>};</script>
 <script src="<?=e(app_url('/assets/js/post-submit-guard.js?v='.$assetRevision))?>" defer></script>
 <script src="<?=e(app_url('/assets/js/kovcheg-core.js?v='.$assetRevision))?>" defer></script>
+<script src="<?=e(app_url('/assets/js/blog-admin-shell.js?v='.$assetRevision))?>" defer></script>
 <?=\Kovcheg\Hooks::fire('layout.scripts','')?>
 </body></html>
