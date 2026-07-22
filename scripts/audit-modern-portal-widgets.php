@@ -20,10 +20,10 @@ $migration=$read('migrations/20260722_blog_portal_widgets.sql');
 
 $expect($bootstrap,"const APP_VERSION = '3.5.1';",'Версия приложения должна быть 3.5.1.');
 $expect($bootstrap,'https://vk.com https://vkvideo.ru','CSP не разрешает доверенное встраивание VK Видео.');
-$expect($route,"$state['currentLayout'] = $state['layout'];",'Маршрут не устраняет конфликт переменной layout.');
-$expect($route,"unset($state['layout']);",'Старое имя layout остаётся в данных Studio.');
+$expect($route,'$state[\'currentLayout\'] = $state[\'layout\'];','Маршрут не устраняет конфликт переменной layout.');
+$expect($route,'unset($state[\'layout\']);','Старое имя layout остаётся в данных Studio.');
 $expect($view,'$currentLayout','Страница виджетов не использует currentLayout.');
-if(str_contains($view,"$layout['id']"))$errors[]='Страница виджетов всё ещё обращается к конфликтующей переменной layout.';
+if(str_contains($view,'$layout[\'id\']'))$errors[]='Страница виджетов всё ещё обращается к конфликтующей переменной layout.';
 $expect($studioCss,'.studio-footer{position:sticky;bottom:0','Подвал Studio не закреплён снизу.');
 $expect($studioCss,'.studio-sidebar{position:fixed','Левая колонка Studio не зафиксирована.');
 $expect($studioCss,'.widget-layout-toolbar{position:sticky','Панель сохранения схемы не закреплена.');
