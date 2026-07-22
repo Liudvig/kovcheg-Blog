@@ -28,18 +28,24 @@ jobs:
           php -l routes/account.php
           php -l routes/blog-builder.php
           php -l routes/blog-layout.php
-      - name: Studio views
+      - name: Account shell
+        run: php -l views/account-shell.php
+      - name: Studio layout
+        run: php -l views/studio/layout.php
+      - name: Studio editor
+        run: php -l views/studio/editor.php
+      - name: Studio media
+        run: php -l views/studio/media.php
+      - name: Studio modules
+        run: php -l views/studio/modules.php
+      - name: Studio widget error
+        run: php -l views/studio/widgets-error.php
+      - name: Editorial theme
+        run: php -l themes/kovcheg-editorial/layout.php
+      - name: Portal layout
+        run: php -l themes/kovcheg-portal/layout.php
+      - name: Portal content views
         run: |
-          php -l views/account-shell.php
-          php -l views/studio/layout.php
-          php -l views/studio/editor.php
-          php -l views/studio/media.php
-          php -l views/studio/modules.php
-          php -l views/studio/widgets-error.php
-      - name: Public themes
-        run: |
-          php -l themes/kovcheg-editorial/layout.php
-          php -l themes/kovcheg-portal/layout.php
           php -l themes/kovcheg-portal/home.php
           php -l themes/kovcheg-portal/archive.php
           php -l themes/kovcheg-portal/entry.php
