@@ -25,11 +25,41 @@ CREATE TABLE IF NOT EXISTS media_folders (
     CONSTRAINT fk_media_folder_parent FOREIGN KEY(parent_id) REFERENCES media_folders(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE media_library
-    ADD COLUMN IF NOT EXISTS folder_id BIGINT UNSIGNED NULL AFTER uploader_id,
-    ADD COLUMN IF NOT EXISTS caption VARCHAR(500) NULL AFTER alt_text,
-    ADD COLUMN IF NOT EXISTS usage_count INT UNSIGNED NOT NULL DEFAULT 0 AFTER height,
-    ADD INDEX IF NOT EXISTS idx_media_folder(folder_id,id);
+SET @kovcheg_sql = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='media_library' AND COLUMN_NAME='folder_id') = 0,
+    'ALTER TABLE `media_library` ADD COLUMN `folder_id` BIGINT UNSIGNED NULL AFTER `uploader_id`',
+    'SET @kovcheg_noop = 1'
+);
+PREPARE kovcheg_stmt FROM @kovcheg_sql;
+EXECUTE kovcheg_stmt;
+DEALLOCATE PREPARE kovcheg_stmt;
+
+SET @kovcheg_sql = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='media_library' AND COLUMN_NAME='caption') = 0,
+    'ALTER TABLE `media_library` ADD COLUMN `caption` VARCHAR(500) NULL AFTER `alt_text`',
+    'SET @kovcheg_noop = 1'
+);
+PREPARE kovcheg_stmt FROM @kovcheg_sql;
+EXECUTE kovcheg_stmt;
+DEALLOCATE PREPARE kovcheg_stmt;
+
+SET @kovcheg_sql = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='media_library' AND COLUMN_NAME='usage_count') = 0,
+    'ALTER TABLE `media_library` ADD COLUMN `usage_count` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `height`',
+    'SET @kovcheg_noop = 1'
+);
+PREPARE kovcheg_stmt FROM @kovcheg_sql;
+EXECUTE kovcheg_stmt;
+DEALLOCATE PREPARE kovcheg_stmt;
+
+SET @kovcheg_sql = IF(
+    (SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='media_library' AND INDEX_NAME='idx_media_folder') = 0,
+    'ALTER TABLE `media_library` ADD INDEX `idx_media_folder` (`folder_id`,`id`)',
+    'SET @kovcheg_noop = 1'
+);
+PREPARE kovcheg_stmt FROM @kovcheg_sql;
+EXECUTE kovcheg_stmt;
+DEALLOCATE PREPARE kovcheg_stmt;
 
 CREATE TABLE IF NOT EXISTS content_autosaves (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -77,10 +107,32 @@ CREATE TABLE IF NOT EXISTS user_role_history (
     CONSTRAINT fk_user_role_history_actor FOREIGN KEY(changed_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE modules
-    ADD COLUMN IF NOT EXISTS manifest_json LONGTEXT NULL,
-    ADD COLUMN IF NOT EXISTS package_format INT NOT NULL DEFAULT 1,
-    ADD COLUMN IF NOT EXISTS health_status VARCHAR(30) NOT NULL DEFAULT 'unknown';
+SET @kovcheg_sql = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='modules' AND COLUMN_NAME='manifest_json') = 0,
+    'ALTER TABLE `modules` ADD COLUMN `manifest_json` LONGTEXT NULL',
+    'SET @kovcheg_noop = 1'
+);
+PREPARE kovcheg_stmt FROM @kovcheg_sql;
+EXECUTE kovcheg_stmt;
+DEALLOCATE PREPARE kovcheg_stmt;
+
+SET @kovcheg_sql = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='modules' AND COLUMN_NAME='package_format') = 0,
+    'ALTER TABLE `modules` ADD COLUMN `package_format` INT NOT NULL DEFAULT 1',
+    'SET @kovcheg_noop = 1'
+);
+PREPARE kovcheg_stmt FROM @kovcheg_sql;
+EXECUTE kovcheg_stmt;
+DEALLOCATE PREPARE kovcheg_stmt;
+
+SET @kovcheg_sql = IF(
+    (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='modules' AND COLUMN_NAME='health_status') = 0,
+    'ALTER TABLE `modules` ADD COLUMN `health_status` VARCHAR(30) NOT NULL DEFAULT ''unknown''',
+    'SET @kovcheg_noop = 1'
+);
+PREPARE kovcheg_stmt FROM @kovcheg_sql;
+EXECUTE kovcheg_stmt;
+DEALLOCATE PREPARE kovcheg_stmt;
 
 INSERT IGNORE INTO media_folders (name,slug,sort_order,created_at,updated_at) VALUES
 ('Общее','general',0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
