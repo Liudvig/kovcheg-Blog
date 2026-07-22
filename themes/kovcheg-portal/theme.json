@@ -1,0 +1,13 @@
+{
+  "slug": "kovcheg-portal",
+  "name": "KOVCHEG Portal",
+  "version": "1.0.0",
+  "type": "public-theme",
+  "description": "Трёхколоночная тема новостного сайта, журнала и информационного портала с полностью управляемыми зонами и виджетами.",
+  "author": "Ланцет Семён Борисович",
+  "copyright": "Ланцет Семён Борисович",
+  "license": "proprietary / all rights reserved",
+  "min_core": "3.5.0",
+  "supports": ["blog","pages","portfolio","layout-zones","widget-engine","one-column","two-columns","three-columns","menus","comments","reactions","author-profile","seo"],
+  "zones": ["header.top","header.main","header.bottom","page.before","layout.left","content.before","content.main","content.after","layout.right","page.after","footer.top","footer.columns","footer.bottom"]
+}

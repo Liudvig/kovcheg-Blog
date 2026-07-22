@@ -37,15 +37,15 @@ final class ModuleManager
         Studio::require('site');
         if (!class_exists('ZipArchive')) throw new RuntimeException('Для установки модулей требуется PHP ZipArchive.');
         $error=(int)($upload['error']??UPLOAD_ERR_NO_FILE);
-        if($error!==UPLOAD_ERR_OK)abort(422,'ZIP-пакет модуля не получен.');
+        if($error!==UPLOAD_ERR_OK)throw new RuntimeException(self::uploadError($error));
         $tmp=(string)($upload['tmp_name']??'');
-        if($tmp===''||!is_file($tmp))abort(422,'Временный ZIP-файл не найден.');
+        if($tmp===''||!is_file($tmp))throw new RuntimeException('Временный ZIP-файл не найден.');
         $compressed=(int)filesize($tmp);
-        if($compressed<1||$compressed>self::MAX_COMPRESSED)abort(413,'Пакет модуля должен быть не больше 100 МБ.');
+        if($compressed<1||$compressed>self::MAX_COMPRESSED)throw new RuntimeException('Пакет модуля должен быть не больше 100 МБ.');
 
         $zip=new \ZipArchive();
         if($zip->open($tmp)!==true)throw new RuntimeException('Не удалось открыть ZIP-пакет.');
-        $temp=BASE_PATH.'/storage/cache/module32-'.bin2hex(random_bytes(8));
+        $temp=BASE_PATH.'/storage/cache/module35-'.bin2hex(random_bytes(8));
         try{
             if($zip->numFiles<2||$zip->numFiles>self::MAX_FILES)throw new RuntimeException('Недопустимое количество файлов в пакете.');
             $manifestRaw=$zip->getFromName('manifest.json');
@@ -56,8 +56,7 @@ final class ModuleManager
             for($i=0;$i<$zip->numFiles;$i++){
                 $stat=$zip->statIndex($i);$expanded+=(int)($stat['size']??0);
                 if($expanded>self::MAX_EXPANDED)throw new RuntimeException('Распакованный модуль превышает 500 МБ.');
-                $name=(string)$zip->getNameIndex($i);
-                self::validatePath($name);
+                self::validatePath((string)$zip->getNameIndex($i));
             }
             if(!mkdir($temp,0755,true)&&!is_dir($temp))throw new RuntimeException('Не удалось создать временный каталог модуля.');
             if(!$zip->extractTo($temp))throw new RuntimeException('Не удалось распаковать модуль.');
@@ -106,7 +105,7 @@ final class ModuleManager
         foreach(['slug','name','version','min_core','author','license'] as $field)if(trim((string)($manifest[$field]??''))==='')throw new RuntimeException('manifest.json: отсутствует поле '.$field.'.');
         $slug=strtolower((string)$manifest['slug']);
         if(!preg_match('/^[a-z][a-z0-9_-]{2,50}$/',$slug))throw new RuntimeException('manifest.json: некорректный slug.');
-        if(version_compare(APP_VERSION,(string)$manifest['min_core'],'<'))throw new RuntimeException('Модулю требуется KOVCHEG '.(string)$manifest['min_core'].' или новее.');
+        if(version_compare(APP_VERSION,(string)$manifest['min_core'],'<'))throw new RuntimeException('Модулю требуется KOVCHEG Blog '.(string)$manifest['min_core'].' или новее.');
         if(isset($manifest['min_php'])&&version_compare(PHP_VERSION,(string)$manifest['min_php'],'<'))throw new RuntimeException('Модулю требуется PHP '.(string)$manifest['min_php'].' или новее.');
         foreach((array)($manifest['extensions']??[]) as $extension)if(!extension_loaded((string)$extension))throw new RuntimeException('Модулю требуется PHP-расширение '.(string)$extension.'.');
         if(isset($manifest['migrations'])&&!is_array($manifest['migrations']))throw new RuntimeException('manifest.json: migrations должен быть массивом.');
@@ -145,6 +144,19 @@ final class ModuleManager
             foreach(preg_split('/;\s*(?:\r?\n|$)/',$sql)?:[] as $statement){$statement=trim($statement);if($statement!=='')DB::pdo()->exec($statement);}
             DB::run('INSERT INTO module_migrations (module_slug,migration,applied_at) VALUES (?,?,CURRENT_TIMESTAMP)',[$slug,$migration]);
         }
+    }
+
+    private static function uploadError(int $error):string
+    {
+        return match($error){
+            UPLOAD_ERR_INI_SIZE,UPLOAD_ERR_FORM_SIZE=>'ZIP-пакет превышает разрешённый сервером размер.',
+            UPLOAD_ERR_PARTIAL=>'ZIP-пакет загрузился не полностью.',
+            UPLOAD_ERR_NO_FILE=>'ZIP-пакет не выбран.',
+            UPLOAD_ERR_NO_TMP_DIR=>'На сервере отсутствует временный каталог загрузки.',
+            UPLOAD_ERR_CANT_WRITE=>'Сервер не смог записать временный ZIP-файл.',
+            UPLOAD_ERR_EXTENSION=>'Загрузка остановлена PHP-расширением.',
+            default=>'Неизвестная ошибка загрузки ZIP-пакета.',
+        };
     }
 
     private static function slug(string $slug):string

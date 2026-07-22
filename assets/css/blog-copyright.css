@@ -1,0 +1,2 @@
+/* Mandatory KOVCHEG Blog copyright bar. */
+.site-footer__copyright{width:min(calc(100% - 40px),var(--max,1220px));margin-inline:auto;padding:16px 0;display:flex;align-items:center;justify-content:space-between;gap:10px 22px;flex-wrap:wrap;border-top:1px solid color-mix(in srgb,currentColor 20%,transparent);color:var(--muted,#777);font-size:12px;line-height:1.5}.site-footer__copyright a{font-weight:800;text-decoration:underline;text-underline-offset:3px}@media(max-width:700px){.site-footer__copyright{width:calc(100% - 24px);align-items:flex-start;flex-direction:column}}
