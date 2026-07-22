@@ -1,0 +1,31 @@
+name: KOVCHEG Blog account actions
+
+on:
+  push:
+    branches: [hotfix/3.4.2-account-studio-actions]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify-account:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Lint account and navigation PHP
+        run: |
+          php -l index.php
+          php -l routes/account.php
+          php -l views/account.php
+          php -l views/layout.php
+          php -l views/site-sidebar.php
+          php -l views/studio/layout.php
+          php -l scripts/audit-account-actions.php
+      - name: Audit account and Studio actions
+        run: php scripts/audit-account-actions.php
