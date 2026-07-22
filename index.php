@@ -2,14 +2,46 @@
 
 declare(strict_types=1);
 
-$originalUri = trim((string)($_SERVER['HTTP_X_KOVCHEG_ORIGINAL_URI'] ?? ''));
-if (
-    $originalUri !== ''
-    && strlen($originalUri) <= 8192
-    && str_starts_with($originalUri, '/')
-    && !preg_match('/[\r\n]/', $originalUri)
-) {
-    $_SERVER['REQUEST_URI'] = $originalUri;
+$currentUri = (string)($_SERVER['REQUEST_URI'] ?? '/');
+$currentPath = (string)(parse_url($currentUri, PHP_URL_PATH) ?: '/');
+
+if ($currentPath === '/index.php' || $currentPath === 'index.php') {
+    $routeCandidates = [
+        (string)($_GET['__kovcheg_route'] ?? ''),
+        (string)($_SERVER['HTTP_X_KOVCHEG_ORIGINAL_URI'] ?? ''),
+        (string)($_SERVER['HTTP_X_ORIGINAL_URI'] ?? ''),
+        (string)($_SERVER['HTTP_X_REWRITE_URL'] ?? ''),
+        (string)($_SERVER['REDIRECT_URL'] ?? ''),
+        (string)($_SERVER['UNENCODED_URL'] ?? ''),
+        (string)($_SERVER['ORIG_PATH_INFO'] ?? ''),
+    ];
+
+    foreach ($routeCandidates as $routeCandidate) {
+        $routeCandidate = trim($routeCandidate);
+        if (
+            $routeCandidate === ''
+            || strlen($routeCandidate) > 8192
+            || !str_starts_with($routeCandidate, '/')
+            || preg_match('/[\r\n]/', $routeCandidate)
+        ) {
+            continue;
+        }
+
+        $routePath = (string)(parse_url($routeCandidate, PHP_URL_PATH) ?: '/');
+        if ($routePath === '/index.php') {
+            continue;
+        }
+
+        unset($_GET['__kovcheg_route'], $_REQUEST['__kovcheg_route']);
+
+        $routeQuery = (string)(parse_url($routeCandidate, PHP_URL_QUERY) ?? '');
+        if ($routeQuery === '' && $_GET !== []) {
+            $routeQuery = http_build_query($_GET, '', '&', PHP_QUERY_RFC3986);
+        }
+
+        $_SERVER['REQUEST_URI'] = $routePath.($routeQuery !== '' ? '?'.$routeQuery : '');
+        break;
+    }
 }
 
 require __DIR__.'/app/bootstrap.php';
