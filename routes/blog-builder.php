@@ -32,7 +32,7 @@ $router->get('/studio/content/{id}/edit', function (array $params) {
 $router->post('/studio/content/save', function () {
     Studio::require('content');Csrf::validate();$input=$_POST;
     if(!empty($_FILES['featured_image']['name'])){$media=Studio32::storeMedia($_FILES['featured_image'],Auth::id(),(int)($_POST['featured_folder_id']??0));$input['featured_image_path']=(string)($media['stored_path']??'');}
-    $id=Studio32::saveEntry($input,Auth::id(),(int)($_POST['id']??0));$_SESSION['flash_success']='Материал сохранён в редакторе 3.2.';redirect('/studio/content/'.$id.'/edit');
+    $id=Studio32::saveEntry($input,Auth::id(),(int)($_POST['id']??0));$_SESSION['flash_success']='Материал сохранён.';redirect('/studio/content/'.$id.'/edit');
 });
 
 $router->post('/studio/content/autosave', function () {
@@ -47,9 +47,16 @@ $router->get('/studio/media', function () {
 });
 
 $router->post('/studio/media/upload', function () {
-    Studio::require('media');Csrf::validate();$files=$_FILES['media']??null;if(!$files||!is_array($files['name']??null))abort(422,'Выберите файлы.');$folder=max(0,(int)($_POST['folder_id']??0));$count=0;
-    foreach(array_slice(array_keys($files['name']),0,30) as $i){if((string)$files['name'][$i]==='')continue;Studio32::storeMedia(['name'=>$files['name'][$i],'tmp_name'=>$files['tmp_name'][$i],'error'=>$files['error'][$i],'size'=>$files['size'][$i]],Auth::id(),$folder);$count++;}
-    $_SESSION['flash_success']='Загружено файлов: '.$count;redirect('/studio/media'.($folder?'?folder='.$folder:''));
+    Studio::require('media');Csrf::validate();$files=$_FILES['media']??null;if(!$files||!is_array($files['name']??null))abort(422,'Выберите файлы.');$folder=max(0,(int)($_POST['folder_id']??0));$count=0;$errors=[];
+    foreach(array_slice(array_keys($files['name']),0,30) as $i){
+        if((string)$files['name'][$i]==='')continue;
+        try{
+            Studio32::storeMedia(['name'=>$files['name'][$i],'tmp_name'=>$files['tmp_name'][$i],'error'=>$files['error'][$i],'size'=>$files['size'][$i],'type'=>$files['type'][$i]??''],Auth::id(),$folder);$count++;
+        }catch(Throwable $error){log_error($error);$errors[]=mb_substr((string)$files['name'][$i],0,80).': '.$error->getMessage();}
+    }
+    if($count>0)$_SESSION['flash_success']='Загружено файлов: '.$count.'.';
+    if($errors)$_SESSION['flash_error']='Не загружено: '.implode(' | ',array_slice($errors,0,5));
+    redirect('/studio/media'.($folder?'?folder='.$folder:''));
 });
 
 $router->post('/studio/media/folders', function () {
@@ -77,6 +84,15 @@ $router->get('/studio/presets', function () {Studio::require('site');Studio::ren
 $router->post('/studio/presets/{slug}/apply', function (array $params) {Studio::require('site');Csrf::validate();Studio32::applyPreset((string)$params['slug'],Auth::id());$_SESSION['flash_success']='Пресет применён. Проверьте главную и оформление.';redirect('/studio/presets');});
 
 $router->get('/studio/modules', function () {Studio::require('site');Studio::render('modules',['studioSection'=>'modules','studioTitle'=>'Модули','modules'=>ModuleManager::installed()]);});
-$router->post('/studio/modules/install', function () {Studio::require('site');Csrf::validate();$manifest=ModuleManager::install($_FILES['package']??[],!empty($_POST['enable']));$_SESSION['flash_success']='Модуль '.(string)$manifest['name'].' установлен.';redirect('/studio/modules');});
+$router->post('/studio/modules/install', function () {
+    Studio::require('site');Csrf::validate();$files=$_FILES['packages']??null;
+    if(!$files&&isset($_FILES['package'])){$single=$_FILES['package'];$files=['name'=>[$single['name']??''],'tmp_name'=>[$single['tmp_name']??''],'error'=>[$single['error']??UPLOAD_ERR_NO_FILE],'size'=>[$single['size']??0],'type'=>[$single['type']??'']];}
+    if(!$files||!is_array($files['name']??null))abort(422,'Выберите ZIP-пакеты модулей.');
+    $installed=[];$errors=[];$enable=!empty($_POST['enable']);
+    foreach(array_slice(array_keys($files['name']),0,10) as $i){if((string)$files['name'][$i]==='')continue;$upload=['name'=>$files['name'][$i],'tmp_name'=>$files['tmp_name'][$i],'error'=>$files['error'][$i],'size'=>$files['size'][$i],'type'=>$files['type'][$i]??''];try{$manifest=ModuleManager::install($upload,$enable);$installed[]=(string)$manifest['name'];}catch(Throwable $error){log_error($error);$errors[]=mb_substr((string)$files['name'][$i],0,80).': '.$error->getMessage();}}
+    if($installed)$_SESSION['flash_success']='Установлены модули: '.implode(', ',$installed).'.';
+    if($errors)$_SESSION['flash_error']='Ошибки пакетов: '.implode(' | ',array_slice($errors,0,5));
+    redirect('/studio/modules');
+});
 $router->post('/studio/modules/{slug}/toggle', function (array $params) {Studio::require('site');Csrf::validate();ModuleManager::setEnabled((string)$params['slug'],!empty($_POST['enabled']));$_SESSION['flash_success']='Состояние модуля изменено.';redirect('/studio/modules');});
 $router->post('/studio/modules/{slug}/remove', function (array $params) {Studio::require('site');Csrf::validate();ModuleManager::remove((string)$params['slug']);$_SESSION['flash_success']='Модуль удалён.';redirect('/studio/modules');});
