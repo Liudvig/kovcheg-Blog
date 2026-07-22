@@ -4,6 +4,9 @@
  const shell = document.querySelector('[data-admin-shell]');
  if (!shell) return;
 
+ document.documentElement.classList.add('has-admin-shell');
+ document.body.classList.add('admin-shell-active');
+
  const nav = shell.querySelector('[data-admin-nav]');
  const openButton = shell.querySelector('[data-admin-nav-toggle]');
  const closeButton = shell.querySelector('[data-admin-nav-close]');
