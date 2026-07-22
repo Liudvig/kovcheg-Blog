@@ -1,0 +1,104 @@
+name: KOVCHEG Portal theme checks
+
+on:
+  push:
+    branches: [blog-v3.5-portal-theme, main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  portal:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: portal_root
+          MARIADB_DATABASE: portal_ci
+        ports: [3306:3306]
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: mbstring, fileinfo, openssl, pdo_mysql, zip
+      - name: Validate Portal package
+        shell: bash
+        run: |
+          test -f themes/kovcheg-portal/theme.json
+          test -f themes/kovcheg-portal/layout.php
+          test -f themes/kovcheg-portal/home.php
+          test -f themes/kovcheg-portal/archive.php
+          test -f themes/kovcheg-portal/entry.php
+          test -f themes/kovcheg-portal/author.php
+          test -f themes/kovcheg-portal/assets/theme.css
+          test -f themes/kovcheg-portal/assets/content.css
+          php -r '$m=json_decode(file_get_contents("themes/kovcheg-portal/theme.json"),true,512,JSON_THROW_ON_ERROR); if(($m["slug"]??"")!=="kovcheg-portal"||!in_array("three-columns",$m["supports"]??[],true)) exit(1);'
+          php -l themes/kovcheg-portal/layout.php
+          php -l themes/kovcheg-portal/home.php
+          php -l themes/kovcheg-portal/archive.php
+      - name: Apply and repeat Portal migration
+        shell: bash
+        run: |
+          php -r '$schema=require "database/schema.php"; file_put_contents("/tmp/schema.sql",$schema);'
+          MYSQL_PWD=portal_root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root portal_ci < /tmp/schema.sql
+          for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do MYSQL_PWD=portal_root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root portal_ci < "$migration"; done
+          MYSQL_PWD=portal_root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root portal_ci < migrations/20260722_blog_portal_theme.sql
+          MYSQL_PWD=portal_root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root portal_ci -N -e "SELECT COUNT(*) FROM themes WHERE slug='kovcheg-portal' AND version='1.0.0';" | grep -qx 1
+          MYSQL_PWD=portal_root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root portal_ci -N -e "SELECT COUNT(*) FROM theme_settings WHERE theme_slug='kovcheg-portal';" | grep -qx 4
+      - name: Render Portal public routes
+        shell: bash
+        run: |
+          mkdir -p config storage/logs storage/cache storage/uploads storage/backups storage/builds
+          cat > config/config.php <<'PHP'
+          <?php
+          return [
+              'app' => [
+                  'name' => 'KOVCHEG Portal CI',
+                  'url' => 'http://127.0.0.1:8100',
+                  'timezone' => 'UTC',
+                  'debug' => true,
+                  'key' => 'base64:'.base64_encode(str_repeat('P', 32)),
+              ],
+              'database' => [
+                  'driver' => 'mysql',
+                  'host' => '127.0.0.1',
+                  'port' => 3306,
+                  'name' => 'portal_ci',
+                  'user' => 'root',
+                  'password' => 'portal_root',
+                  'charset' => 'utf8mb4',
+              ],
+          ];
+          PHP
+          MYSQL_PWD=portal_root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root portal_ci -e "INSERT INTO settings (\`key\`,\`value\`,updated_at) VALUES ('blog_theme','kovcheg-portal',CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE \`value\`='kovcheg-portal',updated_at=CURRENT_TIMESTAMP;"
+          php -S 127.0.0.1:8100 index.php >/tmp/portal-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/portal-http.log || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8100/ >/tmp/portal-home; then break; fi
+            sleep 1
+          done
+          grep -q 'blog-theme-portal' /tmp/portal-home
+          grep -q 'portal-grid' /tmp/portal-home
+          grep -q 'data-layout-zone="header.main"' /tmp/portal-home
+          curl -fsS http://127.0.0.1:8100/blog -o /tmp/portal-blog
+          grep -q 'blog-theme-portal' /tmp/portal-blog
+          grep -q 'portal-archive-head' /tmp/portal-blog
+          ! grep -q 'archive-search' /tmp/portal-blog
+          curl -fsS http://127.0.0.1:8100/portfolio -o /tmp/portal-portfolio
+          grep -q 'blog-theme-portal' /tmp/portal-portfolio
+          kill "$server_pid"
+          wait "$server_pid" 2>/dev/null || true
+          trap - EXIT
+          rm -f config/config.php
