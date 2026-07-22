@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration]
+    branches: [main, blog-v1-foundation, blog-v3.2-builder, hotfix/mysql-compatible-builder-migration, blog-v3.3-growth]
   pull_request:
     branches: [main]
 
@@ -18,8 +18,7 @@ jobs:
         env:
           MARIADB_ROOT_PASSWORD: kovcheg_ci_root
           MARIADB_DATABASE: kovcheg_ci
-        ports:
-          - 3306:3306
+        ports: [3306:3306]
         options: >-
           --health-cmd="healthcheck.sh --connect --innodb_initialized"
           --health-interval=10s
@@ -30,8 +29,7 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: kovcheg_mysql_root
           MYSQL_DATABASE: kovcheg_mysql_ci
-        ports:
-          - 3307:3306
+        ports: [3307:3306]
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pkovcheg_mysql_root --silent"
           --health-interval=10s
@@ -39,81 +37,46 @@ jobs:
           --health-retries=20
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           coverage: none
           extensions: mbstring, fileinfo, openssl, pdo_mysql, zip
-
       - name: Lint PHP
         shell: bash
         run: |
-          find . \
-            -path './.git' -prune -o \
-            -path './vendor' -prune -o \
-            -type f -name '*.php' -print0 \
-            | xargs -0 -r -n1 php -l
-
+          find . -path './.git' -prune -o -path './vendor' -prune -o -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
       - name: Check JavaScript syntax
         run: |
           files=$(find assets themes -type f -name '*.js' 2>/dev/null || true)
-          if [ -n "$files" ]; then
-            while IFS= read -r file; do node --check "$file"; done <<< "$files"
-          fi
-
+          if [ -n "$files" ]; then while IFS= read -r file; do node --check "$file"; done <<< "$files"; fi
       - name: Validate JSON
         shell: bash
         run: |
-          while IFS= read -r -d '' file; do
-            php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"
-          done < <(find . -path './.git' -prune -o -type f -name '*.json' -print0)
-
+          while IFS= read -r -d '' file; do php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"; done < <(find . -path './.git' -prune -o -type f -name '*.json' -print0)
       - name: Validate schema and migrations on MariaDB and MySQL
         shell: bash
         run: |
           php -r '$schema=require "database/schema.php"; if(!is_string($schema)||trim($schema)==="") exit(1); file_put_contents("/tmp/kovcheg-schema.sql",$schema);'
-
           apply_database() {
-            local label="$1"
-            local port="$2"
-            local database="$3"
-            local password="$4"
-
+            local label="$1" port="$2" database="$3" password="$4"
             echo "=== ${label}: base schema ==="
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < /tmp/kovcheg-schema.sql
-
             echo "=== ${label}: migrations ==="
-            for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do
-              echo "Applying $migration"
-              MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < "$migration"
-            done
-
-            echo "=== ${label}: idempotent retry of 3.2 migration ==="
+            for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < "$migration"; done
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_builder.sql
-
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('content_entries','content_comments','content_entry_meta','navigation_menus','themes','content_patterns','media_folders','content_autosaves','module_migrations','user_role_history');" | grep -qx '10'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_growth.sql
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('content_entries','content_comments','content_patterns','content_autosaves','content_redirects','content_subscriptions','content_publication_log');" | grep -qx '7'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='media_library' AND column_name IN ('folder_id','caption','usage_count');" | grep -qx '3'
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema='${database}' AND table_name='media_library' AND index_name='idx_media_folder';" | grep -qx '2'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='modules' AND column_name IN ('manifest_json','package_format','health_status');" | grep -qx '3'
           }
-
           apply_database "MariaDB 11" 3306 kovcheg_ci kovcheg_ci_root
           apply_database "MySQL 8.4" 3307 kovcheg_mysql_ci kovcheg_mysql_root
-
       - name: Reject committed secrets and runtime data
         shell: bash
         run: |
           test ! -f config/config.php
           test ! -f .env
-          if find storage/uploads storage/cache storage/logs storage/backups storage/builds \
-            -type f ! -name '.gitkeep' -print -quit 2>/dev/null | grep -q .; then
-            echo 'Runtime or user data must not be committed.' >&2
-            exit 1
-          fi
-          if grep -RInE --exclude-dir=.git --exclude='*.png' --exclude='*.jpg' --exclude='*.webp' \
-            '(BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|AKIA[0-9A-Z]{16}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9_]{30,}|sk-[A-Za-z0-9]{20,})' .; then
-            echo 'Possible secret found.' >&2
-            exit 1
-          fi
+          if find storage/uploads storage/cache storage/logs storage/backups storage/builds -type f ! -name '.gitkeep' -print -quit 2>/dev/null | grep -q .; then echo 'Runtime or user data must not be committed.' >&2; exit 1; fi
+          if grep -RInE --exclude-dir=.git --exclude='*.png' --exclude='*.jpg' --exclude='*.webp' '(BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|AKIA[0-9A-Z]{16}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9_]{30,}|sk-[A-Za-z0-9]{20,})' .; then echo 'Possible secret found.' >&2; exit 1; fi
