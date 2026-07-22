@@ -30,6 +30,9 @@ final class Studio32
         $template=preg_match('/^[a-z0-9_-]{0,80}$/',(string)($input['template']??''))?(string)($input['template']??''):'';
         $seoTitle=mb_substr(trim((string)($input['seo_title']??'')),0,255);
         $seoDescription=mb_substr(trim((string)($input['seo_description']??'')),0,320);
+        $canonical=self::safeUrl((string)($input['canonical_url']??''));
+        $seoImage=self::safeStoredPath((string)($input['seo_image_path']??''));
+        $ogType=in_array((string)($input['og_type']??''),['article','website','profile','product'],true)?(string)$input['og_type']:'article';
         $publishedAt=self::normalizeDateTime((string)($input['published_at']??''));
         if($status==='published'&&$publishedAt===null)$publishedAt=date('Y-m-d H:i:s');
         if($status==='scheduled'&&($publishedAt===null||strtotime($publishedAt)<=time()))abort(422,'Для запланированной публикации укажите будущую дату.');
@@ -40,10 +43,10 @@ final class Studio32
         try{
             if($current){
                 DB::run('INSERT INTO content_revisions (entry_id,author_id,title,excerpt,content_json,content_html,created_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)',[$entryId,$authorId,(string)$current['title'],$current['excerpt'],$current['content_json'],$current['content_html']]);
-                DB::run('UPDATE content_entries SET author_id=?,type=?,status=?,title=?,slug=?,excerpt=?,content_json=?,content_html=?,featured_image_path=?,template=?,visibility=?,comments_enabled=?,reactions_enabled=?,is_featured=?,sort_order=?,seo_title=?,seo_description=?,published_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$template?:null,$visibility,$flag('comments_enabled'),$flag('reactions_enabled'),$flag('is_featured'),$sort,$seoTitle?:null,$seoDescription?:null,$publishedAt,$entryId]);
+                DB::run('UPDATE content_entries SET author_id=?,type=?,status=?,title=?,slug=?,excerpt=?,content_json=?,content_html=?,featured_image_path=?,template=?,visibility=?,comments_enabled=?,reactions_enabled=?,is_featured=?,sort_order=?,seo_title=?,seo_description=?,canonical_url=?,seo_image_path=?,seo_noindex=?,og_type=?,published_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$template?:null,$visibility,$flag('comments_enabled'),$flag('reactions_enabled'),$flag('is_featured'),$sort,$seoTitle?:null,$seoDescription?:null,$canonical?:null,$seoImage?:null,$flag('seo_noindex'),$ogType,$publishedAt,$entryId]);
                 $id=$entryId;
             }else{
-                $id=DB::insert('INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_json,content_html,featured_image_path,template,visibility,comments_enabled,reactions_enabled,is_featured,sort_order,seo_title,seo_description,published_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$template?:null,$visibility,$flag('comments_enabled'),$flag('reactions_enabled'),$flag('is_featured'),$sort,$seoTitle?:null,$seoDescription?:null,$publishedAt]);
+                $id=DB::insert('INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_json,content_html,featured_image_path,template,visibility,comments_enabled,reactions_enabled,is_featured,sort_order,seo_title,seo_description,canonical_url,seo_image_path,seo_noindex,og_type,published_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$template?:null,$visibility,$flag('comments_enabled'),$flag('reactions_enabled'),$flag('is_featured'),$sort,$seoTitle?:null,$seoDescription?:null,$canonical?:null,$seoImage?:null,$flag('seo_noindex'),$ogType,$publishedAt]);
             }
             self::syncCategories($id,(array)($input['category_ids']??[]));
             self::syncTags($id,(string)($input['tags']??''));
@@ -58,7 +61,7 @@ final class Studio32
             DB::run("DELETE FROM content_autosaves WHERE user_id=? AND (entry_id=? OR autosave_key='new')",[$authorId,$id]);
             DB::pdo()->commit();
         }catch(Throwable $e){if(DB::pdo()->inTransaction())DB::pdo()->rollBack();throw $e;}
-        audit($current?'blog.entry.update':'blog.entry.create','content_entry',$id,['type'=>$type,'status'=>$status,'builder'=>'3.2']);
+        audit($current?'blog.entry.update':'blog.entry.create','content_entry',$id,['type'=>$type,'status'=>$status,'builder'=>'3.3']);
         return $id;
     }
 
