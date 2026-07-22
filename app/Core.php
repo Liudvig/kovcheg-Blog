@@ -73,11 +73,12 @@ final class Auth
 {
     private static ?array $user = null;
     private const REMEMBER_COOKIE = 'KOVCHEGREMEMBER';
-    private const REMEMBER_DAYS = 180;
+    private const REMEMBER_DAYS = 3650;
 
     private static function cookieOptions(int $expires): array
     {
-        $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+        $forwardedProto=strtolower(trim(explode(',',(string)($_SERVER['HTTP_X_FORWARDED_PROTO']??''))[0]??''));
+        $secure=(!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')||$forwardedProto==='https';
         $scriptDir=str_replace('\\','/',dirname((string)($_SERVER['SCRIPT_NAME']??'/')));$path=rtrim($scriptDir,'/').'/';if($path==='//')$path='/';
         return ['expires'=>$expires,'path'=>$path,'secure'=>$secure,'httponly'=>true,'samesite'=>'Lax'];
     }
@@ -86,7 +87,7 @@ final class Auth
     {
         $raw=(string)($_COOKIE[self::REMEMBER_COOKIE]??'');
         if(!preg_match('/^([a-f0-9]{36}):([a-f0-9]{64})$/',$raw,$m))return null;
-        return ['selector'=>$m[1],'validator'=>$m[2]];
+        return ['selector'=>$m[1],'validator'=>$m[2],'raw'=>$raw];
     }
 
     private static function expireRememberCookie(): void
@@ -105,13 +106,22 @@ final class Auth
                 if($token)DB::run('DELETE FROM user_remember_tokens WHERE selector=?',[$cookie['selector']]);
                 self::expireRememberCookie();return 0;
             }
-            $newValidator=bin2hex(random_bytes(32));$expires=time()+self::REMEMBER_DAYS*86400;
-            DB::run('UPDATE user_remember_tokens SET validator_hash=?,expires_at=FROM_UNIXTIME(?),last_used_at=CURRENT_TIMESTAMP WHERE selector=?',[hash('sha256',$newValidator),$expires,$cookie['selector']]);
-            $_COOKIE[self::REMEMBER_COOKIE]=$cookie['selector'].':'.$newValidator;
-            if(!headers_sent())setcookie(self::REMEMBER_COOKIE,$_COOKIE[self::REMEMBER_COOKIE],self::cookieOptions($expires));
+
+            // Validator remains stable while this browser token is valid. Rotating
+            // it on every restore made parallel Studio/AJAX requests invalidate
+            // one another and unexpectedly return the owner to the login page.
+            $expires=time()+self::REMEMBER_DAYS*86400;
+            DB::run('UPDATE user_remember_tokens SET expires_at=FROM_UNIXTIME(?),last_used_at=CURRENT_TIMESTAMP WHERE selector=?',[$expires,$cookie['selector']]);
+            $_COOKIE[self::REMEMBER_COOKIE]=(string)$cookie['raw'];
+            if(!headers_sent())setcookie(self::REMEMBER_COOKIE,(string)$cookie['raw'],self::cookieOptions($expires));
             $_SESSION['user_id']=(int)$token['user_id'];
             return (int)$token['user_id'];
-        }catch(Throwable){self::expireRememberCookie();return 0;}
+        }catch(Throwable $error){
+            // A temporary hosting/database failure must not destroy a valid
+            // long-lived browser token. A later request can restore it again.
+            if(function_exists('log_error'))log_error($error);
+            return 0;
+        }
     }
 
     private static function ensurePersistentLogin(int $userId): void
@@ -120,15 +130,27 @@ final class Auth
         $cookie=self::parseRememberCookie();
         try{
             if($cookie){
-                $valid=DB::one('SELECT id FROM user_remember_tokens WHERE user_id=? AND selector=? AND expires_at>CURRENT_TIMESTAMP LIMIT 1',[$userId,$cookie['selector']]);
-                if($valid)return;
+                $valid=DB::one('SELECT id,validator_hash,last_used_at,expires_at FROM user_remember_tokens WHERE user_id=? AND selector=? AND expires_at>CURRENT_TIMESTAMP LIMIT 1',[$userId,$cookie['selector']]);
+                if($valid&&hash_equals((string)$valid['validator_hash'],hash('sha256',$cookie['validator']))){
+                    $expires=time()+self::REMEMBER_DAYS*86400;
+                    $lastUsed=strtotime((string)($valid['last_used_at']??''))?:0;
+                    $storedExpiry=strtotime((string)($valid['expires_at']??''))?:0;
+                    if($lastUsed<time()-86400||$storedExpiry<time()+31536000){
+                        DB::run('UPDATE user_remember_tokens SET expires_at=FROM_UNIXTIME(?),last_used_at=CURRENT_TIMESTAMP WHERE id=?',[$expires,(int)$valid['id']]);
+                    }
+                    setcookie(self::REMEMBER_COOKIE,(string)$cookie['raw'],self::cookieOptions($expires));
+                    return;
+                }
                 DB::run('DELETE FROM user_remember_tokens WHERE selector=?',[$cookie['selector']]);
+                self::expireRememberCookie();
             }
             $selector=bin2hex(random_bytes(18));$validator=bin2hex(random_bytes(32));$expires=time()+self::REMEMBER_DAYS*86400;
             DB::run('INSERT INTO user_remember_tokens (user_id,selector,validator_hash,expires_at,last_used_at,created_at) VALUES (?,?,?,FROM_UNIXTIME(?),CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)',[$userId,$selector,hash('sha256',$validator),$expires]);
             $_COOKIE[self::REMEMBER_COOKIE]=$selector.':'.$validator;
             setcookie(self::REMEMBER_COOKIE,$_COOKIE[self::REMEMBER_COOKIE],self::cookieOptions($expires));
-        }catch(Throwable){}
+        }catch(Throwable $error){
+            if(function_exists('log_error'))log_error($error);
+        }
     }
 
     private static function forgetPersistentLogin(): void
@@ -273,7 +295,7 @@ final class View
             echo json_encode([
                 'ok' => true,
                 'html' => $content,
-                'title' => (string)($title ?? cfg('app.name', 'KOVCHEG CMS')),
+                'title' => (string)($title ?? cfg('app.name', 'KOVCHEG Blog')),
                 'url' => current_absolute_url(),
                 'version' => APP_VERSION,
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -331,14 +353,14 @@ final class Modules
             }
             $slug = strtolower((string)$manifest['slug']);
             if (!preg_match('/^[a-z][a-z0-9_-]{2,50}$/', $slug)) throw new RuntimeException('Некорректный slug модуля.');
-            if (version_compare(APP_VERSION, (string)$manifest['min_core'], '<')) throw new RuntimeException('Модулю требуется ядро '.$manifest['min_core'].' или новее.');
+            if (version_compare(APP_VERSION, (string)$manifest['min_core'], '<')) throw new RuntimeException('Модулю требуется KOVCHEG Blog '.$manifest['min_core'].' или новее.');
             $packageType=(string)($manifest['type']??'module');
             if($packageType==='core_update'&&version_compare((string)$manifest['version'],'2.1.1','>=')){
-                $updateRaw=$zip->getFromName('update.json');if($updateRaw===false)throw new RuntimeException('В обновлении ядра отсутствует update.json.');
+                $updateRaw=$zip->getFromName('update.json');if($updateRaw===false)throw new RuntimeException('В обновлении KOVCHEG Blog отсутствует update.json.');
                 $update=json_decode($updateRaw,true,512,JSON_THROW_ON_ERROR);
                 foreach(['schema','target_version','min_core','min_php','changelog','rollback','migrations'] as $required)if(!array_key_exists($required,$update))throw new RuntimeException('В update.json отсутствует обязательное поле: '.$required);
                 if((string)$update['target_version']!==(string)$manifest['version'])throw new RuntimeException('Версии manifest.json и update.json не совпадают.');
-                if(version_compare(APP_VERSION,(string)$update['min_core'],'<'))throw new RuntimeException('Обновлению требуется ядро '.(string)$update['min_core'].' или новее.');
+                if(version_compare(APP_VERSION,(string)$update['min_core'],'<'))throw new RuntimeException('Обновлению требуется KOVCHEG Blog '.(string)$update['min_core'].' или новее.');
                 if(version_compare(PHP_VERSION,(string)$update['min_php'],'<'))throw new RuntimeException('Обновлению требуется PHP '.(string)$update['min_php'].' или новее.');
                 foreach((array)($update['required_extensions']??[]) as $extension)if(!extension_loaded((string)$extension))throw new RuntimeException('Для обновления требуется PHP-расширение: '.$extension);
                 foreach([(string)$update['changelog'],(string)$update['rollback']] as $requiredFile)if($requiredFile===''||$zip->locateName($requiredFile)===false)throw new RuntimeException('В обновлении отсутствует обязательный файл: '.$requiredFile);
