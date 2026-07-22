@@ -8,7 +8,7 @@ $bootstrap=$read('app/bootstrap.php');$index=$read('index.php');$route=$read('ro
 $expect=static function(string $content,string $needle,string $message)use(&$errors):void{if(!str_contains($content,$needle))$errors[]=$message;};
 $expect($bootstrap,"const APP_VERSION = '3.5.0';",'Версия должна быть 3.5.0.');
 $expect($index,"require __DIR__.'/routes/account.php';",'Маршрут личного кабинета не подключён.');
-$expect($route,"$router->get('/account'",'Отсутствует GET /account.');
+$expect($route,'$router->get(\'/account\'','Отсутствует GET /account.');
 $expect($route,'Auth::requireLogin()','Личный кабинет должен требовать вход.');
 $expect($route,"require BASE_PATH.'/views/account-shell.php';",'Личный кабинет должен использовать отдельную единую оболочку.');
 $expect($account,'Личный кабинет','Отсутствует страница личного кабинета.');
