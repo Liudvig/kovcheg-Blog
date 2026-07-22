@@ -204,7 +204,7 @@ final class Builder
     {
         $text = trim((string)($data['text'] ?? ''));
         if ($type === 'paragraph') return $text!==''?'<p>'.nl2br(self::h($text)).'</p>':'';
-        if ($type === 'heading') { $level=max(2,min(4,(int)($data['level']??2))); return $text!==''?'<h'.$level.'>'.self::h($text).'</h'.$level.'>:''; }
+        if ($type === 'heading') { $level=max(2,min(4,(int)($data['level']??2))); return $text!==''?'<h'.$level.'>'.self::h($text).'</h'.$level.'>':''; }
         if ($type === 'quote') return $text!==''?'<blockquote><p>'.nl2br(self::h($text)).'</p>'.(!empty($data['caption'])?'<cite>'.self::h((string)$data['caption']).'</cite>':'').'</blockquote>':'';
         if ($type === 'code') return $text!==''?'<pre><code data-language="'.self::h((string)($data['language']??'')).'">'.self::h($text).'</code></pre>':'';
         if ($type === 'separator') return '<hr>';
