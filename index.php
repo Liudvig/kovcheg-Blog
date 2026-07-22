@@ -1,6 +1,17 @@
 <?php
 
 declare(strict_types=1);
+
+$originalUri = trim((string)($_SERVER['HTTP_X_KOVCHEG_ORIGINAL_URI'] ?? ''));
+if (
+    $originalUri !== ''
+    && strlen($originalUri) <= 8192
+    && str_starts_with($originalUri, '/')
+    && !preg_match('/[\r\n]/', $originalUri)
+) {
+    $_SERVER['REQUEST_URI'] = $originalUri;
+}
+
 require __DIR__.'/app/bootstrap.php';
 
 $router = new \Kovcheg\Router();
