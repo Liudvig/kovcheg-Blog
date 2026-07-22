@@ -1,0 +1,17 @@
+{
+  "slug": "musician",
+  "name": "Музыкант и артист",
+  "description": "Релизы, клипы, концерты, новости и контакты для сотрудничества.",
+  "icon": "♫",
+  "theme": "kovcheg-portfolio",
+  "settings": {
+    "blog_theme": "kovcheg-portfolio",
+    "site_name": "Имя артиста",
+    "blog_tagline": "Музыка · релизы · концерты",
+    "blog_description": "Новости артиста, история создания музыки и новые релизы.",
+    "portfolio_description": "Релизы, видеоклипы, концерты и творческие проекты.",
+    "blog_footer_text": "Официальный сайт артиста на KOVCHEG Blog.",
+    "seo_description": "Официальный сайт музыканта: музыка, релизы, клипы и концерты.",
+    "search_indexing": "0"
+  }
+}
