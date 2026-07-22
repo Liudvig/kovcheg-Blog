@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.3.1';
-const ASSET_REVISION = '3.3.1-runtime-hotfix';
+const APP_VERSION = '3.3.2';
+const ASSET_REVISION = '3.3.2-fastpanel-proxy-routing';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
