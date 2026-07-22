@@ -14,17 +14,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Report exact PHP lint failure
+        with:
+          show-progress: false
+      - name: Capture exact PHP lint failure
         shell: bash
         run: |
-          failed=0
+          : > php-lint-failure.txt
           while IFS= read -r -d '' file; do
             if ! output=$(php -l "$file" 2>&1); then
-              echo "FAILED_FILE=$file"
-              echo "$output"
-              echo "::error file=$file::$output"
-              failed=1
+              {
+                echo "FAILED_FILE=$file"
+                echo "$output"
+              } > php-lint-failure.txt
               break
             fi
           done < <(find . -path './.git' -prune -o -path './vendor' -prune -o -type f -name '*.php' -print0)
-          exit "$failed"
+          if [ ! -s php-lint-failure.txt ]; then
+            echo 'ALL_PHP_FILES_OK' > php-lint-failure.txt
+          fi
+      - name: Upload PHP lint result
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-lint-result
+          path: php-lint-failure.txt
+          if-no-files-found: error
+      - name: Fail when lint failed
+        shell: bash
+        run: |
+          cat php-lint-failure.txt
+          ! grep -q '^FAILED_FILE=' php-lint-failure.txt
