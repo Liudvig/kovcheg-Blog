@@ -30,7 +30,7 @@ $expect = static function (string $content, string $needle, string $message) use
 
 $expect($bootstrap, "const APP_VERSION = '3.4.2';", 'Версия должна быть 3.4.2.');
 $expect($index, "require __DIR__.'/routes/account.php';", 'Маршрут личного кабинета не подключён.');
-$expect($route, "$router->get('/account'", 'Отсутствует GET /account.');
+$expect($route, '$router->get(\'/account\'', 'Отсутствует GET /account.');
 $expect($route, 'Auth::requireLogin()', 'Личный кабинет должен требовать вход.');
 $expect($view, 'Личный кабинет', 'Отсутствует страница личного кабинета.');
 $expect($view, "app_url('/logout')", 'В кабинете отсутствует ручной выход.');
