@@ -5,12 +5,25 @@
   const pool = document.querySelector('[data-widget-zone="__pool"]');
   let dragged = null;
 
+  const refreshRegionStates = () => {
+    document.querySelectorAll('[data-zone-card]').forEach((card) => {
+      const zone = card.querySelector(':scope > [data-widget-zone]');
+      card.classList.toggle('has-widgets', Boolean(zone?.querySelector(':scope > .widget-card')));
+    });
+
+    document.querySelectorAll('[data-blueprint-region]').forEach((region) => {
+      const hasWidgets = region.querySelector('[data-widget-zone] > .widget-card') !== null;
+      region.classList.toggle('has-widgets', hasWidgets);
+    });
+  };
+
   const refreshEmptyStates = () => {
     zones.forEach((zone) => {
       const empty = zone.querySelector(':scope > .widget-zone__empty');
       if (!empty) return;
       empty.hidden = zone.querySelector(':scope > .widget-card') !== null;
     });
+    refreshRegionStates();
   };
 
   const moveCard = (card, zone, before = null) => {
