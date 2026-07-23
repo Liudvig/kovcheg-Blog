@@ -6,7 +6,7 @@ $root=dirname(__DIR__);$errors=[];
 $read=static function(string $path)use($root,&$errors):string{$file=$root.'/'.$path;$content=is_file($file)?file_get_contents($file):false;if($content===false){$errors[]='Не удалось прочитать '.$path;return '';}return $content;};
 $bootstrap=$read('app/bootstrap.php');$index=$read('index.php');$route=$read('routes/account.php');$account=$read('views/account-shell.php');$studio=$read('views/studio/layout.php');$sidebar=$read('views/site-sidebar.php');$mobile=$read('views/mobile-navigation.php');$css=$read('assets/css/blog-studio-unified.css');
 $expect=static function(string $content,string $needle,string $message)use(&$errors):void{if(!str_contains($content,$needle))$errors[]=$message;};
-$expect($bootstrap,"const APP_VERSION = '3.5.1';",'Версия должна быть 3.5.1.');
+$expect($bootstrap,"const APP_VERSION = '3.5.2';",'Версия должна быть 3.5.2.');
 $expect($index,"require __DIR__.'/routes/account.php';",'Маршрут личного кабинета не подключён.');
 $expect($route,'$router->get(\'/account\'','Отсутствует GET /account.');
 $expect($route,'Auth::requireLogin()','Личный кабинет должен требовать вход.');
