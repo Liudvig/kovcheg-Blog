@@ -25,17 +25,16 @@ $expect($studioLayout,'blog-zone-builder.css','Studio не подключает 
 $expect($widgets,'widget-builder-shell--matrix','Макет не использует двухколоночную схему: каталог и рабочая область.');
 if(str_contains($widgets,'widget-revisions">'))$errors[]='На странице осталась отдельная правая колонка ревизий.';
 $expect($widgets,'widget-catalog--accordion','Каталог виджетов не сворачивается.');
-$expect($widgets,'matrix.preheader','Отсутствует сплошная область над шапкой.');
-for($i=1;$i<=5;$i++)$expect($widgets,"matrix.header.$i",'Отсутствует секция шапки '.$i.'.');
-$expect($widgets,'matrix.postheader','Отсутствует сплошная область под шапкой.');
-$expect($widgets,'matrix.banner.top','Отсутствует верхняя баннерная полоса.');
-for($i=1;$i<=4;$i++){
-    $expect($widgets,"matrix.left.$i",'Отсутствует блок левой колонки '.$i.'.');
-    $expect($widgets,"matrix.right.$i",'Отсутствует блок правой колонки '.$i.'.');
-}
-for($i=1;$i<=12;$i++)$expect($widgets,"matrix.center.$i",'Отсутствует центральный блок '.$i.'.');
-$expect($widgets,'matrix.banner.bottom','Отсутствует нижняя баннерная полоса.');
-for($i=1;$i<=8;$i++)$expect($widgets,"matrix.footer.$i",'Отсутствует блок подвала '.$i.'.');
+$expect($widgets,"\$renderZone('matrix.preheader'",'Отсутствует сплошная область над шапкой.');
+$expect($widgets,"for(\$i=1;\$i<=5;\$i++)\$renderZone('matrix.header.'.\$i",'Шапка не создаёт пять секций.');
+$expect($widgets,"\$renderZone('matrix.postheader'",'Отсутствует сплошная область под шапкой.');
+$expect($widgets,"\$renderZone('matrix.banner.top'",'Отсутствует верхняя баннерная полоса.');
+$expect($widgets,"for(\$i=1;\$i<=4;\$i++)\$renderZone('matrix.left.'.\$i",'Левая колонка не создаёт четыре блока.');
+$expect($widgets,"for(\$i=1;\$i<=4;\$i++)\$renderZone('matrix.right.'.\$i",'Правая колонка не создаёт четыре блока.');
+$expect($widgets,"for(\$i=1;\$i<=4;\$i++)\$renderZone('matrix.center.'.\$i",'Первый ряд центральной области не создаётся.');
+$expect($widgets,"for(\$i=5;\$i<=12;\$i++)\$renderZone('matrix.center.'.\$i",'Остальные центральные блоки не создаются.');
+$expect($widgets,"\$renderZone('matrix.banner.bottom'",'Отсутствует нижняя баннерная полоса.');
+$expect($widgets,"for(\$i=1;\$i<=8;\$i++)\$renderZone('matrix.footer.'.\$i",'Подвал не создаёт восемь блоков.');
 $expect($widgets,'matrix-copyright-lock','Отсутствует длинный блок копирайта.');
 $expect($builderCss,'grid-template-columns:300px minmax(0,1fr)','Конструктор не отдаёт всю оставшуюся ширину схеме.');
 $expect($builderCss,'grid-template-columns:repeat(5','Шапка не делится на пять секций.');
