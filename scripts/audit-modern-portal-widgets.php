@@ -19,7 +19,7 @@ $moduleCss=$read('modules/portal-media-widgets/assets/widgets.css');
 $moduleJs=$read('modules/portal-media-widgets/assets/widgets.js');
 $migration=$read('migrations/20260722_blog_portal_widgets.sql');
 
-$expect($bootstrap,"const APP_VERSION = '3.5.2';",'Версия приложения должна быть 3.5.2.');
+$expect($bootstrap,"const APP_VERSION = '3.5.3';",'Версия приложения должна быть 3.5.3.');
 $expect($bootstrap,'https://vk.com https://vkvideo.ru','CSP не разрешает доверенное встраивание VK Видео.');
 $expect($route,'$state[\'currentLayout\'] = $state[\'layout\'];','Маршрут не устраняет конфликт переменной layout.');
 $expect($route,'unset($state[\'layout\']);','Старое имя layout остаётся в данных Studio.');
