@@ -27,10 +27,10 @@ $expect($widgets,'widget-blueprint-column--left','В макете отсутст
 $expect($widgets,'widget-blueprint-center','В макете отсутствует центральная область.');
 $expect($widgets,'widget-blueprint-column--right','В макете отсутствует правая колонка.');
 $expect($widgets,'widget-blueprint-footer','В макете отсутствует визуальный подвал.');
-$expect($widgets,"$renderZone('header.top'",'Зона header.top не находится в визуальной шапке.');
-$expect($widgets,"$renderZone('layout.left'",'Зона layout.left не находится слева.');
-$expect($widgets,"$renderZone('layout.right'",'Зона layout.right не находится справа.');
-$expect($widgets,"$renderZone('footer.bottom'",'Зона footer.bottom не находится снизу.');
+$expect($widgets,"\$renderZone('header.top'",'Зона header.top не находится в визуальной шапке.');
+$expect($widgets,"\$renderZone('layout.left'",'Зона layout.left не находится слева.');
+$expect($widgets,"\$renderZone('layout.right'",'Зона layout.right не находится справа.');
+$expect($widgets,"\$renderZone('footer.bottom'",'Зона footer.bottom не находится снизу.');
 $expect($builderCss,'.widget-blueprint-body{display:grid','Визуальная схема страницы не использует сетку.');
 $expect($builderCss,'grid-template-columns:minmax(180px,23%) minmax(360px,1fr) minmax(180px,23%)','Схема не отображает левую, центральную и правую колонки.');
 $expect($widgetsJs,'refreshRegionStates','Drag & Drop не обновляет состояние зон и колонок.');
