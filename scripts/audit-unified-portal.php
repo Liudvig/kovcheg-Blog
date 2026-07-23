@@ -33,7 +33,9 @@ $expect($portal,'portal-matrix-copyright','В Portal отсутствует дл
 $expect($matrixCss,'.portal-matrix--three','Отсутствует CSS трёхколоночной матрицы Portal.');
 $expect($matrixCss,'.portal-matrix-footer-grid','Отсутствует CSS подвала 4×2.');
 $expect($portalManifest,'"min_core": "3.5.4"','Манифест Portal не привязан к 3.5.4.');
-$expect($matrixModule,"matrix.left.1",'Модуль матрицы не регистрирует левую колонку.');
-$expect($matrixModule,"matrix.center.12",'Модуль матрицы не регистрирует 12 центральных зон.');
+$expect($matrixModule,"for (\$slot=1; \$slot<=4; \$slot++)",'Модуль матрицы не создаёт четыре блока боковых колонок.');
+$expect($matrixModule,"for (\$slot=1; \$slot<=12; \$slot++)",'Модуль матрицы не создаёт двенадцать центральных зон.');
+$expect($matrixModule,"'matrix.left.'.\$slot",'Модуль матрицы не регистрирует левую колонку.');
+$expect($matrixModule,"'matrix.center.'.\$slot",'Модуль матрицы не регистрирует центральные зоны.');
 $expect($matrixMigration,"'layout-matrix'",'Миграция не включает модуль Layout Matrix.');
 if($errors){fwrite(STDERR,"KOVCHEG Blog 3.5 audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}echo "KOVCHEG Blog 3.5 unified Portal audit passed.\n";
