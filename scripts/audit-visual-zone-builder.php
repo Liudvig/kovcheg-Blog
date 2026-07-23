@@ -52,7 +52,8 @@ $expect($portalLayout,'portal-matrix-footer-grid','Portal не выводит п
 $expect($matrixCss,'body.blog-theme-portal-matrix{height:100vh','Portal не закреплён на высоту окна.');
 $expect($matrixCss,'.portal-matrix-sidebar-grid','Боковые колонки не имеют отдельную сетку.');
 $expect($matrixCss,'.portal-matrix-content{','Центральная область не имеет отдельную прокрутку.');
-$expect($module,"matrix.center.12",'Модуль не регистрирует двенадцатый центральный блок.');
+$expect($module,"for (\$slot=1; \$slot<=12; \$slot++)",'Модуль не создаёт двенадцать центральных блоков.');
+$expect($module,"'matrix.center.'.\$slot",'Модуль не регистрирует центральные блоки.');
 $expect($migration,"version='1.3.0'",'Миграция не обновляет Portal до 1.3.0.');
 if(!is_array($theme)||($theme['version']??'')!=='1.3.0')$errors[]='Версия темы Portal должна быть 1.3.0.';
 if(!is_array($theme)||($theme['min_core']??'')!=='3.5.4')$errors[]='Portal 1.3.0 должен требовать KOVCHEG Blog 3.5.4.';
