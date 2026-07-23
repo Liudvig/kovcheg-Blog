@@ -1,0 +1,50 @@
+/* KOVCHEG Portal 1.2 fixed shell
+ * Copyright © Ланцет Семён Борисович. All rights reserved.
+ */
+
+html:has(body.blog-theme-portal){height:100%;overflow:hidden}
+body.blog-theme-portal{height:100vh;min-height:0;padding:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+.blog-theme-portal .portal-header{position:relative;inset:auto;z-index:200}
+.blog-theme-portal .portal-header__surface{box-shadow:0 5px 18px rgba(15,23,42,.07)}
+.blog-theme-portal .portal-header__main{min-height:68px}
+.blog-theme-portal .portal-header__main>.layout-zone{min-height:68px}
+.blog-theme-portal .portal-header__top,.blog-theme-portal .portal-header__bottom{max-height:30px}
+.blog-theme-portal .portal-header__top:empty,.blog-theme-portal .portal-header__bottom:empty{display:none}
+
+.blog-theme-portal .portal-viewport{min-height:0;height:100%;padding:16px 0;overflow:hidden}
+.blog-theme-portal .portal-grid{height:100%;min-height:0;align-items:stretch}
+.blog-theme-portal .portal-content{height:100%;min-height:0;padding:0 4px 24px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.blog-theme-portal .portal-content::-webkit-scrollbar{display:none}
+
+.blog-theme-portal .portal-sidebar{position:relative;top:auto;height:100%;min-height:0;max-height:none;padding:10px;border:1px solid var(--portal-line);border-radius:18px;background:rgba(255,255,255,.78);box-shadow:0 14px 34px rgba(15,23,42,.07);overflow:hidden}
+.blog-theme-portal .portal-sidebar--left{border-color:#cbd8e5;background:linear-gradient(180deg,rgba(247,251,255,.98),rgba(238,245,252,.95))}
+.blog-theme-portal .portal-sidebar--right{border-color:#d8d2e7;background:linear-gradient(180deg,rgba(251,249,255,.98),rgba(244,241,250,.95))}
+.blog-theme-portal .portal-sidebar__scroll{height:100%;min-height:0;max-height:none;padding:1px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.blog-theme-portal .portal-sidebar__scroll::-webkit-scrollbar{display:none}
+.blog-theme-portal .portal-sidebar .layout-zone{min-height:100%;align-content:start}
+.blog-theme-portal .portal-sidebar .site-widget{background:#fff}
+
+.blog-theme-portal .portal-footer{position:relative;left:auto;right:auto;bottom:auto;z-index:190;height:56px;min-height:56px}
+.blog-theme-portal .portal-footer__inner{height:56px}
+.blog-theme-portal .portal-archive-section--without-hero{margin-top:0}
+.blog-theme-portal .portal-lead-grid:first-child,.blog-theme-portal .portal-empty:first-child,.blog-theme-portal .portal-section:first-child{margin-top:0}
+
+@media(max-width:1220px) and (min-width:901px){
+ .blog-theme-portal .portal-grid--three{grid-template-columns:210px minmax(0,1fr) 230px}
+ .blog-theme-portal .portal-grid--three .portal-sidebar--right{position:relative;grid-column:auto;max-height:none}
+ .blog-theme-portal .portal-grid--three .portal-sidebar--right .portal-sidebar__scroll{display:block;max-height:none;overflow-y:auto}
+}
+
+@media(max-width:900px){
+ html:has(body.blog-theme-portal){height:auto;overflow:auto}
+ body.blog-theme-portal{height:auto;min-height:100vh;display:block;overflow:auto}
+ .blog-theme-portal .portal-header{position:sticky;top:0}
+ .blog-theme-portal .portal-viewport{height:auto;min-height:0;overflow:visible}
+ .blog-theme-portal .portal-grid{height:auto;min-height:0}
+ .blog-theme-portal .portal-content{height:auto;overflow:visible}
+ .blog-theme-portal .portal-sidebar{height:auto;min-height:0;padding:8px;position:static;overflow:visible}
+ .blog-theme-portal .portal-sidebar__scroll{height:auto;overflow:visible}
+ .blog-theme-portal .portal-sidebar .layout-zone{min-height:0}
+ .blog-theme-portal .portal-footer{height:auto;min-height:72px;position:static}
+ .blog-theme-portal .portal-footer__inner{height:auto;min-height:72px}
+}
