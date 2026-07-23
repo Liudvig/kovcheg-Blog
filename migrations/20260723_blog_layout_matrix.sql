@@ -18,32 +18,66 @@ ON DUPLICATE KEY UPDATE
   enabled=1,
   updated_at=CURRENT_TIMESTAMP;
 
-UPDATE site_widget_placements p
-JOIN site_widget_instances w ON w.id=p.widget_id
+-- Старые миграции могут повторно создать legacy-размещения. Перед переносом
+-- удаляем legacy-дубликат, если тот же экземпляр уже находится в новой зоне.
+DELETE legacy FROM site_widget_placements legacy
+JOIN site_widget_instances w ON w.id=legacy.widget_id
+JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.header.1'
+WHERE legacy.zone='header.main' AND w.system_key='default-logo';
+UPDATE site_widget_placements p JOIN site_widget_instances w ON w.id=p.widget_id
 SET p.zone='matrix.header.1',p.updated_at=CURRENT_TIMESTAMP
 WHERE p.zone='header.main' AND w.system_key='default-logo';
 
-UPDATE site_widget_placements p
-JOIN site_widget_instances w ON w.id=p.widget_id
+DELETE legacy FROM site_widget_placements legacy
+JOIN site_widget_instances w ON w.id=legacy.widget_id
+JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.header.3'
+WHERE legacy.zone='header.main' AND w.system_key='default-menu';
+UPDATE site_widget_placements p JOIN site_widget_instances w ON w.id=p.widget_id
 SET p.zone='matrix.header.3',p.updated_at=CURRENT_TIMESTAMP
 WHERE p.zone='header.main' AND w.system_key='default-menu';
 
-UPDATE site_widget_placements p
-JOIN site_widget_instances w ON w.id=p.widget_id
+DELETE legacy FROM site_widget_placements legacy
+JOIN site_widget_instances w ON w.id=legacy.widget_id
+JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.header.5'
+WHERE legacy.zone='header.main' AND w.system_key='default-account';
+UPDATE site_widget_placements p JOIN site_widget_instances w ON w.id=p.widget_id
 SET p.zone='matrix.header.5',p.updated_at=CURRENT_TIMESTAMP
 WHERE p.zone='header.main' AND w.system_key='default-account';
 
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.preheader' WHERE legacy.zone='header.top';
 UPDATE site_widget_placements SET zone='matrix.preheader',updated_at=CURRENT_TIMESTAMP WHERE zone='header.top';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.header.2' WHERE legacy.zone='header.main';
 UPDATE site_widget_placements SET zone='matrix.header.2',updated_at=CURRENT_TIMESTAMP WHERE zone='header.main';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.postheader' WHERE legacy.zone='header.bottom';
 UPDATE site_widget_placements SET zone='matrix.postheader',updated_at=CURRENT_TIMESTAMP WHERE zone='header.bottom';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.banner.top' WHERE legacy.zone='page.before';
 UPDATE site_widget_placements SET zone='matrix.banner.top',updated_at=CURRENT_TIMESTAMP WHERE zone='page.before';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.left.1' WHERE legacy.zone='layout.left';
 UPDATE site_widget_placements SET zone='matrix.left.1',updated_at=CURRENT_TIMESTAMP WHERE zone='layout.left';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.center.1' WHERE legacy.zone='content.before';
 UPDATE site_widget_placements SET zone='matrix.center.1',updated_at=CURRENT_TIMESTAMP WHERE zone='content.before';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.center.5' WHERE legacy.zone='content.after';
 UPDATE site_widget_placements SET zone='matrix.center.5',updated_at=CURRENT_TIMESTAMP WHERE zone='content.after';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.right.1' WHERE legacy.zone='layout.right';
 UPDATE site_widget_placements SET zone='matrix.right.1',updated_at=CURRENT_TIMESTAMP WHERE zone='layout.right';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.banner.bottom' WHERE legacy.zone='page.after';
 UPDATE site_widget_placements SET zone='matrix.banner.bottom',updated_at=CURRENT_TIMESTAMP WHERE zone='page.after';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.footer.1' WHERE legacy.zone='footer.top';
 UPDATE site_widget_placements SET zone='matrix.footer.1',updated_at=CURRENT_TIMESTAMP WHERE zone='footer.top';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.footer.2' WHERE legacy.zone='footer.columns';
 UPDATE site_widget_placements SET zone='matrix.footer.2',updated_at=CURRENT_TIMESTAMP WHERE zone='footer.columns';
+
+DELETE legacy FROM site_widget_placements legacy JOIN site_widget_placements target ON target.layout_id=legacy.layout_id AND target.widget_id=legacy.widget_id AND target.zone='matrix.footer.8' WHERE legacy.zone='footer.bottom';
 UPDATE site_widget_placements SET zone='matrix.footer.8',updated_at=CURRENT_TIMESTAMP WHERE zone='footer.bottom';
 
 UPDATE themes
