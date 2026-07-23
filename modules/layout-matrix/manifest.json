@@ -7,5 +7,6 @@
   "description": "Точная матрица зон для шапки, колонок, баннеров, центральной сетки и подвала.",
   "author": "Ланцет Семён Борисович",
   "copyright": "Ланцет Семён Борисович",
-  "license": "proprietary / all rights reserved"
+  "license": "proprietary / all rights reserved",
+  "supports": ["preheader","five-part-header","postheader","full-width-banners","four-block-sidebars","twelve-block-center","footer-4x2","copyright-strip"]
 }
