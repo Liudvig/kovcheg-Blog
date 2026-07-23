@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.5.3';
-const ASSET_REVISION = '3.5.3-portal-login-routing';
+const APP_VERSION = '3.5.4';
+const ASSET_REVISION = '3.5.4-layout-matrix-builder';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }

@@ -1,0 +1,45 @@
+name: KOVCHEG Blog Layout Matrix
+
+on:
+  push:
+    branches: [release/3.5.4-layout-matrix]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  matrix-audits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Lint changed PHP
+        run: |
+          php -l app/bootstrap.php
+          php -l modules/layout-matrix/bootstrap.php
+          php -l views/studio/widgets.php
+          php -l themes/kovcheg-portal/layout.php
+          php -l scripts/audit-login-routing.php
+          php -l scripts/audit-account-actions.php
+          php -l scripts/audit-unified-portal.php
+          php -l scripts/audit-modern-portal-widgets.php
+          php -l scripts/audit-visual-zone-builder.php
+      - name: Login routing audit
+        run: php scripts/audit-login-routing.php
+      - name: Account actions audit
+        run: php scripts/audit-account-actions.php
+      - name: Unified Portal audit
+        run: php scripts/audit-unified-portal.php
+      - name: Modern Portal widgets audit
+        run: php scripts/audit-modern-portal-widgets.php
+      - name: Visual Layout Matrix audit
+        run: php scripts/audit-visual-zone-builder.php
+      - name: Validate manifests
+        run: |
+          php -r 'json_decode(file_get_contents("modules/layout-matrix/manifest.json"),true,512,JSON_THROW_ON_ERROR);'
+          php -r 'json_decode(file_get_contents("themes/kovcheg-portal/theme.json"),true,512,JSON_THROW_ON_ERROR);'

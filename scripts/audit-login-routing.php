@@ -12,8 +12,8 @@ $route=$read('routes/blog-auth.php');
 $login=$read('views/login.php');
 $css=$read('assets/css/blog-login.css');
 
-$expect($bootstrap,"const APP_VERSION = '3.5.3';",'Версия приложения должна быть 3.5.3.');
-$expect($bootstrap,"const ASSET_REVISION = '3.5.3-portal-login-routing';",'ASSET_REVISION должен соответствовать 3.5.3.');
+$expect($bootstrap,"const APP_VERSION = '3.5.4';",'Версия приложения должна быть 3.5.4.');
+$expect($bootstrap,"const ASSET_REVISION = '3.5.4-layout-matrix-builder';",'ASSET_REVISION должен соответствовать 3.5.4.');
 $expect($index,"require __DIR__.'/routes/blog-auth.php';",'Blog-first маршруты авторизации не подключены.');
 
 $authPosition=strpos($index,"require __DIR__.'/routes/blog-auth.php';");
