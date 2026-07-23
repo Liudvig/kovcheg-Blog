@@ -7,6 +7,6 @@ SET version='1.2.0',
     updated_at=CURRENT_TIMESTAMP
 WHERE slug='kovcheg-portal';
 
-INSERT INTO settings (setting_key,setting_value,updated_at)
+INSERT INTO settings (`key`,`value`,updated_at)
 VALUES ('portal_visual_zone_builder','1',CURRENT_TIMESTAMP)
-ON DUPLICATE KEY UPDATE setting_value='1',updated_at=CURRENT_TIMESTAMP;
+ON DUPLICATE KEY UPDATE `value`='1',updated_at=CURRENT_TIMESTAMP;
