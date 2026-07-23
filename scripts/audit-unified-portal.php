@@ -6,7 +6,7 @@ $root=dirname(__DIR__);$errors=[];
 $read=static function(string $path)use($root,&$errors):string{$file=$root.'/'.$path;$data=is_file($file)?file_get_contents($file):false;if($data===false){$errors[]='Не удалось прочитать '.$path;return '';}return $data;};
 $expect=static function(string $content,string $needle,string $message)use(&$errors):void{if(!str_contains($content,$needle))$errors[]=$message;};
 $bootstrap=$read('app/bootstrap.php');$studio=$read('views/studio/layout.php');$studioCss=$read('assets/css/blog-studio-unified.css');$account=$read('views/account-shell.php');$accountRoute=$read('routes/account.php');$widgetRoute=$read('routes/blog-layout.php');$repair=$read('app/BlogLayoutRepair.php');$media=$read('views/studio/media.php');$modules=$read('views/studio/modules.php');$builderRoute=$read('routes/blog-builder.php');$uploadJs=$read('assets/js/blog-upload.js');$editor=$read('views/studio/editor.php');$editorial=$read('themes/kovcheg-editorial/layout.php');$portal=$read('themes/kovcheg-portal/layout.php');$portalCss=$read('themes/kovcheg-portal/assets/theme.css');$portalManifest=$read('themes/kovcheg-portal/theme.json');$portalMigration=$read('migrations/20260722_blog_portal_theme.sql');
-$expect($bootstrap,"const APP_VERSION = '3.5.2';",'Версия приложения должна быть 3.5.2.');
+$expect($bootstrap,"const APP_VERSION = '3.5.3';",'Версия приложения должна быть 3.5.3.');
 $expect($studio,'studio-footer','В Studio отсутствует реальный подвал.');
 $expect($studio,'studio-sidebar-meta','В Studio отсутствует служебный блок левой колонки.');
 if(preg_match('~<aside class="studio-sidebar".*?app_url\(\'/logout\'\).*?</aside>~s',$studio))$errors[]='Кнопка выхода осталась в левой колонке Studio.';
