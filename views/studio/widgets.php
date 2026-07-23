@@ -56,46 +56,90 @@ $renderCard=static function(array $instance)use($widgetTypes,$settingsFor,$rende
   </footer>
 </article>
 <?php };
+
+$renderZone=static function(string $zoneId,string $visualClass='')use($zones,$placedByZone,$renderCard):void{
+    $zone=$zones[$zoneId]??['label'=>$zoneId,'width'=>'auto'];
+    $items=$placedByZone[$zoneId]??[];
+?>
+<section class="widget-zone widget-blueprint-zone <?=e($visualClass)?> <?=$items?'has-widgets':''?>" data-zone-card data-zone-id="<?=e($zoneId)?>">
+  <header class="widget-blueprint-zone__head"><div><b><?=e((string)$zone['label'])?></b><code><?=e($zoneId)?></code></div><span><?=count($items)?> блок.</span></header>
+  <div class="widget-zone__items" data-widget-zone="<?=e($zoneId)?>">
+    <?php foreach($items as $instance)$renderCard($instance);?>
+    <p class="widget-zone__empty">Перетащите виджет сюда</p>
+  </div>
+</section>
+<?php };
 ?>
 
-<div class="studio-page-head widget-page-head"><div><span class="eyebrow">КОНСТРУКТОР САЙТА 3.5.1</span><h1>Виджеты и зоны</h1><p>Перетаскивайте блоки между шапкой, боковыми колонками, страницей и подвалом. Любой блок можно отключить, скопировать или убрать с сайта.</p></div><div class="studio-actions"><a class="button" href="<?=e(app_url('/'))?>" target="_blank" rel="noopener">Открыть сайт</a></div></div>
+<div class="studio-page-head widget-page-head"><div><span class="eyebrow">КОНСТРУКТОР САЙТА 3.5.2</span><h1>Виджеты и зоны</h1><p>Перед вами реальная схема страницы: шапка сверху, колонки по бокам, содержимое по центру и подвал снизу.</p></div><div class="studio-actions"><a class="button" href="<?=e(app_url('/'))?>" target="_blank" rel="noopener">Открыть сайт</a></div></div>
 
 <section class="studio-card widget-layout-toolbar">
   <label><span>Схема сайта</span><select onchange="location.href='<?=e(app_url('/studio/widgets?layout='))?>'+this.value"><?php foreach($layouts as $item):?><option value="<?=(int)$item['id']?>" <?=(int)$item['id']===(int)$currentLayout['id']?'selected':''?>><?=e($item['name'])?> · <?=e($item['status'])?></option><?php endforeach;?></select></label>
   <form method="post" action="<?=e(app_url('/studio/widgets/layout/save'))?>" data-layout-save-form><?=csrf_field()?><input type="hidden" name="layout_id" value="<?=(int)$currentLayout['id']?>"><input type="hidden" name="placements_json" value="[]" data-placements-json><button class="button primary">Опубликовать расположение</button></form>
 </section>
 
-<div class="widget-studio-grid">
+<div class="widget-builder-shell">
   <aside class="studio-card widget-catalog">
     <header class="widget-panel-head"><div><span class="eyebrow">БИБЛИОТЕКА</span><h2>Добавить виджет</h2></div><span><?=count($widgetTypes)?></span></header>
-    <p>Нажмите «+», затем перетащите созданный блок в нужную зону.</p>
+    <p>Создайте блок и перетащите его прямо на макет страницы.</p>
     <div class="widget-catalog__list">
       <?php foreach($widgetTypes as $type=>$definition):?>
       <form method="post" action="<?=e(app_url('/studio/widgets/create'))?>" class="widget-catalog__item"><?=csrf_field()?><input type="hidden" name="layout_id" value="<?=(int)$currentLayout['id']?>"><input type="hidden" name="widget_type" value="<?=e($type)?>"><input type="hidden" name="title" value="<?=e($definition['label'])?>"><div><b><?=e($definition['label'])?></b><small><?=e($definition['description'])?></small></div><button type="submit" aria-label="Добавить <?=e($definition['label'])?>">+</button></form>
       <?php endforeach;?>
     </div>
-    <header class="widget-panel-head"><div><span class="eyebrow">ПУЛ</span><h2>Не размещены</h2></div><span><?=count($pool)?></span></header>
+    <header class="widget-panel-head widget-pool-head"><div><span class="eyebrow">ПУЛ</span><h2>Не размещены</h2></div><span><?=count($pool)?></span></header>
     <div class="widget-zone__items widget-pool" data-widget-zone="__pool">
       <?php foreach($pool as $instance)$renderCard($instance);?>
       <p class="widget-zone__empty">Перетащите сюда, чтобы убрать блок с сайта.</p>
     </div>
   </aside>
 
-  <main class="widget-layout-canvas">
-    <?php foreach($zones as $zoneId=>$zone):if(!empty($zone['reserved']))continue;?>
-    <section class="widget-zone studio-card" data-zone-card>
-      <header><div><b><?=e($zone['label'])?></b><code><?=e($zoneId)?></code></div><span><?=e((string)$zone['width'])?></span></header>
-      <div class="widget-zone__items" data-widget-zone="<?=e($zoneId)?>">
-        <?php foreach($placedByZone[$zoneId]??[] as $instance)$renderCard($instance);?>
-        <p class="widget-zone__empty">Перетащите виджет сюда</p>
-      </div>
+  <main class="widget-page-blueprint" aria-label="Визуальная схема сайта">
+    <section class="widget-blueprint-region widget-blueprint-header" data-blueprint-region="header">
+      <div class="widget-blueprint-region__title"><span>ШАПКА САЙТА</span><small>Всегда находится сверху</small></div>
+      <?php $renderZone('header.top','widget-blueprint-zone--strip');?>
+      <?php $renderZone('header.main','widget-blueprint-zone--header-main');?>
+      <?php $renderZone('header.bottom','widget-blueprint-zone--strip');?>
     </section>
-    <?php endforeach;?>
+
+    <?php $renderZone('page.before','widget-blueprint-zone--page-wide');?>
+
+    <section class="widget-blueprint-body" data-blueprint-region="body">
+      <aside class="widget-blueprint-column widget-blueprint-column--left <?=!empty($placedByZone['layout.left'])?'has-widgets':''?>" data-blueprint-region="left">
+        <div class="widget-blueprint-column__label"><b>ЛЕВАЯ КОЛОНКА</b><small>Фиксированная область слева</small></div>
+        <?php $renderZone('layout.left','widget-blueprint-zone--column');?>
+      </aside>
+
+      <section class="widget-blueprint-center" data-blueprint-region="center">
+        <div class="widget-blueprint-column__label"><b>ЦЕНТРАЛЬНАЯ ОБЛАСТЬ</b><small>Здесь отображаются страницы и публикации</small></div>
+        <?php $renderZone('content.before','widget-blueprint-zone--content');?>
+        <div class="widget-content-placeholder" aria-label="Содержимое страницы">
+          <span>СОДЕРЖИМОЕ СТРАНИЦЫ</span>
+          <strong>Страница, статья, блог или портфолио</strong>
+          <small>Эта область заполняется автоматически и не является виджетом.</small>
+        </div>
+        <?php $renderZone('content.after','widget-blueprint-zone--content');?>
+      </section>
+
+      <aside class="widget-blueprint-column widget-blueprint-column--right <?=!empty($placedByZone['layout.right'])?'has-widgets':''?>" data-blueprint-region="right">
+        <div class="widget-blueprint-column__label"><b>ПРАВАЯ КОЛОНКА</b><small>Фиксированная область справа</small></div>
+        <?php $renderZone('layout.right','widget-blueprint-zone--column');?>
+      </aside>
+    </section>
+
+    <?php $renderZone('page.after','widget-blueprint-zone--page-wide');?>
+
+    <section class="widget-blueprint-region widget-blueprint-footer" data-blueprint-region="footer">
+      <div class="widget-blueprint-region__title"><span>ПОДВАЛ САЙТА</span><small>Всегда находится снизу</small></div>
+      <?php $renderZone('footer.top','widget-blueprint-zone--strip');?>
+      <?php $renderZone('footer.columns','widget-blueprint-zone--footer-columns');?>
+      <?php $renderZone('footer.bottom','widget-blueprint-zone--strip');?>
+    </section>
   </main>
 
   <aside class="studio-card widget-revisions">
     <header class="widget-panel-head"><div><span class="eyebrow">ИСТОРИЯ</span><h2>Ревизии</h2></div><span><?=count($revisions)?></span></header><p>Перед каждой публикацией расположения создаётся снимок.</p>
     <?php if(!$revisions):?><p class="empty">Ревизий пока нет.</p><?php else:?><div class="activity-list"><?php foreach($revisions as $revision):?><div><span><b><?=e($revision['created_at'])?></b><small><?=e((string)($revision['author_name']??'Система'))?></small></span><form method="post" action="<?=e(app_url('/studio/widgets/revisions/'.(int)$revision['id'].'/restore'))?>"><?=csrf_field()?><button class="button small">Восстановить</button></form></div><?php endforeach;?></div><?php endif;?>
-    <div class="widget-help"><b>Как это работает</b><p>Выключенный виджет сохраняет настройки и место. Виджет в разделе «Не размещены» не выводится на сайте.</p></div>
+    <div class="widget-help"><b>Как это работает</b><p>Зона меняет положение вместе с макетом. Боковые колонки выводятся полностью, когда в них есть хотя бы один включённый виджет.</p></div>
   </aside>
 </div>

@@ -2,7 +2,7 @@ name: KOVCHEG Blog checks
 
 on:
   push:
-    branches: [main, release/3.5.1-modern-portal-widgets]
+    branches: [main, release/3.5.2-visual-zone-builder]
   pull_request:
     branches: [main]
 
@@ -60,6 +60,7 @@ jobs:
           php scripts/audit-account-actions.php
           php scripts/audit-unified-portal.php
           php scripts/audit-modern-portal-widgets.php
+          php scripts/audit-visual-zone-builder.php
       - name: Validate schema and migrations on MariaDB and MySQL
         shell: bash
         run: |
@@ -76,13 +77,15 @@ jobs:
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_layout_widgets.sql
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_portal_theme.sql
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_portal_widgets.sql
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < migrations/20260722_blog_visual_zone_builder.sql
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('content_entries','content_comments','content_patterns','content_autosaves','content_redirects','content_subscriptions','content_publication_log');" | grep -qx '7'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('site_layouts','site_widget_instances','site_widget_placements','site_layout_revisions');" | grep -qx '4'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_instances WHERE system_key IN ('default-logo','default-menu','default-account','default-subscription','portal-left-categories','portal-left-menu','portal-right-search','portal-right-latest');" | grep -qx '8'
             placements=$(MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_placements;")
             test "$placements" -ge 8
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_placements WHERE zone IN ('layout.left','layout.right');" | grep -qx '4'
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM themes WHERE slug='kovcheg-portal' AND version='1.1.0';" | grep -qx '1'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM themes WHERE slug='kovcheg-portal' AND version='1.2.0';" | grep -qx '1'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM settings WHERE \`key\`='portal_visual_zone_builder' AND \`value\`='1';" | grep -qx '1'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM modules WHERE slug='portal-media-widgets' AND version='1.0.0' AND enabled=1;" | grep -qx '1'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='media_library' AND column_name IN ('folder_id','caption','usage_count');" | grep -qx '3'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${database}' AND table_name='modules' AND column_name IN ('manifest_json','package_format','health_status');" | grep -qx '3'
@@ -116,9 +119,13 @@ jobs:
           check_query() { local encoded; encoded=$(php -r 'echo rawurlencode($argv[1]);' "$1"); check_response "query:$1" "$2" "http://127.0.0.1:8099/index.php?__kovcheg_route=${encoded}"; }
           check_route / text/html
           grep -q 'data-layout-zone="header.main"' /tmp/body
+          grep -q 'portal-sidebar--left portal-sidebar--populated' /tmp/body
+          grep -q 'portal-sidebar--right portal-sidebar--populated' /tmp/body
           grep -q 'portal-footer' /tmp/body
+          grep -q 'fixed-shell.css' /tmp/body
           grep -q 'Ланцет Семён Борисович' /tmp/body
-          for path in /blog /portfolio; do check_route "$path" text/html; check_header "$path" text/html; check_query "$path" text/html; done
+          ! grep -q 'portal-masthead' /tmp/body
+          for path in /blog /portfolio; do check_route "$path" text/html; ! grep -q 'portal-archive-head' /tmp/body; check_header "$path" text/html; check_query "$path" text/html; done
           for spec in '/sitemap.xml application/xml' '/feed.xml application/rss+xml' '/robots.txt text/plain'; do set -- $spec; check_route "$1" "$2"; check_header "$1" "$2"; check_query "$1" "$2"; done
           kill "$server_pid"; wait "$server_pid" 2>/dev/null || true; trap - EXIT; rm -f config/config.php
       - name: Reject committed secrets and runtime data

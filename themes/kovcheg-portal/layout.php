@@ -21,6 +21,7 @@ foreach (['header.top','header.main','header.bottom','page.before','layout.left'
 $hasLeft = $zones['layout.left'] !== '';
 $hasRight = $zones['layout.right'] !== '';
 $gridClass = $hasLeft && $hasRight ? 'portal-grid--three' : ($hasLeft ? 'portal-grid--left' : ($hasRight ? 'portal-grid--right' : 'portal-grid--single'));
+$bodyColumns = $hasLeft && $hasRight ? 'portal-columns-both' : ($hasLeft ? 'portal-columns-left' : ($hasRight ? 'portal-columns-right' : 'portal-columns-none'));
 $copyright='© '.date('Y').' Ланцет Семён Борисович';
 $flash = [];
 if (!empty($_SESSION['flash_error'])) {$flash[]=['type'=>'error','text'=>(string)$_SESSION['flash_error']];unset($_SESSION['flash_error']);}
@@ -45,10 +46,11 @@ if (!empty($_SESSION['flash_success'])) {$flash[]=['type'=>'success','text'=>(st
 <link rel="icon" href="<?=e($favicon)?>">
 <link rel="stylesheet" href="<?=e($themeAsset('theme.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <link rel="stylesheet" href="<?=e($themeAsset('content.css').'?v='.rawurlencode(ASSET_REVISION))?>">
+<link rel="stylesheet" href="<?=e($themeAsset('fixed-shell.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-widgets.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <?=\Kovcheg\Hooks::fire('blog.layout.head', '')?>
 </head>
-<body class="blog-theme blog-theme-portal">
+<body class="blog-theme blog-theme-portal <?=e($bodyColumns)?>">
 <a class="skip-link" href="#main-content">Перейти к содержанию</a>
 <header class="portal-header">
  <div class="portal-header__surface">
@@ -63,9 +65,9 @@ if (!empty($_SESSION['flash_success'])) {$flash[]=['type'=>'success','text'=>(st
 <div class="portal-viewport">
  <?php if($zones['page.before']!==''):?><div class="portal-page-zone portal-page-zone--before"><?=$zones['page.before']?></div><?php endif;?>
  <div class="portal-grid <?=$gridClass?>">
-  <?php if($hasLeft):?><aside class="portal-sidebar portal-sidebar--left" aria-label="Левая колонка"><div class="portal-sidebar__scroll"><?=$zones['layout.left']?></div></aside><?php endif;?>
+  <?php if($hasLeft):?><aside class="portal-sidebar portal-sidebar--left portal-sidebar--populated" aria-label="Левая колонка"><div class="portal-sidebar__scroll"><?=$zones['layout.left']?></div></aside><?php endif;?>
   <main id="main-content" class="portal-content"><?=$zones['content.before']?><?=$content?><?=$zones['content.after']?></main>
-  <?php if($hasRight):?><aside class="portal-sidebar portal-sidebar--right" aria-label="Правая колонка"><div class="portal-sidebar__scroll"><?=$zones['layout.right']?></div></aside><?php endif;?>
+  <?php if($hasRight):?><aside class="portal-sidebar portal-sidebar--right portal-sidebar--populated" aria-label="Правая колонка"><div class="portal-sidebar__scroll"><?=$zones['layout.right']?></div></aside><?php endif;?>
  </div>
  <?php if($zones['page.after']!==''):?><div class="portal-page-zone portal-page-zone--after"><?=$zones['page.after']?></div><?php endif;?>
 </div>
