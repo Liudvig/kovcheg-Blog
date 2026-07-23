@@ -11,8 +11,9 @@ body.blog-theme-portal{height:100vh;min-height:0;padding:0;display:grid;grid-tem
 .blog-theme-portal .portal-header__top,.blog-theme-portal .portal-header__bottom{max-height:30px}
 .blog-theme-portal .portal-header__top:empty,.blog-theme-portal .portal-header__bottom:empty{display:none}
 
-.blog-theme-portal .portal-viewport{min-height:0;height:100%;padding:16px 0;overflow:hidden}
-.blog-theme-portal .portal-grid{height:100%;min-height:0;align-items:stretch}
+.blog-theme-portal .portal-viewport{min-height:0;height:100%;padding:16px 0;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.blog-theme-portal .portal-page-zone{flex:0 0 auto;margin-bottom:0}
+.blog-theme-portal .portal-grid{flex:1 1 auto;height:auto;min-height:0;align-items:stretch}
 .blog-theme-portal .portal-content{height:100%;min-height:0;padding:0 4px 24px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
 .blog-theme-portal .portal-content::-webkit-scrollbar{display:none}
 
@@ -39,7 +40,8 @@ body.blog-theme-portal{height:100vh;min-height:0;padding:0;display:grid;grid-tem
  html:has(body.blog-theme-portal){height:auto;overflow:auto}
  body.blog-theme-portal{height:auto;min-height:100vh;display:block;overflow:auto}
  .blog-theme-portal .portal-header{position:sticky;top:0}
- .blog-theme-portal .portal-viewport{height:auto;min-height:0;overflow:visible}
+ .blog-theme-portal .portal-viewport{height:auto;min-height:0;display:block;overflow:visible}
+ .blog-theme-portal .portal-page-zone{margin-bottom:12px}
  .blog-theme-portal .portal-grid{height:auto;min-height:0}
  .blog-theme-portal .portal-content{height:auto;overflow:visible}
  .blog-theme-portal .portal-sidebar{height:auto;min-height:0;padding:8px;position:static;overflow:visible}
