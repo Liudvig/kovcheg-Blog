@@ -19,6 +19,7 @@ body.blog-theme-portal-matrix{height:100vh;min-height:0;display:grid;grid-templa
 .blog-theme-portal-matrix .portal-matrix--single{grid-template-columns:minmax(0,1fr)}
 .blog-theme-portal-matrix .portal-matrix-sidebar,.blog-theme-portal-matrix .portal-matrix-content{min-width:0;min-height:0;height:100%;overflow:hidden}
 .blog-theme-portal-matrix .portal-matrix-sidebar{padding:10px;border:1px solid #cbd8e5;border-radius:18px;background:linear-gradient(180deg,rgba(247,251,255,.98),rgba(238,245,252,.95));box-shadow:0 14px 34px rgba(15,23,42,.07)}
+.blog-theme-portal-matrix .portal-matrix-sidebar--left{border-color:#cbd8e5;background:linear-gradient(180deg,rgba(247,251,255,.98),rgba(238,245,252,.95))}
 .blog-theme-portal-matrix .portal-matrix-sidebar--right{border-color:#d8d2e7;background:linear-gradient(180deg,rgba(251,249,255,.98),rgba(244,241,250,.95))}
 .blog-theme-portal-matrix .portal-matrix-sidebar-grid{height:100%;display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:10px;overflow:auto;scrollbar-width:none}.blog-theme-portal-matrix .portal-matrix-sidebar-grid::-webkit-scrollbar{display:none}
 .blog-theme-portal-matrix .portal-matrix-content{padding:0 3px;overflow:auto;overscroll-behavior:contain;scrollbar-width:none}.blog-theme-portal-matrix .portal-matrix-content::-webkit-scrollbar{display:none}
