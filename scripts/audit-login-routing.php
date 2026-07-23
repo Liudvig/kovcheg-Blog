@@ -21,10 +21,12 @@ $legacyPosition=strpos($index,"require __DIR__.'/routes/web.php';");
 if($authPosition===false||$legacyPosition===false||$authPosition>$legacyPosition)$errors[]='Маршруты Blog-авторизации должны подключаться раньше legacy routes/web.php.';
 
 $expect($route,"return Auth::isAdmin() ? '/studio' : '/account';",'После входа не настроено разделение Studio/личный кабинет.');
-$expect($route,"$router->get('/login'",'Отсутствует Blog-first GET /login.');
-$expect($route,"$router->post('/login'",'Отсутствует Blog-first POST /login.');
+$expect($route,"\$router->get('/login'",'Отсутствует Blog-first GET /login.');
+$expect($route,"\$router->post('/login'",'Отсутствует Blog-first POST /login.');
+$expect($route,"\$router->get('/feed'",'Старая ссылка /feed не перехватывается Blog-маршрутизацией.');
 $expect($route,'Auth::attempt($login, $password)','Новая авторизация не использует защищённый Auth::attempt.');
 $expect($route,'Csrf::validate()','POST /login не защищён CSRF.');
+$expect($route,'redirect(blog_auth_destination())','Маршруты входа и старой ленты не используют единый Blog-переход.');
 if(str_contains($route,"redirect('/feed')"))$errors[]='Blog-first авторизация снова перенаправляет в старую социальную ленту.';
 
 $expect($login,'blog-login-page','Страница входа не использует новую оболочку.');
