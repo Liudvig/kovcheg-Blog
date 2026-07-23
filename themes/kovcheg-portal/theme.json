@@ -1,13 +1,24 @@
 {
   "slug": "kovcheg-portal",
   "name": "KOVCHEG Portal",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "public-theme",
-  "description": "Современная трёхколоночная тема портала с неподвижной шапкой, полностью прорисованными боковыми колонками, центральной прокруткой и визуальным конструктором зон.",
+  "description": "Современная тема портала с точной матрицей зон: пять секций шапки, две баннерные полосы, три колонки, двенадцать центральных блоков и подвал 4×2.",
   "author": "Ланцет Семён Борисович",
   "copyright": "Ланцет Семён Борисович",
   "license": "proprietary / all rights reserved",
-  "min_core": "3.5.2",
-  "supports": ["blog","pages","portfolio","layout-zones","visual-zone-builder","widget-engine","one-column","two-columns","three-columns","menus","comments","reactions","author-profile","seo","photo-carousel","video-carousel","content-slider","fixed-shell","fixed-sidebars"],
-  "zones": ["header.top","header.main","header.bottom","page.before","layout.left","content.before","content.main","content.after","layout.right","page.after","footer.top","footer.columns","footer.bottom"]
+  "min_core": "3.5.4",
+  "supports": ["blog","pages","portfolio","layout-zones","layout-matrix","visual-zone-builder","widget-engine","menus","comments","reactions","author-profile","seo","photo-carousel","video-carousel","content-slider","fixed-shell","fixed-sidebars"],
+  "zones": [
+    "matrix.preheader",
+    "matrix.header.1","matrix.header.2","matrix.header.3","matrix.header.4","matrix.header.5",
+    "matrix.postheader","matrix.banner.top",
+    "matrix.left.1","matrix.left.2","matrix.left.3","matrix.left.4",
+    "matrix.center.1","matrix.center.2","matrix.center.3","matrix.center.4","matrix.center.5","matrix.center.6","matrix.center.7","matrix.center.8","matrix.center.9","matrix.center.10","matrix.center.11","matrix.center.12",
+    "matrix.content.main",
+    "matrix.right.1","matrix.right.2","matrix.right.3","matrix.right.4",
+    "matrix.banner.bottom",
+    "matrix.footer.1","matrix.footer.2","matrix.footer.3","matrix.footer.4","matrix.footer.5","matrix.footer.6","matrix.footer.7","matrix.footer.8",
+    "matrix.copyright"
+  ]
 }
