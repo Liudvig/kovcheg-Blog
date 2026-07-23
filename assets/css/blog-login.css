@@ -1,0 +1,54 @@
+/* KOVCHEG Blog 3.5.3 login
+ * Copyright © Ланцет Семён Борисович. All rights reserved.
+ */
+
+body.guest-shell:has(.blog-login-page){margin:0;min-width:320px;background:#eef2f7;color:#0f172a;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body.guest-shell:has(.blog-login-page) #kovcheg-page-content{min-height:100vh}
+body.guest-shell:has(.blog-login-page)>.footer{display:none}
+.blog-login-page{min-height:100vh;display:grid;place-items:center;padding:28px;background:radial-gradient(circle at 12% 8%,rgba(37,99,235,.14),transparent 34%),radial-gradient(circle at 92% 90%,rgba(124,58,237,.12),transparent 30%),#eef2f7}
+.blog-login-shell{width:min(100%,1040px);overflow:hidden;border:1px solid #dce3ec;border-radius:26px;background:#fff;box-shadow:0 28px 80px rgba(15,23,42,.16)}
+.blog-login-topbar{height:66px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 24px;border-bottom:1px solid #e4e9f0;background:rgba(255,255,255,.96)}
+.blog-login-brand{min-width:0;display:flex;align-items:center;gap:11px;color:#0f172a;text-decoration:none}
+.blog-login-brand img{width:40px;height:40px;object-fit:contain;border-radius:11px;background:#e8eef7}
+.blog-login-brand span{display:grid;gap:1px;min-width:0}
+.blog-login-brand b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px;line-height:1.1}
+.blog-login-brand small{color:#64748b;font-size:11px}
+.blog-login-site-link{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:8px 12px;border:1px solid #d9e1eb;border-radius:10px;background:#fff;color:#172033;font-size:13px;font-weight:800;text-decoration:none}
+.blog-login-site-link:hover{border-color:#b9c8dc;background:#f8fafc;color:#2563eb}
+.blog-login-grid{display:grid;grid-template-columns:minmax(300px,.86fr) minmax(390px,1.14fr);min-height:540px}
+.blog-login-visual{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:46px;background:linear-gradient(145deg,#101b2b 0%,#17293d 54%,#223d57 100%);color:#fff}
+.blog-login-visual:before,.blog-login-visual:after{content:"";position:absolute;border-radius:999px;border:1px solid rgba(255,255,255,.1);pointer-events:none}
+.blog-login-visual:before{width:330px;height:330px;left:-210px;top:-160px}
+.blog-login-visual:after{width:420px;height:420px;right:-280px;bottom:-260px}
+.blog-login-visual-content,.blog-login-visual-footer{position:relative;z-index:1}
+.blog-login-eyebrow{display:inline-flex;padding:7px 10px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.06);font-size:11px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
+.blog-login-visual h1{max-width:430px;margin:24px 0 14px;font-size:clamp(34px,4.3vw,54px);line-height:1.02;letter-spacing:-.05em}
+.blog-login-visual p{max-width:430px;margin:0;color:#c4d1de;font-size:15px;line-height:1.65}
+.blog-login-capabilities{display:grid;gap:9px;margin-top:28px}
+.blog-login-capability{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045);color:#e9f0f7;font-size:13px;font-weight:720}
+.blog-login-capability i{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:rgba(90,156,220,.2);color:#d9ecff;font-style:normal}
+.blog-login-visual-footer{display:grid;gap:3px;color:#98a9ba;font-size:11px}
+.blog-login-visual-footer b{color:#dbe5ee;font-size:12px}
+.blog-login-form-panel{display:flex;align-items:center;justify-content:center;padding:46px;background:#fff}
+.blog-login-form-wrap{width:min(100%,430px)}
+.blog-login-form-heading{margin-bottom:27px}
+.blog-login-form-heading span{display:block;margin-bottom:8px;color:#2563eb;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.blog-login-form-heading h2{margin:0 0 9px;color:#0f172a;font-size:34px;line-height:1.08;letter-spacing:-.04em}
+.blog-login-form-heading p{margin:0;color:#667085;font-size:14px;line-height:1.55}
+.blog-login-alert{margin:0 0 17px;padding:12px 14px;border:1px solid;border-radius:11px;font-size:13px;line-height:1.45}
+.blog-login-alert--error{border-color:#fecaca;background:#fff1f2;color:#9f1239}
+.blog-login-alert--success{border-color:#bbf7d0;background:#f0fdf4;color:#166534}
+.blog-login-form{display:grid;gap:16px}
+.blog-login-field{display:grid;gap:7px}
+.blog-login-field>span{color:#1e293b;font-size:13px;font-weight:800}
+.blog-login-field input{width:100%;height:48px;padding:0 14px;border:1px solid #cfd8e4;border-radius:11px;outline:none;background:#f8fafc;color:#0f172a;font-size:15px;transition:border-color .15s,box-shadow .15s,background .15s}
+.blog-login-field input::placeholder{color:#94a3b8}
+.blog-login-field input:hover{border-color:#aebdd0;background:#fff}
+.blog-login-field input:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+.blog-login-submit{height:49px;margin-top:2px;border:0;border-radius:11px;background:linear-gradient(135deg,#2563eb,#4f46e5);color:#fff;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 12px 26px rgba(37,99,235,.24)}
+.blog-login-submit:hover{filter:brightness(1.04)}
+.blog-login-register{margin:20px 0 0;padding-top:18px;border-top:1px solid #e6ebf1;color:#667085;font-size:13px;text-align:center}
+.blog-login-register a{color:#1d4ed8;font-weight:850;text-decoration:none}
+.blog-login-form-copyright{margin-top:24px;color:#98a2b3;font-size:10px;line-height:1.5;text-align:center}
+@media(max-width:800px){.blog-login-page{padding:14px}.blog-login-shell{border-radius:20px}.blog-login-grid{grid-template-columns:1fr}.blog-login-visual{min-height:auto;padding:30px}.blog-login-visual h1{font-size:38px}.blog-login-capabilities{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.blog-login-capability{display:grid;justify-items:center;padding:10px 6px;text-align:center;font-size:11px}.blog-login-visual-footer{margin-top:26px}.blog-login-form-panel{padding:34px 28px}}
+@media(max-width:520px){.blog-login-page{padding:0;display:block}.blog-login-shell{min-height:100vh;border:0;border-radius:0}.blog-login-topbar{height:60px;padding:0 17px}.blog-login-brand small{display:none}.blog-login-site-link{padding:7px 9px}.blog-login-site-link span{display:none}.blog-login-visual{display:none}.blog-login-form-panel{min-height:calc(100vh - 60px);padding:30px 20px}.blog-login-form-heading h2{font-size:31px}}

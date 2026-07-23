@@ -18,8 +18,8 @@ $archive=$read('themes/kovcheg-portal/archive.php');
 $theme=json_decode($read('themes/kovcheg-portal/theme.json'),true);
 $migration=$read('migrations/20260722_blog_visual_zone_builder.sql');
 
-$expect($bootstrap,"const APP_VERSION = '3.5.2';",'Версия приложения должна быть 3.5.2.');
-$expect($bootstrap,"const ASSET_REVISION = '3.5.2-visual-zone-builder';",'ASSET_REVISION должен соответствовать 3.5.2.');
+$expect($bootstrap,"const APP_VERSION = '3.5.3';",'Версия приложения должна быть 3.5.3.');
+$expect($bootstrap,"const ASSET_REVISION = '3.5.3-portal-login-routing';",'ASSET_REVISION должен соответствовать 3.5.3.');
 $expect($studioLayout,'blog-zone-builder.css','Studio не подключает стили визуального конструктора зон.');
 $expect($widgets,'widget-blueprint-header','В макете отсутствует визуальная шапка.');
 $expect($widgets,'widget-blueprint-body','В макете отсутствует трёхколоночная область.');

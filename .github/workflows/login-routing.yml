@@ -1,0 +1,39 @@
+name: KOVCHEG Blog login routing
+
+on:
+  push:
+    branches: [release/3.5.3-login-routing]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-login:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Lint authentication files
+        run: |
+          php -l app/bootstrap.php
+          php -l index.php
+          php -l routes/blog-auth.php
+          php -l views/login.php
+          php -l scripts/audit-login-routing.php
+          php -l scripts/audit-account-actions.php
+          php -l scripts/audit-unified-portal.php
+          php -l scripts/audit-modern-portal-widgets.php
+          php -l scripts/audit-visual-zone-builder.php
+      - name: Run login routing audit
+        run: php scripts/audit-login-routing.php
+      - name: Reject social feed as login destination
+        shell: bash
+        run: |
+          ! grep -F "redirect('/feed')" routes/blog-auth.php
+          grep -F "return Auth::isAdmin() ? '/studio' : '/account';" routes/blog-auth.php
