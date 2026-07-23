@@ -8,7 +8,7 @@ use Kovcheg\View;
 
 /**
  * Return the proper landing page for the KOVCHEG Blog product.
- * Social feed remains an optional legacy feature and is never the default.
+ * The legacy social feed is not part of the Blog navigation flow.
  */
 function blog_auth_destination(): string
 {
@@ -35,5 +35,12 @@ $router->post('/login', function (): void {
     }
 
     auth_rate_success($login);
+    redirect(blog_auth_destination());
+});
+
+// Old installations and saved browser tabs may still open /feed.
+// Keep the URL safe, but route it into the Blog product instead of the legacy UI.
+$router->get('/feed', function (): void {
+    Auth::requireLogin();
     redirect(blog_auth_destination());
 });
