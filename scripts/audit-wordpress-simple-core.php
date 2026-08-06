@@ -33,7 +33,7 @@ if(str_contains($index,'routes/blog-demo.php'))$errors[]='Демо-маршру�
 foreach(['/studio/posts','/studio/pages','/studio/entry/save'] as $route)$expect($wpRoutes,$route,'Нет маршрута '.$route);
 $expect($compat,'/studio/categories','Нет маршрута /studio/categories.');
 $expect($compat,'/studio/content/save','Старая форма сохранения не нормализуется.');
-$expect($compat,"$router->get('/portfolio'",'Старый URL /portfolio не обслуживается совместимым архивом записей.');
+$expect($compat,"\$router->get('/portfolio'",'Старый URL /portfolio не обслуживается совместимым архивом записей.');
 $expect($wpRoutes,"target_kind']??''",'Меню не различает страницу, рубрику и ссылку.');
 $expect($wpRoutes,"type='page'",'Список источников меню не ограничен страницами.');
 $expect($wpRoutes,"e.type='post'",'Архив рубрики не ограничен записями.');
