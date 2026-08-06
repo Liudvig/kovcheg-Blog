@@ -5,12 +5,15 @@ declare(strict_types=1);
 use Kovcheg\Auth;
 use Kovcheg\Csrf;
 use Kovcheg\DB;
+use Kovcheg\Blog\EssentialWidgets;
 use Kovcheg\Blog\Layout;
 use Kovcheg\Blog\LayoutRepair;
 use Kovcheg\Blog\Studio;
 
 require_once BASE_PATH.'/app/BlogLayout.php';
 require_once BASE_PATH.'/app/BlogLayoutRepair.php';
+require_once BASE_PATH.'/app/BlogEssentialWidgets.php';
+EssentialWidgets::boot();
 
 $router->get('/studio/widgets', function () {
     Studio::require('site');
@@ -18,9 +21,6 @@ $router->get('/studio/widgets', function () {
         LayoutRepair::ensure();
         $layoutId = max(0, (int)($_GET['layout'] ?? 0));
         $state = Layout::studioState($layoutId);
-        // Do not expose the current scheme as $layout: Studio::render uses that
-        // name internally for the shell template path. The old collision caused
-        // the entire Studio page to appear inside the scheme select.
         $state['currentLayout'] = $state['layout'];
         unset($state['layout']);
         $state['menus'] = DB::all('SELECT id,name,slug FROM navigation_menus WHERE is_active=1 ORDER BY name,id');
