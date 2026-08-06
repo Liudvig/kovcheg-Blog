@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Kovcheg\Blog\Layout;
+use Kovcheg\Blog\ThemeSupport;
 
 $pageTitle = trim((string)($title ?? ''));
 $siteSeoTitle = trim((string)setting('seo_site_title', '')) ?: $siteName;
@@ -10,60 +11,81 @@ $metaDescription = trim((string)($description ?? setting('seo_default_descriptio
 $canonical = current_absolute_url();
 $indexing = setting('seo_robots_index', setting('search_indexing', '0')) === '1';
 $logo = app_url('/brand/logo?v='.rawurlencode(APP_VERSION));
-$favicon = app_url('/brand/favicon?v='.rawurlencode(APP_VERSION));
+$favicon = setting('favicon_path','') !== ''
+    ? app_url('/brand/favicon?v='.rawurlencode(APP_VERSION))
+    : app_url('/assets/icons/icon.svg?v='.rawurlencode(APP_VERSION));
 $layoutContext = is_array($layoutContext ?? null) ? $layoutContext : ['page_type'=>'default'];
 
-$zone=static function(string $matrixZone,string $legacyZone='')use($layoutContext):string{
-    $html=Layout::renderZone($matrixZone,$layoutContext);
-    if($html===''&&$legacyZone!=='')$html=Layout::renderZone($legacyZone,$layoutContext);
+$zone = static function(string $matrixZone, string $legacyZone = '') use ($layoutContext): string {
+    $html = Layout::renderZone($matrixZone, $layoutContext);
+    if ($html === '' && $legacyZone !== '') $html = Layout::renderZone($legacyZone, $layoutContext);
     return $html;
 };
 
-$preheader=$zone('matrix.preheader','header.top');
-$postheader=$zone('matrix.postheader','header.bottom');
-$bannerTop=$zone('matrix.banner.top','page.before');
-$bannerBottom=$zone('matrix.banner.bottom','page.after');
+$preheader = $zone('matrix.preheader', 'header.top');
+$postheader = $zone('matrix.postheader', 'header.bottom');
+$bannerTop = $zone('matrix.banner.top', 'page.before');
+$bannerBottom = $zone('matrix.banner.bottom', 'page.after');
 
-$headerSlots=[];
-for($i=1;$i<=5;$i++)$headerSlots[$i]=$zone('matrix.header.'.$i);
-if(implode('',$headerSlots)==='')$headerSlots[3]=Layout::renderZone('header.main',$layoutContext);
+$headerSlots = [];
+for ($i=1; $i<=5; $i++) $headerSlots[$i] = $zone('matrix.header.'.$i);
+if (implode('', $headerSlots) === '') $headerSlots[3] = Layout::renderZone('header.main', $layoutContext);
+$directHeaderMenu = ThemeSupport::menuHtml('header', 'horizontal', 'Главное меню');
+$directAccount = ThemeSupport::accountHtml();
 
-$leftSlots=[];$rightSlots=[];$centerSlots=[];$footerSlots=[];
-for($i=1;$i<=4;$i++){
-    $leftSlots[$i]=$zone('matrix.left.'.$i);
-    $rightSlots[$i]=$zone('matrix.right.'.$i);
+$leftSlots = [];
+$rightSlots = [];
+$centerSlots = [];
+$footerSlots = [];
+for ($i=1; $i<=4; $i++) {
+    $leftSlots[$i] = $zone('matrix.left.'.$i);
+    $rightSlots[$i] = $zone('matrix.right.'.$i);
 }
-if(implode('',$leftSlots)==='')$leftSlots[1]=Layout::renderZone('layout.left',$layoutContext);
-if(implode('',$rightSlots)==='')$rightSlots[1]=Layout::renderZone('layout.right',$layoutContext);
-for($i=1;$i<=12;$i++)$centerSlots[$i]=$zone('matrix.center.'.$i);
-if(implode('',$centerSlots)===''){
-    $centerSlots[1]=Layout::renderZone('content.before',$layoutContext);
-    $centerSlots[5]=Layout::renderZone('content.after',$layoutContext);
-}
-for($i=1;$i<=8;$i++)$footerSlots[$i]=$zone('matrix.footer.'.$i);
-if(implode('',$footerSlots)===''){
-    $footerSlots[1]=Layout::renderZone('footer.top',$layoutContext);
-    $footerSlots[2]=Layout::renderZone('footer.columns',$layoutContext);
-    $footerSlots[8]=Layout::renderZone('footer.bottom',$layoutContext);
+if (implode('', $leftSlots) === '') $leftSlots[1] = Layout::renderZone('layout.left', $layoutContext);
+if (implode('', $rightSlots) === '') $rightSlots[1] = Layout::renderZone('layout.right', $layoutContext);
+if (implode('', $leftSlots) === '') $leftSlots[1] = ThemeSupport::menuHtml('left', 'vertical', 'Левое меню');
+if (implode('', $rightSlots) === '') $rightSlots[1] = ThemeSupport::menuHtml('right', 'vertical', 'Правое меню');
+
+for ($i=1; $i<=12; $i++) $centerSlots[$i] = $zone('matrix.center.'.$i);
+if (implode('', $centerSlots) === '') {
+    $centerSlots[1] = Layout::renderZone('content.before', $layoutContext);
+    $centerSlots[5] = Layout::renderZone('content.after', $layoutContext);
 }
 
-$hasLeft=implode('',$leftSlots)!=='';
-$hasRight=implode('',$rightSlots)!=='';
-$columnsClass=$hasLeft&&$hasRight?'portal-matrix--three':($hasLeft?'portal-matrix--left':($hasRight?'portal-matrix--right':'portal-matrix--single'));
-$pageType=(string)($layoutContext['page_type']??'default');
-$documentClass=in_array($pageType,['entry','page'],true)?' blog-theme-document':'';
-$pageClass=$pageType==='page'?' blog-theme-page':'';
-$previewClass=!empty($studioPreview)?' blog-theme-preview':'';
-$copyright='© '.date('Y').' Ланцет Семён Борисович';
-$flash=[];
-if(!empty($_SESSION['flash_error'])){$flash[]=['type'=>'error','text'=>(string)$_SESSION['flash_error']];unset($_SESSION['flash_error']);}
-if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(string)$_SESSION['flash_success']];unset($_SESSION['flash_success']);}
+for ($i=1; $i<=8; $i++) $footerSlots[$i] = $zone('matrix.footer.'.$i);
+if (implode('', $footerSlots) === '') {
+    $footerSlots[1] = Layout::renderZone('footer.top', $layoutContext);
+    $footerSlots[2] = Layout::renderZone('footer.columns', $layoutContext);
+    $footerSlots[8] = Layout::renderZone('footer.bottom', $layoutContext);
+}
+if (implode('', $footerSlots) === '') $footerSlots[1] = ThemeSupport::menuHtml('footer', 'horizontal', 'Меню в подвале');
+
+$hasLeft = implode('', $leftSlots) !== '';
+$hasRight = implode('', $rightSlots) !== '';
+$columnsClass = $hasLeft && $hasRight
+    ? 'portal-matrix--three'
+    : ($hasLeft ? 'portal-matrix--left' : ($hasRight ? 'portal-matrix--right' : 'portal-matrix--single'));
+$pageType = (string)($layoutContext['page_type'] ?? 'default');
+$documentClass = in_array($pageType, ['entry','post','page'], true) ? ' blog-theme-document' : '';
+$pageClass = $pageType === 'page' ? ' blog-theme-page' : '';
+$postClass = $pageType === 'post' ? ' blog-theme-post' : '';
+$previewClass = !empty($studioPreview) ? ' blog-theme-preview' : '';
+$copyright = '© '.date('Y').' Ланцет Семён Борисович';
+$flash = [];
+if (!empty($_SESSION['flash_error'])) {
+    $flash[] = ['type'=>'error','text'=>(string)$_SESSION['flash_error']];
+    unset($_SESSION['flash_error']);
+}
+if (!empty($_SESSION['flash_success'])) {
+    $flash[] = ['type'=>'success','text'=>(string)$_SESSION['flash_success']];
+    unset($_SESSION['flash_success']);
+}
 ?><!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="<?=e((string)setting('brand_accent','#2563eb'))?>">
 <meta name="description" content="<?=e($metaDescription)?>">
 <meta name="robots" content="<?=$indexing?'index,follow,max-image-preview:large':'noindex,nofollow,noarchive'?>">
 <link rel="canonical" href="<?=e($canonical)?>">
@@ -85,16 +107,30 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
 <link rel="stylesheet" href="<?=e($themeAsset('public-page-scroll.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <?=\Kovcheg\Hooks::fire('blog.layout.head','')?>
 </head>
-<body class="blog-theme blog-theme-portal blog-theme-portal-matrix <?=e($columnsClass)?><?=e($documentClass)?><?=e($pageClass)?><?=e($previewClass)?>">
+<body class="blog-theme blog-theme-portal blog-theme-portal-matrix <?=e($columnsClass)?><?=e($documentClass)?><?=e($pageClass)?><?=e($postClass)?><?=e($previewClass)?>" style="--brand-accent:<?=e((string)setting('brand_accent','#2563eb'))?>">
 <a class="skip-link" href="#main-content">Перейти к содержанию</a>
 <header class="portal-matrix-header">
  <?php if($preheader!==''):?><div class="portal-matrix-preheader"><?=$preheader?></div><?php endif;?>
  <div class="portal-matrix-header-grid">
-  <?php for($i=1;$i<=5;$i++):?><div class="portal-matrix-header-cell portal-matrix-header-cell--<?=$i?>"><?php if($headerSlots[$i]!==''):?><?=$headerSlots[$i]?><?php elseif($i===1):?><a class="portal-brand-fallback" href="<?=e(app_url('/'))?>"><img src="<?=e($logo)?>" alt=""><span><b><?=e($siteName)?></b><small><?=e(setting('blog_tagline','Страницы · рубрики · информация'))?></small></span></a><?php endif;?></div><?php endfor;?>
+  <?php for($i=1;$i<=5;$i++):?>
+   <div class="portal-matrix-header-cell portal-matrix-header-cell--<?=$i?>">
+    <?php if($headerSlots[$i]!==''):?>
+     <?=$headerSlots[$i]?>
+    <?php elseif($i===1):?>
+     <a class="portal-brand-fallback" href="<?=e(app_url('/'))?>"><img src="<?=e($logo)?>" alt=""><span><b><?=e($siteName)?></b><small><?=e(setting('blog_tagline','Сайт на KOVCHEG CMS'))?></small></span></a>
+    <?php elseif($i===3 && $directHeaderMenu!==''):?>
+     <?=$directHeaderMenu?>
+    <?php elseif($i===5):?>
+     <?=$directAccount?>
+    <?php endif;?>
+   </div>
+  <?php endfor;?>
  </div>
  <?php if($postheader!==''):?><div class="portal-matrix-postheader"><?=$postheader?></div><?php endif;?>
 </header>
+
 <?php if($flash):?><div class="flash-stack" aria-live="polite"><?php foreach($flash as $message):?><div class="flash flash--<?=e($message['type'])?>"><?=e($message['text'])?></div><?php endforeach;?></div><?php endif;?>
+
 <div class="portal-matrix-viewport">
  <?php if($bannerTop!==''):?><div class="portal-matrix-banner portal-matrix-banner--top"><?=$bannerTop?></div><?php endif;?>
  <div class="portal-matrix-columns <?=e($columnsClass)?>">
@@ -104,6 +140,7 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
  </div>
  <?php if($bannerBottom!==''):?><div class="portal-matrix-banner portal-matrix-banner--bottom"><?=$bannerBottom?></div><?php endif;?>
 </div>
+
 <footer class="portal-matrix-footer">
  <div class="portal-matrix-footer-grid"><?php for($i=1;$i<=8;$i++):?><div class="portal-matrix-slot portal-matrix-slot--footer"><?=$footerSlots[$i]?></div><?php endfor;?></div>
  <div class="portal-matrix-copyright"><span><?=e($copyright)?></span><span>KOVCHEG CMS <?=e(APP_VERSION)?> · Все права защищены</span><?php if(setting('seo_rss_enabled','1')==='1'):?><a href="<?=e(app_url('/feed.xml'))?>">RSS</a><?php endif;?></div>
