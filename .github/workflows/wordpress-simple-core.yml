@@ -40,12 +40,17 @@ jobs:
           php -l scripts/audit-wordpress-simple-core.php
       - name: JavaScript syntax
         run: node --check assets/js/blog-classic-editor.js
-      - name: Product audits
-        run: |
-          php scripts/audit-wordpress-simple-core.php
-          php scripts/audit-simple-blog.php
-          php scripts/audit-entry-routing.php
-          php scripts/audit-page-final-view.php
-          php scripts/audit-classic-editor.php
-          php scripts/audit-studio-compact.php
-          php scripts/audit-portal-ui.php
+      - name: WordPress simple core audit
+        run: php scripts/audit-wordpress-simple-core.php
+      - name: Simple blog UI audit
+        run: php scripts/audit-simple-blog.php
+      - name: Entry routing audit
+        run: php scripts/audit-entry-routing.php
+      - name: Final page view audit
+        run: php scripts/audit-page-final-view.php
+      - name: Classic editor audit
+        run: php scripts/audit-classic-editor.php
+      - name: Compact Studio audit
+        run: php scripts/audit-studio-compact.php
+      - name: Portal UI audit
+        run: php scripts/audit-portal-ui.php
