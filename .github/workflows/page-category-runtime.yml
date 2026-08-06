@@ -60,6 +60,8 @@ jobs:
             ],
           ];
           PHP
+      - name: Initialize schema
+        run: mariadb --host=127.0.0.1 --port=3306 --user=kovcheg --password=kovcheg kovcheg < database/schema.sql
       - name: Migrate
         run: php bin/migrate.php
       - name: Seed runtime
