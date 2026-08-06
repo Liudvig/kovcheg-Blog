@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.5.10';
-const ASSET_REVISION = '3.5.10-public-page-scroll';
+const APP_VERSION = '3.6.0';
+const ASSET_REVISION = '3.6.0-wordpress-simple-core';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
@@ -45,7 +45,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 session_name('KOVCHEGSESSID');
-$sessionLifetime=315360000; // 10 years, extended while the owner uses Studio.
+$sessionLifetime=315360000;
 @ini_set('session.use_strict_mode','1');
 @ini_set('session.use_only_cookies','1');
 @ini_set('session.cookie_httponly','1');
@@ -64,7 +64,6 @@ require_once BASE_PATH.'/app/functions.php';
 require_once BASE_PATH.'/app/modern-ui.php';
 require_once BASE_PATH.'/app/Blog.php';
 require_once BASE_PATH.'/app/BlogStudio.php';
-require_once BASE_PATH.'/app/BlogBuilder.php';
 require_once BASE_PATH.'/app/ClassicEditor.php';
 require_once BASE_PATH.'/app/BlogStudio32.php';
 require_once BASE_PATH.'/app/BlogModules.php';
