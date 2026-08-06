@@ -9,12 +9,8 @@ $read=static function(string $path)use($root,&$errors):string{
     if(!is_string($content)){$errors[]='Не удалось прочитать '.$path;return '';}
     return $content;
 };
-$expect=static function(string $content,string $needle,string $message)use(&$errors):void{
-    if(!str_contains($content,$needle))$errors[]=$message;
-};
-$reject=static function(string $content,string $needle,string $message)use(&$errors):void{
-    if(str_contains($content,$needle))$errors[]=$message;
-};
+$expect=static function(string $content,string $needle,string $message)use(&$errors):void{if(!str_contains($content,$needle))$errors[]=$message;};
+$reject=static function(string $content,string $needle,string $message)use(&$errors):void{if(str_contains($content,$needle))$errors[]=$message;};
 
 $bootstrap=$read('app/bootstrap.php');
 $blog=$read('app/Blog.php');
@@ -41,15 +37,15 @@ $expect($blog,"return app_url('/page/'",'Канонический URL стран
 $expect($blog,"['label' => 'Главная'",'Нет минимального меню по умолчанию.');
 $reject($blog,"['label' => 'Блог'",'В меню по умолчанию остался Блог.');
 $reject($blog,"['label' => 'Портфолио'",'В меню по умолчанию осталось Портфолио.');
-$expect($studio32,"$type='page';",'Сохранение не фиксирует тип page.');
+$expect($studio32,'$type=\'page\';','Сохранение не фиксирует тип page.');
 $expect($studio32,'self::syncCategories($id,(array)($input[\'category_ids\']??[]));','Рубрики не сохраняются у страниц.');
-$expect($routes,"$router->get('/studio/pages'",'Нет списка страниц.');
-$expect($routes,"$router->get('/studio/pages/new'",'Нет создания страницы.');
+$expect($routes,'$router->get(\'/studio/pages\'','Нет списка страниц.');
+$expect($routes,'$router->get(\'/studio/pages/new\'','Нет создания страницы.');
 $expect($routes,"e.type='page'",'Рубрика не выбирает страницы.');
-$expect($compat,"$router->get('/studio/posts'",'Нет совместимого перехода со старых Записей.');
-$expect($compat,"$router->get('/blog'",'Старый адрес Блога не обработан.');
-$expect($entryRoutes,"$router->get('/page/{slug}'",'Нет канонического маршрута страницы.');
-$reject($entryRoutes,"$router->get('/blog/{slug}'",'Блог остался каноническим маршрутом.');
+$expect($compat,'$router->get(\'/studio/posts\'','Нет совместимого перехода со старых Записей.');
+$expect($compat,'$router->get(\'/blog\'','Старый адрес Блога не обработан.');
+$expect($entryRoutes,'$router->get(\'/page/{slug}\'','Нет канонического маршрута страницы.');
+$reject($entryRoutes,'$router->get(\'/blog/{slug}\'','Блог остался каноническим маршрутом.');
 $expect($preview,"Blog::render('page'",'Предпросмотр не использует новый шаблон страницы.');
 
 $expect($layout,"'pages'=>['Страницы'",'В Studio отсутствует раздел Страницы.');
@@ -75,9 +71,5 @@ $expect($studioCss,'.page-list-card','Нет стилей списка стра�
 $expect($migration,"WHERE type IN ('post', 'portfolio')",'Миграция не переводит старые типы в страницы.');
 $expect($migration,"SET type = 'page'",'Миграция не устанавливает тип page.');
 
-foreach([$pageCss,$studioCss,$read('themes/kovcheg-portal/assets/site-home.css'),$read('themes/kovcheg-portal/assets/category.css')] as $css){
-    if(substr_count($css,'{')!==substr_count($css,'}'))$errors[]='Нарушен баланс CSS-скобок.';
-}
-
-if($errors){fwrite(STDERR,"Pages and Rubrics core audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}
-echo "Pages and Rubrics core audit OK\n";
+foreach([$pageCss,$studioCss,$read('themes/kovcheg-portal/assets/site-home.css'),$read('themes/kovcheg-portal/assets/category.css')] as $css){if(substr_count($css,'{')!==substr_count($css,'}'))$errors[]='Нарушен баланс CSS-скобок.';}
+if($errors){fwrite(STDERR,"Pages and Rubrics core audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}echo "Pages and Rubrics core audit OK\n";
