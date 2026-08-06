@@ -8,26 +8,28 @@ $read=static function(string $path)use($root):string{$content=@file_get_contents
 
 $bootstrap=$read('app/bootstrap.php');
 $layout=$read('views/studio/layout.php');
-$editor=$read('views/studio/editor.php');
+$editor=$read('views/studio/wp-editor.php');
 $studio32=$read('app/BlogStudio32.php');
 $classic=$read('app/ClassicEditor.php');
 $script=$read('assets/js/blog-classic-editor.js');
 $style=$read('assets/css/blog-classic-editor.css');
 
 $appVersion='';
-if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)){$appVersion=(string)$match[1];$require(version_compare($appVersion,'3.5.6','>='),'Версия приложения должна быть 3.5.6 или новее.');}else{$require(false,'APP_VERSION не найден.');}
+if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)){$appVersion=(string)$match[1];$require(version_compare($appVersion,'3.6.0','>='),'Версия приложения должна быть 3.6.0 или новее.');}else{$require(false,'APP_VERSION не найден.');}
 if(preg_match("/const ASSET_REVISION = '([^']+)';/",$bootstrap,$match)){$require($appVersion!==''&&str_starts_with((string)$match[1],$appVersion.'-'),'ASSET_REVISION должен начинаться с текущей версии.');}else{$require(false,'ASSET_REVISION не найден.');}
 
 $require(str_contains($layout,'blog-classic-editor.css'),'CSS классического редактора не подключён.');
 $require(str_contains($layout,'blog-classic-editor.js'),'JavaScript классического редактора не подключён.');
 $require(str_contains($editor,'data-classic-visual'),'В шаблоне отсутствует визуальная область.');
 $require(str_contains($editor,'data-classic-source'),'В шаблоне отсутствует режим HTML.');
-$require(!str_contains($editor,'data-editor-tab="builder"'),'В обычном блоговом режиме не должно быть вкладки конструктора.');
+$require(!str_contains($editor,'data-editor-tab="builder"'),'В редакторе не должно быть вкладки конструктора.');
+$require(!str_contains($editor,'value="portfolio"'),'В редакторе не должно быть типа портфолио.');
 $require(str_contains($editor,'data-action="media"'),'В редакторе отсутствует кнопка изображения.');
 $require(str_contains($editor,'data-action="preview"'),'В редакторе отсутствует предпросмотр.');
 $require(str_contains($studio32,'ClassicEditor::normalizePayload'),'Studio32 не обрабатывает классический payload.');
+$require(!str_contains($studio32,'Builder::normalize'),'Studio32 всё ещё сохраняет через конструктор.');
 $require(str_contains($classic,'DROP_CONTENT_TAGS'),'Не найден allowlist-санитайзер.');
-$require(str_contains($script,"data-classic-media-item"),'Не реализована вставка изображения из медиатеки.');
+$require(str_contains($script,'data-classic-media-item'),'Не реализована вставка изображения из медиатеки.');
 $require(str_contains($script,'classicAutosave'),'Не реализовано автосохранение классического редактора.');
 $require(str_contains($style,'.classic-editor-toolbar'),'Нет оформления панели редактора.');
 
