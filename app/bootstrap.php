@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.8.0';
-const ASSET_REVISION = '3.8.0-posts-menus-widgets-branding';
+const APP_VERSION = '3.8.1';
+const ASSET_REVISION = '3.8.1-compact-fixed-shell';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
