@@ -5,11 +5,23 @@ declare(strict_types=1);
 use Kovcheg\Auth;
 use Kovcheg\Csrf;
 use Kovcheg\DB;
+use Kovcheg\Blog\Blog;
 use Kovcheg\Blog\Studio;
 use Kovcheg\Blog\Studio32;
 
 require_once BASE_PATH.'/app/BlogStudio.php';
 require_once BASE_PATH.'/app/BlogStudio32.php';
+
+/* Old public bookmark remains HTTP 200, but shows ordinary Posts only. */
+$router->get('/portfolio', function () {
+    Blog::render('archive',[
+        'title'=>'Записи',
+        'archiveTitle'=>'Записи',
+        'archiveDescription'=>'Новости и статьи блога.',
+        'entries'=>Blog::entries('post',100),
+        'entryType'=>'post',
+    ]);
+});
 
 /* Old forms and bookmarks keep working, but content is normalized to post/page. */
 $router->post('/studio/content/save', function () {
