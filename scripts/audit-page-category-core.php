@@ -28,7 +28,7 @@ $page=$read('themes/kovcheg-portal/page.php');
 $archive=$read('themes/kovcheg-portal/archive.php');
 $pageCss=$read('themes/kovcheg-portal/assets/page.css');
 $studioCss=$read('assets/css/blog-studio-pages.css');
-$migration=$read('migrations/20260806_page_category_core.sql');
+$migration=$read('migrations/20260806_z_page_category_core.sql');
 
 $expect($bootstrap,"const APP_VERSION = '3.7.0';",'APP_VERSION не равен 3.7.0.');
 $expect($bootstrap,"const ASSET_REVISION = '3.7.0-page-category-core';",'Неверная ревизия assets.');
