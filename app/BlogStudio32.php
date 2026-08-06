@@ -17,15 +17,15 @@ final class Studio32
         Studio::require('content');
         $entryId=max(0,$entryId);
         $current=$entryId?Studio::entry($entryId):null;
-        if($entryId&&!$current)abort(404,'Материал не найден.');
+        if($entryId&&!$current)abort(404,'Страница не найдена.');
 
-        $type=(string)($input['type']??'')==='page'?'page':'post';
+        $type='page';
         $status=in_array((string)($input['status']??''),['draft','published','scheduled','private'],true)?(string)$input['status']:'draft';
         $visibility=in_array((string)($input['visibility']??''),['public','users','private'],true)?(string)$input['visibility']:'public';
         $title=trim((string)($input['title']??''));
         if(mb_strlen($title)<2||mb_strlen($title)>255)abort(422,'Заголовок должен содержать от 2 до 255 символов.');
         $slug=Studio::uniqueSlug(trim((string)($input['slug']??''))?:$title,$entryId);
-        $excerpt=$type==='post'?mb_substr(trim((string)($input['excerpt']??'')),0,2000):'';
+        $excerpt=mb_substr(trim((string)($input['excerpt']??'')),0,2000);
         $rawContent=(string)($input['content_json']??'[]');
         if(!ClassicEditor::isClassicPayload($rawContent)){
             $fallback=ClassicEditor::sanitize((string)($current['content_html']??''));
@@ -54,7 +54,7 @@ final class Studio32
             }else{
                 $id=DB::insert('INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_json,content_html,featured_image_path,template,visibility,comments_enabled,reactions_enabled,is_featured,sort_order,seo_title,seo_description,published_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,NULL,?,?,0,?,0,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$visibility,$flag('comments_enabled'),$flag('is_featured'),$seoTitle?:null,$seoDescription?:null,$publishedAt]);
             }
-            self::syncCategories($id,$type==='post'?(array)($input['category_ids']??[]):[]);
+            self::syncCategories($id,(array)($input['category_ids']??[]));
             self::syncTags($id,'');
             self::syncMeta($id,[
                 'layout_width'=>'normal',
@@ -64,7 +64,7 @@ final class Studio32
             DB::run("DELETE FROM content_autosaves WHERE user_id=? AND (entry_id=? OR autosave_key='new')",[$authorId,$id]);
             DB::pdo()->commit();
         }catch(Throwable $e){if(DB::pdo()->inTransaction())DB::pdo()->rollBack();throw $e;}
-        audit($current?'blog.entry.update':'blog.entry.create','content_entry',$id,['type'=>$type,'status'=>$status,'editor'=>'classic']);
+        audit($current?'cms.page.update':'cms.page.create','content_entry',$id,['type'=>'page','status'=>$status,'editor'=>'classic']);
         return $id;
     }
 
@@ -82,7 +82,7 @@ final class Studio32
     {
         Studio::require('content');
         $entryId=max(0,$entryId);
-        if($entryId&&!DB::one("SELECT id FROM content_entries WHERE id=? AND type IN ('post','page') AND deleted_at IS NULL",[$entryId]))abort(404,'Материал не найден.');
+        if($entryId&&!DB::one("SELECT id FROM content_entries WHERE id=? AND type='page' AND deleted_at IS NULL",[$entryId]))abort(404,'Страница не найдена.');
         if(!ClassicEditor::isClassicPayload($contentJson)){
             $contentJson=json_encode([[
                 'id'=>'classic-'.bin2hex(random_bytes(6)),
@@ -112,13 +112,13 @@ final class Studio32
         Studio::require('site');
         $preset=null;
         foreach(self::presets() as $candidate)if((string)$candidate['slug']===$slug){$preset=$candidate;break;}
-        if(!$preset)abort(404,'Профессиональный пресет не найден.');
+        if(!$preset)abort(404,'Пресет не найден.');
         $settings=is_array($preset['settings']??null)?$preset['settings']:[];
         $allowed=['blog_theme','site_name','blog_tagline','blog_description','blog_footer_text','seo_description','search_indexing'];
         $before=[];
         foreach($allowed as $key){if(!array_key_exists($key,$settings))continue;$before[$key]=(string)setting($key,'');Studio::setSetting($key,mb_substr((string)$settings[$key],0,1000));}
         DB::run('INSERT INTO site_preset_history (user_id,preset_slug,settings_json,created_at) VALUES (?,?,?,CURRENT_TIMESTAMP)',[$userId,$slug,json_encode($before,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)]);
-        audit('blog.preset.apply','site_preset',null,['slug'=>$slug]);
+        audit('cms.preset.apply','site_preset',null,['slug'=>$slug]);
     }
 
     public static function changeUserRole(int $userId,string $role,int $actorId):void
@@ -135,7 +135,7 @@ final class Studio32
         }
         DB::run('UPDATE users SET role=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',[$role,$userId]);
         DB::run('INSERT INTO user_role_history (user_id,previous_role,new_role,changed_by,created_at) VALUES (?,?,?,?,CURRENT_TIMESTAMP)',[$userId,(string)$user['role'],$role,$actorId]);
-        audit('blog.user.role','user',$userId,['from'=>$user['role'],'to'=>$role]);
+        audit('cms.user.role','user',$userId,['from'=>$user['role'],'to'=>$role]);
     }
 
     private static function syncCategories(int $entryId,array $ids):void
