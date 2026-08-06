@@ -1,0 +1,5 @@
+/* KOVCHEG CMS 3.8.0 — authentication brand accent */
+.blog-login-page .blog-login-submit{background:var(--brand-accent,#2563eb);box-shadow:0 12px 26px color-mix(in srgb,var(--brand-accent,#2563eb) 24%,transparent)}
+.blog-login-page .blog-login-field input:focus{border-color:var(--brand-accent,#2563eb);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-accent,#2563eb) 13%,transparent)}
+.blog-login-page .blog-login-form-heading>span,.blog-login-page .blog-login-register a{color:var(--brand-accent,#2563eb)}
+.blog-login-page .blog-login-capability i{background:color-mix(in srgb,var(--brand-accent,#2563eb) 24%,transparent)}
