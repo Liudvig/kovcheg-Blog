@@ -6,8 +6,8 @@ use Kovcheg\Auth;
 use Kovcheg\DB;
 use Kovcheg\Blog\Blog;
 
+$posts=array_values($posts??[]);
 $pages=array_values($pages??[]);
-$categories=array_values($categories??[]);
 
 $coverUrl=static function(array $entry):string{
     $path=trim((string)($entry['featured_image_path']??''));
@@ -20,39 +20,34 @@ $coverUrl=static function(array $entry):string{
 
 <section class="site-home-hero">
  <div>
-  <span>KOVCHEG CMS</span>
+  <span><?=e(setting('blog_tagline','KOVCHEG CMS'))?></span>
   <h1><?=e(setting('site_name','KOVCHEG'))?></h1>
-  <p><?=e(setting('blog_description','Информация, документы и разделы сайта.'))?></p>
+  <p><?=e(setting('blog_description','Информация и материалы сайта.'))?></p>
  </div>
- <?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/pages/new'))?>">+ Добавить страницу</a><?php endif;?>
+ <?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/posts/new'))?>">+ Добавить запись</a><?php endif;?>
 </section>
 
-<?php if($categories):?>
 <section class="site-home-section">
- <header><div><span>Разделы</span><h2>Рубрики сайта</h2></div></header>
- <div class="site-home-rubrics">
-  <?php foreach($categories as $category):?>
-  <a href="<?=e(app_url('/category/'.rawurlencode((string)$category['slug'])))?>">
-   <div><h3><?=e((string)$category['name'])?></h3><p><?=e((string)($category['description']?:'Открыть страницы этого раздела.'))?></p></div>
-   <strong><?=(int)$category['page_count']?></strong>
-  </a>
-  <?php endforeach;?>
- </div>
-</section>
-<?php endif;?>
-
-<section class="site-home-section">
- <header><div><span>Страницы</span><h2>Последние материалы</h2></div><?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/pages'))?>">Управление страницами</a><?php endif;?></header>
- <?php if($pages):?>
+ <header><div><span>Материалы</span><h2>Последние записи</h2></div><?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/posts'))?>">Управление записями</a><?php endif;?></header>
+ <?php if($posts):?>
  <div class="site-home-pages">
-  <?php foreach($pages as $entry):$cover=$coverUrl($entry);?>
+  <?php foreach($posts as $entry):$cover=$coverUrl($entry);?>
   <article class="site-home-page-card <?=$cover!==''?'has-cover':'without-cover'?>">
    <?php if($cover!==''):?><a class="site-home-page-cover" href="<?=e(Blog::entryUrl($entry))?>"><img src="<?=e($cover)?>" alt="<?=e((string)$entry['title'])?>" loading="lazy"></a><?php endif;?>
-   <div><h3><a href="<?=e(Blog::entryUrl($entry))?>"><?=e((string)$entry['title'])?></a></h3><p><?=e(Blog::excerpt($entry,220))?></p><footer><span><?=e(date('d.m.Y',strtotime((string)($entry['updated_at']?:$entry['published_at']?:$entry['created_at']))))?></span><a href="<?=e(Blog::entryUrl($entry))?>">Открыть →</a></footer></div>
+   <div><h3><a href="<?=e(Blog::entryUrl($entry))?>"><?=e((string)$entry['title'])?></a></h3><p><?=e(Blog::excerpt($entry,220))?></p><footer><span><?=e(date('d.m.Y',strtotime((string)($entry['published_at']?:$entry['created_at']))))?></span><a href="<?=e(Blog::entryUrl($entry))?>">Читать →</a></footer></div>
   </article>
   <?php endforeach;?>
  </div>
  <?php else:?>
- <div class="site-home-empty"><h2>Страниц пока нет</h2><p>Создайте первую страницу. При необходимости добавьте её в рубрику и меню.</p><?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/pages/new'))?>">Создать страницу</a><?php endif;?></div>
+ <div class="site-home-empty"><h2>Записей пока нет</h2><p>Создайте первую запись и выберите рубрику. Блок рубрик появится только там, куда вы добавите соответствующий виджет или меню.</p><?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/posts/new'))?>">Создать запись</a><?php endif;?></div>
  <?php endif;?>
 </section>
+
+<?php if($pages):?>
+<section class="site-home-section site-home-section--pages">
+ <header><div><span>Страницы</span><h2>Разделы сайта</h2></div><?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/pages'))?>">Управление страницами</a><?php endif;?></header>
+ <div class="site-home-rubrics">
+  <?php foreach(array_slice($pages,0,6) as $page):?><a href="<?=e(Blog::entryUrl($page))?>"><div><h3><?=e((string)$page['title'])?></h3><p><?=e(Blog::excerpt($page,130))?></p></div><strong>→</strong></a><?php endforeach;?>
+ </div>
+</section>
+<?php endif;?>
