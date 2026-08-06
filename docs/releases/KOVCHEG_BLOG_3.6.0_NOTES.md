@@ -1,1 +1,0 @@
-KOVCHEG Blog 3.6.0 simplifies content management to Posts, Categories and Pages.
