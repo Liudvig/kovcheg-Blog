@@ -9,7 +9,9 @@ $accent=(string)setting('brand_accent','#2563eb');
 if(!preg_match('/^#[0-9a-fA-F]{6}$/',$accent))$accent='#2563eb';
 $hasBackground=trim((string)setting('login_background_path',''))!=='';
 \Kovcheg\Hooks::on('layout.head',static function($html){
-    return (string)$html.'<link rel="stylesheet" href="'.e(app_url('/assets/css/blog-login.css?v='.rawurlencode(ASSET_REVISION))).'">';
+    return (string)$html
+        .'<link rel="stylesheet" href="'.e(app_url('/assets/css/blog-login.css?v='.rawurlencode(ASSET_REVISION))).'">'
+        .'<link rel="stylesheet" href="'.e(app_url('/assets/css/blog-registration.css?v='.rawurlencode(ASSET_REVISION))).'">';
 });
 ?>
 <main class="blog-login-page blog-register-page" style="--brand-accent:<?=e($accent)?>">
