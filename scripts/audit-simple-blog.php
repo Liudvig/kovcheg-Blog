@@ -19,6 +19,7 @@ $profileCss=$read('assets/css/blog-profile-portal.css');
 $simpleCss=$read('assets/css/blog-studio-simple.css');
 $wpCss=$read('assets/css/blog-studio-wordpress.css');
 $wpRoutes=$read('routes/blog-wordpress-mode.php');
+$compat=$read('routes/blog-wordpress-compat.php');
 $index=$read('index.php');
 
 $appVersion='';
@@ -40,7 +41,8 @@ $expect($profile,'portal-profile-shell','Профиль не переведён 
 $expect($profileCss,'.portal-profile-grid','Нет оформления нового профиля.');
 $expect($simpleCss,'.studio-body--simple .editor-layout','Нет компактного режима Studio.');
 $expect($wpCss,'.studio-body--wordpress .wp-editor-layout','Нет лёгкого WordPress-режима Studio.');
-foreach(['/studio/posts','/studio/pages','/studio/categories'] as $path)$expect($wpRoutes,$path,'Не зарегистрирован маршрут '.$path);
+foreach(['/studio/posts','/studio/pages'] as $path)$expect($wpRoutes,$path,'Не зарегистрирован маршрут '.$path);
+$expect($compat,'/studio/categories','Не зарегистрирован маршрут /studio/categories.');
 $expect($index,'routes/blog-wordpress-mode.php','WordPress-режим не подключён к маршрутам.');
 if(str_contains($index,'routes/blog-demo.php'))$errors[]='Демо-маршруты всё ещё загружаются в runtime.';
 foreach([$compact,$profileCss,$simpleCss,$wpCss] as $css){if(substr_count($css,'{')!==substr_count($css,'}'))$errors[]='В CSS нарушен баланс фигурных скобок.';}
