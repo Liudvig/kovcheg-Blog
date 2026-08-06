@@ -82,6 +82,7 @@ final class DemoSite
             'portfolio_description'=>'Сайты, модули и цифровые продукты, созданные на платформе KOVCHEG.',
             'blog_footer_text'=>'Демонстрационный сайт работает на KOVCHEG Blog.',
             'seo_description'=>'KOVCHEG CMS — модульная система управления блогом, портфолио и информационным сайтом.',
+            'seo_robots_index'=>'0',
             'search_indexing'=>'0',
             'demo_site_seeded_at'=>date('c'),
         ] as $key=>$value) Studio::setSetting($key,$value);
