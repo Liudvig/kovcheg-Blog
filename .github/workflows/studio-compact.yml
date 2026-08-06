@@ -2,7 +2,7 @@ name: KOVCHEG Studio compact UX checks
 
 on:
   push:
-    branches: [main, feature/studio-compact-fixes-3.5.7]
+    branches: [main, feature/posts-menus-widgets-3.8.0]
   pull_request:
     branches: [main]
 
@@ -23,8 +23,13 @@ jobs:
       - name: PHP syntax
         run: |
           php -l app/bootstrap.php
+          php -l routes/blog-content-model.php
+          php -l routes/blog-menus.php
           php -l routes/blog-ux-fixes.php
           php -l views/studio/layout.php
+          php -l views/studio/content-editor.php
+          php -l views/studio/content-list.php
+          php -l views/studio/menus.php
           php -l scripts/audit-classic-editor.php
           php -l scripts/audit-studio-compact.php
       - name: JavaScript syntax
@@ -33,3 +38,4 @@ jobs:
         run: |
           php scripts/audit-classic-editor.php
           php scripts/audit-studio-compact.php
+          php scripts/audit-cms-core-3.8.php
