@@ -61,6 +61,28 @@ if (!function_exists('kovcheg_record_public_entry_view')) {
     }
 }
 
+if (!function_exists('kovcheg_render_entry_record')) {
+    function kovcheg_render_entry_record(array $entry, bool $editorFinalView = false): void
+    {
+        if ($editorFinalView || (string)($entry['visibility'] ?? 'public') !== 'public') {
+            header('X-Robots-Tag: noindex, nofollow, noarchive');
+        }
+
+        if (!$editorFinalView && Blog::isPubliclyReadable($entry)) {
+            kovcheg_record_public_entry_view((int)$entry['id']);
+        }
+
+        Blog::render('entry', array_merge([
+            'title' => (string)($entry['seo_title'] ?: $entry['title']),
+            'description' => (string)($entry['seo_description'] ?: Blog::excerpt($entry, 300)),
+            'entry' => $entry,
+            'comments' => $editorFinalView ? [] : Blog::comments((int)$entry['id']),
+            'reactions' => $editorFinalView ? [] : Blog::reactions((int)$entry['id']),
+            'editorFinalView' => $editorFinalView,
+        ], kovcheg_public_entry_context($entry)));
+    }
+}
+
 if (!function_exists('kovcheg_render_public_entry')) {
     function kovcheg_render_public_entry(string $slug, string $type): void
     {
@@ -76,38 +98,30 @@ if (!function_exists('kovcheg_render_public_entry')) {
         }
 
         $entry = Blog::entry($slug, $type);
-        if (!$entry) {
-            $stored = Blog::storedEntry($slug, $type);
-            if ($stored && Studio::can('content')) {
-                redirect('/studio/content/'.(int)$stored['id'].'/preview');
-            }
-
-            $other = Blog::entry($slug);
-            if ($other) {
-                header('Location: '.Blog::entryUrl($other), true, 301);
-                exit;
-            }
-
-            $storedOther = Blog::storedEntry($slug);
-            if ($storedOther && Studio::can('content')) {
-                redirect('/studio/content/'.(int)$storedOther['id'].'/preview');
-            }
-
-            abort(404, $labels[$type] ?? 'Материал не найден.');
+        if ($entry) {
+            kovcheg_render_entry_record($entry);
+            return;
         }
 
-        if ((string)($entry['visibility'] ?? 'public') !== 'public') {
-            header('X-Robots-Tag: noindex, nofollow, noarchive');
+        $stored = Blog::storedEntry($slug, $type);
+        if ($stored && Studio::can('content')) {
+            kovcheg_render_entry_record($stored, true);
+            return;
         }
 
-        kovcheg_record_public_entry_view((int)$entry['id']);
-        Blog::render('entry', array_merge([
-            'title' => (string)($entry['seo_title'] ?: $entry['title']),
-            'description' => (string)($entry['seo_description'] ?: Blog::excerpt($entry, 300)),
-            'entry' => $entry,
-            'comments' => Blog::comments((int)$entry['id']),
-            'reactions' => Blog::reactions((int)$entry['id']),
-        ], kovcheg_public_entry_context($entry)));
+        $other = Blog::entry($slug);
+        if ($other) {
+            header('Location: '.Blog::entryUrl($other), true, 301);
+            exit;
+        }
+
+        $storedOther = Blog::storedEntry($slug);
+        if ($storedOther && Studio::can('content')) {
+            header('Location: '.Blog::entryUrl($storedOther), true, 302);
+            exit;
+        }
+
+        abort(404, $labels[$type] ?? 'Материал не найден.');
     }
 }
 

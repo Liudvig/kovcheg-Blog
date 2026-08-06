@@ -1,8 +1,14 @@
+<?php
+$selectedEntryId=max(0,(int)($_GET['entry']??0));
+$selectedPage=null;
+foreach($pages as $candidate){if((int)$candidate['id']===$selectedEntryId){$selectedPage=$candidate;break;}}
+$menuQuerySuffix=$selectedEntryId>0?'&entry='.$selectedEntryId:'';
+?>
 <div class="page-head"><div><h1>Меню сайта</h1><p>Добавляйте страницы и ссылки в шапку или подвал.</p></div></div>
 <div class="menu-layout">
  <aside class="panel">
   <h2>Меню</h2>
-  <div class="menu-list"><?php foreach($menus as $menu):?><a class="<?=(int)$menu['id']===$menuId?'active':''?>" href="<?=e(app_url('/studio/menus?menu='.(int)$menu['id']))?>"><b><?=e($menu['name'])?></b><small><?=($menu['location']??'')==='header'?'Шапка':((($menu['location']??'')==='footer')?'Подвал':'Не назначено')?></small></a><?php endforeach;?></div>
+  <div class="menu-list"><?php foreach($menus as $menu):?><a class="<?=(int)$menu['id']===$menuId?'active':''?>" href="<?=e(app_url('/studio/menus?menu='.(int)$menu['id'].$menuQuerySuffix))?>"><b><?=e($menu['name'])?></b><small><?=($menu['location']??'')==='header'?'Шапка':((($menu['location']??'')==='footer')?'Подвал':'Не назначено')?></small></a><?php endforeach;?></div>
   <hr>
   <form method="post" action="<?=e(app_url('/studio/menus/create'))?>">
    <?=csrf_field()?>
@@ -21,12 +27,13 @@
    </div>
    <hr>
    <h3>Добавить пункт</h3>
+   <?php if($selectedEntryId>0&&!$selectedPage):?><div class="empty-state">Сначала опубликуйте материал — после этого его можно добавить в меню.</div><?php endif;?>
    <form method="post" action="<?=e(app_url('/studio/menus/item'))?>">
     <?=csrf_field()?>
     <input type="hidden" name="menu_id" value="<?=$menuId?>">
     <input type="hidden" name="sort_order" value="<?=count($items)*10?>">
-    <div class="field"><label>Название</label><input name="label" required placeholder="Например: Новости"></div>
-    <div class="field"><label>Выбрать готовую страницу</label><select name="target_id"><option value="0">Нет — укажу ссылку ниже</option><?php foreach($pages as $page):?><option value="<?=(int)$page['id']?>"><?=e($page['title'])?></option><?php endforeach;?></select></div>
+    <div class="field"><label>Название</label><input name="label" required value="<?=e((string)($selectedPage['title']??''))?>" placeholder="Например: Новости"></div>
+    <div class="field"><label>Выбрать готовую страницу</label><select name="target_id"><option value="0">Нет — укажу ссылку ниже</option><?php foreach($pages as $page):?><option value="<?=(int)$page['id']?>" <?=(int)$page['id']===$selectedEntryId?'selected':''?>><?=e($page['title'])?></option><?php endforeach;?></select></div>
     <div class="field"><label>Ссылка</label><input name="url" placeholder="/blog или https://..."></div>
     <button class="button primary">Добавить</button>
    </form>

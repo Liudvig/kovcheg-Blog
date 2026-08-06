@@ -511,3 +511,102 @@ Deploy:
 
 Статус:
 IMPLEMENTED — FINAL CI RUNNING
+
+---
+
+## 2026-08-06 — Final Page View and Permalink Repair
+
+Версия:
+3.5.9
+
+Ветка:
+feature/page-final-view-3.5.9
+
+Обнаруженные ошибки:
+- полноэкранный Studio Preview не прокручивался из-за фиксированной высоты оболочки KOVCHEG Portal и `overflow:hidden` у документа;
+- встроенный предпросмотр классического редактора не обеспечивал устойчивую вертикальную прокрутку iframe;
+- опубликованная страница при открытии через старую preview-ссылку оставалась в режиме предварительного просмотра;
+- в редакторе отсутствовало понятное постоянное место с итоговым URL материала;
+- переход от страницы к добавлению в меню требовал ручного поиска и повторного ввода названия;
+- статус «Опубликовано» мог фактически оставлять материал будущим, если в поле даты сохранялось будущее значение.
+
+Что исправлено:
+- для полноэкранного Studio Preview добавлен отдельный режим `blog-theme-preview` с естественной высотой документа и вертикальной прокруткой;
+- модальный предпросмотр классического редактора получил прокручиваемый iframe и прокручиваемый внутренний документ;
+- preview-маршрут опубликованного материала переводит на итоговый канонический URL;
+- публикации, страницы и портфолио открываются по итоговым адресам `/blog/{slug}`, `/page/{slug}` и `/portfolio/{slug}`;
+- сохранённый черновик можно проверить редактору на его будущем каноническом URL, но посетитель доступа к нему не получает;
+- для редакторского просмотра закрытого или неопубликованного материала отправляется `X-Robots-Tag: noindex, nofollow, noarchive`;
+- в редактор добавлен постоянный блок «Адрес страницы» с полным URL, slug, кнопкой копирования и кнопкой открытия итоговой страницы;
+- URL автоматически обновляется при смене типа материала или slug;
+- из редактора опубликованного публичного материала можно перейти в меню с уже выбранной страницей и заполненным названием;
+- список материалов теперь отдельно показывает итоговую страницу и, когда требуется, защищённый предпросмотр;
+- статус «Опубликовано» нормализует дату на текущий момент, а будущая дата используется только со статусом «Запланировано»;
+- версия повышена до 3.5.9, ревизия assets изменена на `3.5.9-page-final-view`.
+
+Файлы:
+- app/BlogStudio32.php
+- app/bootstrap.php
+- routes/blog-entry-routing.php
+- routes/blog-ux-fixes.php
+- themes/kovcheg-portal/layout.php
+- themes/kovcheg-portal/assets/layout-matrix.css
+- views/studio/editor.php
+- views/studio/content-index.php
+- views/studio/menus.php
+- assets/js/blog-classic-editor.js
+- assets/css/blog-classic-editor.css
+- scripts/audit-page-final-view.php
+- scripts/audit-entry-routing.php
+- scripts/audit-simple-blog.php
+- .github/workflows/simple-blog.yml
+- docs/releases/KOVCHEG_BLOG_3.5.9.md
+- docs/DEVELOPMENT_LOG.md
+
+База данных:
+Миграции не требуются. Схема и существующие записи не изменяются.
+
+Проверка:
+- PHP syntax — success;
+- JavaScript syntax — success;
+- Page final view audit — success;
+- Public entry routing audit — success;
+- Simple blog UI audit — success;
+- Classic editor audit — success;
+- Studio compact UX audit — success;
+- Portal UI audit — success;
+- KOVCHEG Blog checks — success;
+- KOVCHEG Simple Blog UI checks — success;
+- KOVCHEG Classic Editor checks — success;
+- KOVCHEG Studio compact UX checks — success;
+- KOVCHEG Portal UI checks — success;
+- KOVCHEG Blog Layout Matrix — success;
+- KOVCHEG Blog login routing — success;
+- KOVCHEG Blog account actions — success.
+
+Основные commits:
+- b898e04345666fe0d390bd91688831e6a5b9607f — немедленная публикация при статусе published;
+- 8561fad3cc5e9f566e5996c432a0938551a87c59 — итоговый рендер материалов на канонических URL;
+- ef6de26c83697d26e6c073a3c7f3855d6fa8eb47 — перевод опубликованного preview на итоговую страницу;
+- 0971697b22daddfb42cbe5acae6793e183f2a486 — класс полноэкранного preview;
+- 8a7b84c8dd9317f91b15d102503528321911428d — восстановление прокрутки Portal Preview;
+- ec4626cafbd98581113bf6fa35980ebe34f50157 — постоянная ссылка и меню в редакторе;
+- 31b5c2fbf731feae7a1acb9b9855b8aaf474680f — синхронизация URL, копирование и прокрутка iframe;
+- 74b9fb50315a3561f77f1dd39b9ec0abbc235d86 — стили permalink и preview;
+- 614ec6c2ac5df9a307fe0a06ec4f7dd88500aa6a — итоговые ссылки в списке материалов;
+- cad175fce476fc67c9ae4d1826dfdb4ca910a96e — автоматический выбор страницы в меню;
+- 41176aef94caf60ef8c438a72087c94a1f36f966 — версия 3.5.9;
+- 516a10333ab174e287fa96ccc0fa33a5641256ae — regression audit;
+- 3f3d1ee7552af120217040a31195dc2ccf19ca65 — patch-safe simple blog audit;
+- 5d09b0262b0c5ab30bbe917dacb3d0354aae9b4f — CI workflow;
+- 2bfc66d9911d1fb059744b7ef894a6b73aae2a97 — release notes;
+- 4164e6158b1749ca59d0570abf369721cafcb3f8 — обновление routing audit под итоговые страницы.
+
+Pull request:
+#35 — KOVCHEG Blog 3.5.9 — Final Page View
+
+Deploy:
+Не выполнялся. Разрешён после слияния pull request в main, резервной копии production и отдельной проверки реальных страниц.
+
+Статус:
+IMPLEMENTED — CI PASSED — READY TO MERGE

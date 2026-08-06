@@ -15,25 +15,31 @@ $contentIndex=$read('views/studio/content-index.php');
 
 if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)!==1||version_compare((string)$match[1],'3.5.8','<'))$errors[]='Версия приложения должна быть 3.5.8 или новее.';
 $expect($blog,'public static function readableVisibilitySql','Нет единой проверки видимости материалов.');
-$expect($blog,'public static function storedEntry','Нет получения сохранённого материала для безопасного preview.');
+$expect($blog,'public static function storedEntry','Нет получения сохранённого материала для редакторского просмотра.');
 $expect($blog,'public static function canRead','Нет проверки фактической доступности материала.');
+$expect($blog,'public static function isPubliclyReadable','Нет отдельной проверки публичной доступности материала.');
 $expect($blog,"'users' => Auth::check()",'Материалы для пользователей не открываются авторизованным пользователям.');
 $expect($blog,"['owner', 'admin', 'editor']",'Приватные материалы не учитывают редакторские роли.');
 
 foreach(['/blog/{slug}','/page/{slug}','/portfolio/{slug}'] as $path)$expect($routes,$path,'Не зарегистрирован единый маршрут '.$path);
 $expect($routes,'Blog::storedEntry','Маршрут не проверяет существующий черновик или закрытый материал.');
-$expect($routes,"redirect('/studio/content/'",'Редактор не переводится на безопасный предпросмотр.');
+$expect($routes,'kovcheg_render_entry_record($stored, true);','Редактор не видит сохранённый материал на его итоговом каноническом адресе.');
 $expect($routes,'Blog::entryUrl($other)','Нет канонического перенаправления при изменении типа материала.');
+$expect($routes,'Blog::entryUrl($storedOther)','Нет канонического перенаправления сохранённого материала при изменении типа.');
+if(str_contains($routes,"redirect('/studio/content/'"))$errors[]='Канонический маршрут не должен переводить материал в Studio Preview.';
 if(str_contains($routes,"header('Location: '.app_url('/portfolio')"))$errors[]='Маршрут портфолио не должен скрывать ошибку перенаправлением в архив.';
 if(str_contains($ux,'$router->get(\'/portfolio/{slug}\''))$errors[]='В UX-файле остался отдельный конфликтующий маршрут портфолио.';
+$expect($ux,'if(Blog::canRead($entry))','Studio Preview не распознаёт опубликованный материал.');
+$expect($ux,'Blog::entryUrl($entry)','Studio Preview не переводит опубликованный материал на итоговую страницу.');
 
 $entryPos=strpos($index,'routes/blog-entry-routing.php');
 $blogPos=strpos($index,'routes/blog.php');
 $uxPos=strpos($index,'routes/blog-ux-fixes.php');
 if($entryPos===false||$blogPos===false||$uxPos===false||$entryPos>$uxPos||$entryPos>$blogPos)$errors[]='Единые маршруты материалов должны регистрироваться до старых обработчиков.';
-$expect($contentIndex,'Blog::canRead($entry)','Список Studio не проверяет реальную доступность материала.');
-$expect($contentIndex,"/preview'",'Для закрытых и неопубликованных материалов нет кнопки предпросмотра.');
-$expect($contentIndex,'$direct?\'Просмотр\':\'Предпросмотр\'','Кнопка Studio не различает публичный просмотр и preview.');
+$expect($contentIndex,'Blog::isPubliclyReadable($entry)','Список Studio не различает публичную доступность и редакторский просмотр.');
+$expect($contentIndex,'Blog::entryUrl($entry)','Список Studio не использует итоговый канонический адрес.');
+$expect($contentIndex,'Открыть страницу','В списке Studio отсутствует переход на итоговую страницу.');
+$expect($contentIndex,"/preview'",'Для закрытых и неопубликованных материалов нет отдельной кнопки предпросмотра.');
 
 if(!defined('BASE_PATH'))define('BASE_PATH',$root);
 require_once $root.'/app/Core.php';

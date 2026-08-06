@@ -50,6 +50,7 @@ if(implode('',$footerSlots)===''){
 $hasLeft=implode('',$leftSlots)!=='';
 $hasRight=implode('',$rightSlots)!=='';
 $columnsClass=$hasLeft&&$hasRight?'portal-matrix--three':($hasLeft?'portal-matrix--left':($hasRight?'portal-matrix--right':'portal-matrix--single'));
+$previewClass=!empty($studioPreview)?' blog-theme-preview':'';
 $copyright='© '.date('Y').' Ланцет Семён Борисович';
 $flash=[];
 if(!empty($_SESSION['flash_error'])){$flash[]=['type'=>'error','text'=>(string)$_SESSION['flash_error']];unset($_SESSION['flash_error']);}
@@ -80,7 +81,7 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
 <link rel="stylesheet" href="<?=e($themeAsset('portal-ui-repair.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <?=\Kovcheg\Hooks::fire('blog.layout.head','')?>
 </head>
-<body class="blog-theme blog-theme-portal blog-theme-portal-matrix <?=e($columnsClass)?>">
+<body class="blog-theme blog-theme-portal blog-theme-portal-matrix <?=e($columnsClass)?><?=e($previewClass)?>">
 <a class="skip-link" href="#main-content">Перейти к содержанию</a>
 <header class="portal-matrix-header">
  <?php if($preheader!==''):?><div class="portal-matrix-preheader"><?=$preheader?></div><?php endif;?>

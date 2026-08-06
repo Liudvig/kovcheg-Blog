@@ -41,6 +41,11 @@ $router->get('/studio/content/{id}/preview', function (array $params) {
         WHERE e.id=? AND e.deleted_at IS NULL LIMIT 1",[(int)$params['id']]);
     if(!$entry)abort(404,'Материал не найден.');
 
+    if(Blog::canRead($entry)){
+        header('Location: '.Blog::entryUrl($entry),true,302);
+        exit;
+    }
+
     header('X-Robots-Tag: noindex, nofollow, noarchive');
     Blog::render('entry',array_merge([
         'title'=>'Предпросмотр — '.(string)$entry['title'],
@@ -49,6 +54,7 @@ $router->get('/studio/content/{id}/preview', function (array $params) {
         'comments'=>[],
         'reactions'=>[],
         'studioPreview'=>true,
+        'publicUrl'=>Blog::entryUrl($entry),
     ],kovcheg_entry_preview_context($entry)));
 });
 
