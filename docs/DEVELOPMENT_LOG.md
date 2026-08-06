@@ -364,3 +364,150 @@ Deploy:
 
 Статус:
 IMPLEMENTED — READY FOR PULL REQUEST
+
+---
+
+## 2026-08-06 — Simple Blog UI
+
+Версия:
+3.5.8
+
+Ветка:
+feature/simple-blog-ui-3.5.8
+
+Что изменено:
+- публичная тема KOVCHEG Portal переведена на компактную блоговую ленту;
+- огромный ведущий материал удалён с главной и архивных страниц;
+- карточки публикаций используют небольшую миниатюру слева и текст справа, а на телефоне — изображение над текстом;
+- ограничены размеры обложек отдельных публикаций и работ портфолио;
+- уменьшены общая ширина сайта, боковые колонки, отступы, подвал и карточки;
+- портфолио на главной выводится компактным списком;
+- в обычном меню Studio скрыты конструктор, пресеты и демо, виджеты и модули;
+- старые служебные маршруты перенаправляются в стандартные разделы без физического удаления совместимого кода;
+- редактор оставлен только классический, без вкладки конструктора секций;
+- редкие поля материала свёрнуты в раздел «Дополнительно»;
+- ручная сортировка при добавлении пункта меню убрана, порядок назначается автоматически;
+- личный кабинет получил светлую оболочку в стиле KOVCHEG Portal;
+- профиль переведён на компактную двухколоночную сетку сайта с сохранением аватара, статуса и стены;
+- версия приложения повышена до 3.5.8 и обновлена ревизия статических файлов.
+
+Файлы:
+- app/bootstrap.php
+- index.php
+- routes/blog-simple-mode.php
+- themes/kovcheg-portal/home.php
+- themes/kovcheg-portal/archive.php
+- themes/kovcheg-portal/entry.php
+- themes/kovcheg-portal/author.php
+- themes/kovcheg-portal/assets/blog-compact.css
+- views/studio/layout.php
+- views/studio/editor.php
+- views/studio/menus.php
+- views/account-shell.php
+- views/profile.php
+- assets/css/blog-studio-simple.css
+- assets/css/blog-profile-portal.css
+- scripts/audit-simple-blog.php
+- scripts/audit-classic-editor.php
+- scripts/audit-studio-compact.php
+- .github/workflows/simple-blog.yml
+- docs/releases/KOVCHEG_BLOG_3.5.8.md
+- docs/DEVELOPMENT_LOG.md
+
+База данных:
+Миграции не требуются. Схема и существующие данные не изменяются.
+
+Проверка:
+- PHP lint изменённых PHP-файлов — успешно;
+- Simple blog UI audit — успешно;
+- Classic editor audit — успешно;
+- Studio compact UX audit — успешно;
+- Portal UI audit — успешно;
+- GitHub Actions KOVCHEG Simple Blog UI checks — success.
+
+Основной commit разработки:
+5cc5a387fa2b0993b2b7d6cecd4d45d211d30009
+
+Deploy:
+Не выполнялся. Разрешён после слияния pull request в main и резервной копии production.
+
+Статус:
+IMPLEMENTED — CI PASSED
+
+---
+
+## 2026-08-06 — Unified Public Material Routing Repair
+
+Версия:
+3.5.8
+
+Ветка:
+feature/simple-blog-ui-3.5.8
+
+Обнаруженная ошибка:
+Публикации, страницы и работы портфолио не открывались по публичным URL и возвращали 404. Только портфолио переводило владельца в предварительный просмотр, поскольку для него существовал отдельный обходной маршрут.
+
+Корневая причина:
+- KOVCHEG Studio считала материал доступным для просмотра только по полю status=published;
+- публичный слой дополнительно требовал visibility=public и наступившую дату published_at;
+- для публикаций, страниц и портфолио использовались неодинаковые обработчики;
+- отдельный portfolio workaround маскировал ошибку маршрутизации и состояния материала;
+- ядро Router корректно разбирало динамические URL, проблема находилась в несогласованной логике доступа и выборе обработчика.
+
+Что исправлено:
+- добавлен единый обработчик `/blog/{slug}`, `/page/{slug}` и `/portfolio/{slug}`;
+- введена общая проверка доступности материала по status, visibility, published_at и роли пользователя;
+- материалы visibility=users доступны авторизованным пользователям;
+- опубликованные материалы visibility=private доступны владельцу, администратору и редактору;
+- черновики, статус private и будущая дата публикации открываются редактору только через защищённый Studio Preview;
+- при изменении типа материала старый URL перенаправляется на канонический адрес;
+- удалён отдельный portfolio-only workaround;
+- несуществующее портфолио больше не маскируется переходом в архив;
+- кнопка в Studio показывает «Просмотр» только для реально доступного публичного URL, иначе показывает «Предпросмотр»;
+- добавлен отдельный regression audit с реальной проверкой динамических маршрутов ядра.
+
+Файлы:
+- app/Blog.php
+- index.php
+- routes/blog-entry-routing.php
+- routes/blog-ux-fixes.php
+- views/studio/content-index.php
+- scripts/audit-entry-routing.php
+- scripts/audit-studio-compact.php
+- scripts/audit-unified-portal.php
+- scripts/audit-account-actions.php
+- .github/workflows/simple-blog.yml
+- docs/releases/KOVCHEG_BLOG_3.5.8.md
+- docs/DEVELOPMENT_LOG.md
+
+База данных:
+Миграции не требуются. Данные и схема базы не изменяются.
+
+Проверка:
+- PHP lint изменённых маршрутов, ядра Blog и шаблонов — успешно;
+- проверка Router для `/blog/test-material` — успешно;
+- проверка Router для `/page/test-page` — успешно;
+- проверка Router для `/portfolio/test-work` — успешно;
+- audit проверяет отсутствие конфликтующего portfolio workaround;
+- старые audit-скрипты адаптированы к единому маршруту и Portal-стилю кабинета;
+- итоговый GitHub Actions CI выполняется повторно после исправления регрессионных проверок.
+
+Основные commits:
+- 2568aef7e3a8cba15ae3c65cfa42309f2654370b — единая логика видимости и доступности;
+- ca9b98fe4ea7d821e2a6aef0821da83254e7002b — единые публичные маршруты;
+- a76c9550e381e5ff188fec9346e111b5b8fa7567 — регистрация маршрутов до legacy handlers;
+- b6fcf65c9e2ef406b880709fb3ef2aab0574fc5f — удаление portfolio-only workaround;
+- 771478ab994022f847ee20cfc67f69d1117caa3d — безопасные кнопки просмотра в Studio;
+- c4bb26ab2234ac7d9107e4b7a553314f9ed311f2 — CI маршрутов;
+- 31c3a067e9557736a435b6722323a9b86dbdbca1 — совместимость Studio audit;
+- 14d105517a9af690eb3c3d3bb99bb65ac565e11f — совместимость unified Portal audit;
+- 7b0bb92121532707578daeb678cdf72de5022f20 — исправление literal-проверки regression audit.
+
+Pull request:
+#34 — KOVCHEG Blog 3.5.8 — Simple Blog UI
+
+Deploy:
+Не выполнялся. Исправление ещё не установлено на production.
+
+Статус:
+IMPLEMENTED — FINAL CI RUNNING

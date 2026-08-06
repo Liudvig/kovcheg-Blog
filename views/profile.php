@@ -1,30 +1,53 @@
 <?php
-$profileUser=$user??\Kovcheg\Auth::user()??[];
-$counts=$counts??profile_counts((int)$profileUser['id']);
-$peopleBlocks=$peopleBlocks??profile_people_blocks((int)$profileUser['id']);
-$stories=$stories??active_stories_for_user((int)$profileUser['id'],\Kovcheg\Auth::id());
-$avatarReactions=$avatarReactions??avatar_reaction_summary((int)$profileUser['id'],\Kovcheg\Auth::id());
+$profileUser = $user ?? \Kovcheg\Auth::user() ?? [];
+$counts = $counts ?? profile_counts((int)$profileUser['id']);
+$stories = $stories ?? active_stories_for_user((int)$profileUser['id'],\Kovcheg\Auth::id());
+$avatarReactions = $avatarReactions ?? avatar_reaction_summary((int)$profileUser['id'],\Kovcheg\Auth::id());
 ?>
-<main class="site-page-shell vk-site-shell"><?=\Kovcheg\View::partial('site-sidebar',['active'=>'profile'])?>
- <section class="vk-profile-page profile-page-090">
-  <div class="vk-profile-grid vk-profile-grid-090 has-right">
-   <aside class="vk-profile-left">
-    <?=\Kovcheg\View::partial('profile-avatar-controls',compact('profileUser','stories','avatarReactions'))?>
-    <a class="btn btn-primary vk-wide-button" href="<?=e(app_url('/settings/general'))?>">Редактировать профиль</a>
-    <?=\Kovcheg\View::partial('profile-people-blocks',['profileUser'=>$profileUser,'peopleBlocks'=>$peopleBlocks])?>
-   </aside>
-   <div class="vk-profile-main">
-    <article class="vk-profile-info-card profile-info-090">
-     <header><div><h1><?=e($profileUser['display_name'])?><?=verified_badge($profileUser,'verified-badge verified-large')?></h1><a href="<?=e(user_public_url((string)$profileUser['username']))?>">@<?=e($profileUser['username'])?></a></div><span class="profile-online" data-presence-user="<?=(int)$profileUser['id']?>"><?=online($profileUser['last_seen_at']??null)?'в сети':'был(а) '.e(human_time($profileUser['last_seen_at']??null))?></span></header>
-     <form class="profile-status-editor" data-profile-status-form><input name="status_text" maxlength="190" value="<?=e($profileUser['status_text']??'')?>" placeholder="Установить статус"><button type="submit">Сохранить</button></form>
-     <?php if(!empty($profileUser['bio'])):?><div class="vk-bio"><?=nl2br(e($profileUser['bio']))?></div><?php else:?><div class="vk-bio muted">Расскажите коллегам о себе.</div><?php endif;?>
-     <dl class="vk-profile-fields"><div><dt>Email</dt><dd><?=e($profileUser['email']??'')?></dd></div><div><dt>Ник</dt><dd>@<?=e($profileUser['username']??'')?></dd></div></dl>
-    </article>
-    <article class="vk-profile-stats"><a href="<?=e(app_url('/colleagues'))?>"><b><?=e($counts['colleagues'])?></b><span>коллег</span></a><a href="<?=e(app_url('/colleagues?tab=followers'))?>"><b><?=e($counts['followers'])?></b><span>подписчиков</span></a><a href="<?=e(app_url('/colleagues?tab=following'))?>"><b><?=e($counts['following'])?></b><span>подписок</span></a></article>
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-profile-portal.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<script nonce="<?=e((string)($GLOBALS['CSP_NONCE']??''))?>">document.body.classList.add('portal-profile-context');</script>
+
+<main class="portal-profile-shell">
+ <nav class="portal-profile-breadcrumbs"><a href="<?=e(app_url('/'))?>">Сайт</a><span>→</span><a href="<?=e(app_url('/account'))?>">Личный кабинет</a><span>→</span><span>Профиль</span></nav>
+ <div class="portal-profile-grid">
+  <aside class="portal-profile-aside">
+   <?=\Kovcheg\View::partial('profile-avatar-controls',compact('profileUser','stories','avatarReactions'))?>
+   <a class="portal-profile-edit" href="<?=e(app_url('/settings/general'))?>">Редактировать профиль</a>
+   <nav class="portal-profile-links">
+    <a href="<?=e(app_url('/account'))?>">Личный кабинет</a>
+    <a href="<?=e(app_url('/settings/general'))?>">Личные данные</a>
+    <a href="<?=e(app_url('/settings/security'))?>">Безопасность</a>
+    <a href="<?=e(user_public_url((string)$profileUser['username']))?>">Публичная ссылка</a>
+   </nav>
+  </aside>
+
+  <section class="portal-profile-main">
+   <article class="portal-profile-card">
+    <header class="portal-profile-card__head">
+     <div><h1><?=e((string)$profileUser['display_name'])?><?=verified_badge($profileUser,'verified-badge verified-large')?></h1><a class="portal-profile-handle" href="<?=e(user_public_url((string)$profileUser['username']))?>">@<?=e((string)$profileUser['username'])?></a></div>
+     <span class="portal-profile-online" data-presence-user="<?=(int)$profileUser['id']?>"><?=online($profileUser['last_seen_at']??null)?'в сети':'был(а) '.e(human_time($profileUser['last_seen_at']??null))?></span>
+    </header>
+    <form class="portal-profile-status profile-status-editor" data-profile-status-form>
+     <input name="status_text" maxlength="190" value="<?=e((string)($profileUser['status_text']??''))?>" placeholder="Статус">
+     <button type="submit">Сохранить</button>
+    </form>
+    <div class="portal-profile-bio"><?=!empty($profileUser['bio'])?nl2br(e((string)$profileUser['bio'])):'Расскажите о себе в настройках профиля.'?></div>
+    <dl class="portal-profile-fields">
+     <div><dt>Email</dt><dd><?=e((string)($profileUser['email']??''))?></dd></div>
+     <div><dt>Ник</dt><dd>@<?=e((string)($profileUser['username']??''))?></dd></div>
+    </dl>
+   </article>
+
+   <article class="portal-profile-stats">
+    <a href="<?=e(app_url('/colleagues'))?>"><b><?=e((string)$counts['colleagues'])?></b><span>контактов</span></a>
+    <a href="<?=e(app_url('/colleagues?tab=followers'))?>"><b><?=e((string)$counts['followers'])?></b><span>подписчиков</span></a>
+    <a href="<?=e(app_url('/colleagues?tab=following'))?>"><b><?=e((string)$counts['following'])?></b><span>подписок</span></a>
+   </article>
+
+   <div class="portal-profile-wall">
     <?=\Kovcheg\View::partial('profile-wall',['profileUser'=>$profileUser,'wallPosts'=>$wallPosts??[],'canPostWall'=>$canPostWall??true])?>
    </div>
-   <aside class="vk-profile-right"><?=\Kovcheg\View::partial('weather-widget',['weatherUserId'=>(int)$profileUser['id']])?><article class="vk-right-card"><header><b>Дополнительные блоки</b></header><p>Колонка зарезервирована для групп, логотипов, описаний и блоков устанавливаемых модулей.</p></article></aside>
-  </div>
- </section>
+  </section>
+ </div>
 </main>
 <?=\Kovcheg\View::partial('profile-avatar-modals',['profileUser'=>$profileUser])?>

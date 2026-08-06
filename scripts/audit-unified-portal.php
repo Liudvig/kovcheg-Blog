@@ -14,8 +14,9 @@ $expect($studioCss,'.studio-sidebar{position:fixed','Левая колонка S
 $expect($studioCss,'height:100vh','Studio не закреплена на высоту окна.');
 $expect($studioCss,'scrollbar-width:none','Прокрутка без бегунков не настроена.');
 $expect($accountRoute,"require BASE_PATH.'/views/account-shell.php';",'Кабинет всё ещё натянут на старую тему.');
-$expect($account,'account-studio-shell','Личный кабинет не использует единый стиль Studio.');
-$expect($account,'studio-footer','В личном кабинете отсутствует подвал.');
+if(!str_contains($account,'account-studio-shell')&&!str_contains($account,'portal-account-main'))$errors[]='Личный кабинет не использует самостоятельную оболочку Studio/Portal.';
+if(!str_contains($account,'studio-footer')&&!str_contains($account,'portal-account-footer'))$errors[]='В личном кабинете отсутствует подвал.';
+$expect($account,'Ланцет Семён Борисович','В личном кабинете отсутствует обязательный копирайт.');
 $expect($repair,'final class LayoutRepair','Отсутствует самовосстановление Widget Engine.');
 $expect($widgetRoute,'LayoutRepair::ensure()','Маршрут виджетов не восстанавливает таблицы.');
 $expect($widgetRoute,"Studio::render('widgets-error'",'Widget Engine всё ещё может отдавать белую 500 вместо диагностики.');

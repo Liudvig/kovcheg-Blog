@@ -1,4 +1,6 @@
 <?php
 
 declare(strict_types=1);
-require BASE_PATH.'/themes/kovcheg-editorial/entry.php';
+?>
+<link rel="stylesheet" href="<?=e($themeAsset('blog-compact.css').'?v='.rawurlencode(ASSET_REVISION))?>">
+<?php require BASE_PATH.'/themes/kovcheg-editorial/entry.php';
