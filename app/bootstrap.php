@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.7.0';
-const ASSET_REVISION = '3.7.0-page-category-core';
+const APP_VERSION = '3.7.1';
+const ASSET_REVISION = '3.7.1-posts-categories';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
