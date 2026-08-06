@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.6.0';
-const ASSET_REVISION = '3.6.0-wordpress-simple-core';
+const APP_VERSION = '3.7.0';
+const ASSET_REVISION = '3.7.0-page-category-core';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
@@ -13,17 +13,17 @@ if (!is_file(BASE_PATH.'/config/config.php')) {
 
 $CONFIG = require BASE_PATH.'/config/config.php';
 if (!is_array($CONFIG) || !isset($CONFIG['app'], $CONFIG['database'])) {
-    error_log('KOVCHEG Blog: invalid config/config.php structure.');
+    error_log('KOVCHEG CMS: invalid config/config.php structure.');
     http_response_code(500);
-    exit('KOVCHEG Blog configuration error.');
+    exit('KOVCHEG CMS configuration error.');
 }
 
 $appKey=(string)($CONFIG['app']['key']??'');
 $decodedKey=str_starts_with($appKey,'base64:')?base64_decode(substr($appKey,7),true):false;
 if($decodedKey===false||strlen($decodedKey)<32){
-    error_log('KOVCHEG Blog: application key is missing or too short.');
+    error_log('KOVCHEG CMS: application key is missing or too short.');
     http_response_code(500);
-    exit('KOVCHEG Blog application key is not configured.');
+    exit('KOVCHEG CMS application key is not configured.');
 }
 
 date_default_timezone_set((string)($CONFIG['app']['timezone'] ?? 'UTC'));
@@ -84,7 +84,7 @@ register_shutdown_function(static function (): void {
 });
 
 try { \Kovcheg\DB::connect($CONFIG['database']); }
-catch (Throwable $e) { log_error($e); render_system_error(500, 'KOVCHEG Blog', 'Не удалось подключиться к базе данных.'); }
+catch (Throwable $e) { log_error($e); render_system_error(500, 'KOVCHEG CMS', 'Не удалось подключиться к базе данных.'); }
 
 try { \Kovcheg\Auth::user(); } catch (Throwable $e) { log_error($e); }
 $requestMethod = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET'));
