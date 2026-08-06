@@ -56,12 +56,14 @@ jobs:
               'user'=>'kovcheg',
               'password'=>'kovcheg',
               'charset'=>'utf8mb4',
+              'prefix'=>'',
             ],
           ];
           PHP
-      - name: Migrate and seed
+      - name: Migrate
+        run: php bin/migrate.php
+      - name: Seed runtime
         run: |
-          php bin/migrate.php
           php -r '
             $_SERVER["SCRIPT_NAME"]="cli";
             require "app/bootstrap.php";
