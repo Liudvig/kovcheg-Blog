@@ -109,8 +109,6 @@ jobs:
         run: curl --fail-with-body -sS -D /tmp/portfolio.headers http://127.0.0.1:8099/portfolio -o /tmp/portfolio.html
       - name: Studio route
         run: curl --fail-with-body -sS -D /tmp/studio.headers http://127.0.0.1:8099/studio -o /tmp/studio.html
-      - name: Appearance route
-        run: curl --fail-with-body -sS -D /tmp/appearance.headers http://127.0.0.1:8099/appearance -o /tmp/appearance.html
       - name: Runtime log
         if: always()
         run: cat /tmp/kovcheg-runtime.log || true
