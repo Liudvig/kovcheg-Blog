@@ -69,12 +69,10 @@ jobs:
             echo "Applying ${migration}"
             MYSQL_PWD=root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg < "$migration"
           done
-      - name: Builder and Renderer compatibility
-        run: php -r 'require "app/Core.php"; require "app/BlogBuilder.php"; require "app/BlogRenderer.php"; exit(class_exists("Kovcheg\\Blog\\Builder")&&class_exists("Kovcheg\\Blog\\Renderer")?0:1);'
-      - name: Layout and Widget Registry compatibility
-        run: php -r 'require "app/Core.php"; require "app/BlogLayout.php"; exit(class_exists("Kovcheg\\Blog\\Layout")&&class_exists("Kovcheg\\Blog\\WidgetRegistry")?0:1);'
-      - name: Module SDK compatibility
-        run: php -r 'require "app/Core.php"; require "app/BlogModuleSdk.php"; exit(class_exists("Kovcheg\\Blog\\ModuleSdk")?0:1);'
+      - name: Active lightweight runtime classes
+        run: |
+          php -r 'require "app/Core.php"; require "app/BlogLayout.php"; exit(class_exists("Kovcheg\\Blog\\Layout")&&method_exists("Kovcheg\\Blog\\Layout","registerWidget")&&method_exists("Kovcheg\\Blog\\Layout","widgetTypes")?0:1);'
+          php -r 'require "app/Core.php"; require "app/BlogStudio.php"; require "app/ClassicEditor.php"; require "app/BlogStudio32.php"; exit(class_exists("Kovcheg\\Blog\\Studio32")?0:1);'
       - name: Migration runner
         run: php bin/migrate.php
       - name: Scheduled publishing
