@@ -1,0 +1,16 @@
+/* KOVCHEG CMS 3.8.0 — branded registration
+ * Author and copyright: Ланцет Семён Борисович
+ * License: proprietary / all rights reserved
+ */
+.blog-register-form-panel{align-items:flex-start;overflow:auto}
+.blog-register-form-wrap{width:min(100%,560px);padding-block:6px}
+.blog-register-form{gap:13px}
+.blog-register-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.blog-register-form .blog-login-field small{color:#7b8798;font-size:11px;line-height:1.4}
+.blog-register-form .captcha-honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;opacity:0!important}
+.blog-register-return{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.blog-register-page .blog-login-submit{background:var(--brand-accent,#2563eb)}
+.blog-register-page .blog-login-field input:focus{border-color:var(--brand-accent,#2563eb);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-accent,#2563eb) 14%,transparent)}
+.blog-register-page .blog-login-form-heading span,.blog-register-page .blog-login-register a{color:var(--brand-accent,#2563eb)}
+@media(max-width:800px){.blog-register-form-panel{padding-top:30px}.blog-register-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.blog-register-form-panel{min-height:calc(100vh - 60px);padding:26px 18px}.blog-register-form-wrap{padding:0}}
