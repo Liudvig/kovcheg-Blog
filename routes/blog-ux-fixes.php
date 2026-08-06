@@ -33,10 +33,7 @@ if (!function_exists('kovcheg_entry_preview_context')) {
     }
 }
 
-/*
- * Studio preview for drafts, private entries and future publications.
- * It prevents the editor's preview link from opening a public 404 page.
- */
+/* Studio preview for drafts, private entries and future publications. */
 $router->get('/studio/content/{id}/preview', function (array $params) {
     Studio::require('content');
     $entry=DB::one("SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,u.bio author_bio
@@ -79,43 +76,4 @@ $router->post('/studio/media/upload-inline', function () {
             'caption'=>(string)($item['caption']??''),
         ],
     ]);
-});
-
-/*
- * Registered before routes/blog.php. Existing portfolio items open normally.
- * A renamed or mistyped old portfolio URL no longer leaves the visitor on a
- * dead 404 page: a matching material is redirected to its canonical URL, an
- * unpublished item opens through Studio for an authorised editor, otherwise
- * the visitor returns to the portfolio archive.
- */
-$router->get('/portfolio/{slug}', function (array $params) {
-    $slug=trim((string)($params['slug']??''));
-    if($slug==='')redirect('/portfolio');
-
-    $entry=Blog::entry($slug,'portfolio');
-    if(!$entry){
-        $other=Blog::entry($slug);
-        if($other){
-            header('Location: '.Blog::entryUrl($other),true,302);
-            exit;
-        }
-
-        $stored=DB::one("SELECT id FROM content_entries WHERE slug=? AND type='portfolio' AND deleted_at IS NULL LIMIT 1",[$slug]);
-        if($stored&&Studio::can('content'))redirect('/studio/content/'.(int)$stored['id'].'/preview');
-
-        header('Location: '.app_url('/portfolio'),true,302);
-        exit;
-    }
-
-    try{
-        DB::run('INSERT INTO content_views_daily (entry_id,view_date,views) VALUES (?,CURRENT_DATE,1) ON DUPLICATE KEY UPDATE views=views+1',[(int)$entry['id']]);
-    }catch(Throwable){}
-
-    Blog::render('entry',array_merge([
-        'title'=>(string)($entry['seo_title']?:$entry['title']),
-        'description'=>(string)($entry['seo_description']?:Blog::excerpt($entry,300)),
-        'entry'=>$entry,
-        'comments'=>Blog::comments((int)$entry['id']),
-        'reactions'=>Blog::reactions((int)$entry['id']),
-    ],kovcheg_entry_preview_context($entry)));
 });
