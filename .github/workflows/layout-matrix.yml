@@ -1,8 +1,8 @@
-name: KOVCHEG Blog Layout Matrix
+name: KOVCHEG CMS Layout Matrix
 
 on:
   push:
-    branches: [release/3.5.4-layout-matrix]
+    branches: [main, feature/posts-menus-widgets-3.8.0]
   pull_request:
     branches: [main]
 
@@ -18,27 +18,28 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
-      - name: Lint changed PHP
+      - name: Lint Layout Matrix PHP
         run: |
           php -l app/bootstrap.php
+          php -l app/BlogLayout.php
+          php -l app/BlogLayoutRepair.php
+          php -l app/BlogEssentialWidgets.php
+          php -l app/BlogCmsWidgetOverrides.php
+          php -l app/BlogThemeSupport.php
           php -l modules/layout-matrix/bootstrap.php
+          php -l routes/blog-layout.php
           php -l views/studio/widgets.php
           php -l themes/kovcheg-portal/layout.php
-          php -l scripts/audit-login-routing.php
-          php -l scripts/audit-account-actions.php
-          php -l scripts/audit-unified-portal.php
-          php -l scripts/audit-modern-portal-widgets.php
-          php -l scripts/audit-visual-zone-builder.php
-      - name: Login routing audit
-        run: php scripts/audit-login-routing.php
-      - name: Account actions audit
-        run: php scripts/audit-account-actions.php
-      - name: Unified Portal audit
-        run: php scripts/audit-unified-portal.php
-      - name: Modern Portal widgets audit
-        run: php scripts/audit-modern-portal-widgets.php
-      - name: Visual Layout Matrix audit
-        run: php scripts/audit-visual-zone-builder.php
+          php -l themes/kovcheg-editorial/layout.php
+          php -l scripts/audit-cms-core-3.8.php
+      - name: CMS Layout widgets audit
+        run: php scripts/audit-cms-core-3.8.php
+      - name: Login and account audit
+        run: |
+          php scripts/audit-login-routing.php
+          php scripts/audit-account-actions.php
+      - name: Portal UI audit
+        run: php scripts/audit-portal-ui.php
       - name: Validate manifests
         run: |
           php -r 'json_decode(file_get_contents("modules/layout-matrix/manifest.json"),true,512,JSON_THROW_ON_ERROR);'
