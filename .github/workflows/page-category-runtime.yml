@@ -1,0 +1,90 @@
+name: KOVCHEG Pages runtime checks
+
+on:
+  push:
+    branches: [main, feature/page-category-core-3.7.0]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: kovcheg
+          MARIADB_USER: kovcheg
+          MARIADB_PASSWORD: kovcheg
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: pdo_mysql, mbstring, dom, fileinfo
+      - name: Runtime config
+        run: |
+          mkdir -p config storage/cache storage/logs storage/uploads storage/backups storage/builds
+          chmod -R 777 storage
+          cat > config/config.php <<'PHP'
+          <?php
+          return [
+            'app'=>[
+              'name'=>'KOVCHEG CMS CI',
+              'url'=>'http://127.0.0.1:8099',
+              'base_path'=>'',
+              'timezone'=>'UTC',
+              'debug'=>true,
+              'key'=>'base64:'.base64_encode(str_repeat('k',32)),
+            ],
+            'database'=>[
+              'host'=>'127.0.0.1',
+              'port'=>3306,
+              'name'=>'kovcheg',
+              'user'=>'kovcheg',
+              'password'=>'kovcheg',
+              'charset'=>'utf8mb4',
+            ],
+          ];
+          PHP
+      - name: Migrate and seed
+        run: |
+          php bin/migrate.php
+          php -r '
+            $_SERVER["SCRIPT_NAME"]="cli";
+            require "app/bootstrap.php";
+            \Kovcheg\DB::run("INSERT INTO users (username,email,password_hash,display_name,role,approval_status,is_active,created_at,updated_at) VALUES (?,?,?,?,\"owner\",\"approved\",1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",["owner","owner@example.test",password_hash("password",PASSWORD_DEFAULT),"Owner"]);
+            foreach(["site_name"=>"KOVCHEG CMS CI","blog_theme"=>"kovcheg-portal","search_indexing"=>"0"] as $key=>$value){
+              \Kovcheg\DB::run("INSERT INTO settings (setting_key,setting_value,updated_at) VALUES (?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value),updated_at=CURRENT_TIMESTAMP",[$key,$value]);
+            }
+          '
+      - name: Start PHP server
+        run: |
+          php -S 127.0.0.1:8099 router.php > /tmp/kovcheg-runtime.log 2>&1 &
+          echo $! > /tmp/kovcheg-runtime.pid
+          sleep 2
+      - name: Home route
+        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/ -o /tmp/home.html
+      - name: Legacy Blog alias
+        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/blog -o /tmp/blog.html
+      - name: Legacy Portfolio alias
+        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/portfolio -o /tmp/portfolio.html
+      - name: Studio route
+        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/studio -o /tmp/studio.html
+      - name: Appearance route
+        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/appearance -o /tmp/appearance.html
+      - name: Runtime log
+        if: always()
+        run: cat /tmp/kovcheg-runtime.log || true
