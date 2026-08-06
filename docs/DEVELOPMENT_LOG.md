@@ -58,6 +58,11 @@ feature/portal-ui-repair-3.5.5
 - themes/kovcheg-portal/layout.php
 - app/bootstrap.php
 - scripts/audit-portal-ui.php
+- scripts/audit-login-routing.php
+- scripts/audit-account-actions.php
+- scripts/audit-unified-portal.php
+- scripts/audit-modern-portal-widgets.php
+- scripts/audit-visual-zone-builder.php
 - .github/workflows/portal-ui.yml
 - docs/releases/KOVCHEG_BLOG_3.5.5.md
 - docs/DEVELOPMENT_LOG.md
@@ -74,16 +79,20 @@ feature/portal-ui-repair-3.5.5
 - пустое состояние главной страницы оформлено как полноценный hero-блок;
 - форма подписки больше не раздувает подвал;
 - исправлено мобильное отображение шапки, меню, колонок и footer;
-- обновлена версия приложения и ревизия статических файлов для сброса браузерного кеша.
+- обновлена версия приложения и ревизия статических файлов для сброса браузерного кеша;
+- audit-скрипты больше не блокируют patch-релизы из-за требования точного номера 3.5.4;
+- ASSET_REVISION теперь проверяется на соответствие текущему APP_VERSION.
 
 Как проверено:
 - php -l для themes/kovcheg-portal/layout.php;
 - php -l для app/bootstrap.php;
-- php -l для scripts/audit-portal-ui.php;
+- php -l для scripts/audit-portal-ui.php и обновлённых audit-скриптов;
 - статический аудит порядка подключения portal-ui-repair.css после blog-widgets.css;
 - проверка обязательных CSS-правил и баланса фигурных скобок;
-- добавлен GitHub Actions workflow KOVCHEG Portal UI checks;
-- полный CI проекта запускается через pull request.
+- KOVCHEG Portal UI checks завершился успешно;
+- первый запуск старых workflow выявил жёстко прошитую версию 3.5.4;
+- проверки login, account, unified Portal, modern widgets и Layout Matrix переведены на минимальную совместимую версию 3.5.4+;
+- повторный полный CI запускается через pull request #29.
 
 Commits:
 - d4bce56dc20175929c38fdb7426ed6cf4abe4e81 — scoped Portal UI stylesheet;
@@ -91,10 +100,19 @@ Commits:
 - b479a4917fbc391decdbeb71fc65c81b1a94e243 — версия 3.5.5 и cache revision;
 - b11c4da03c7bc27fe988388be258ef3f7b2451b3 — regression audit;
 - 7037e571f2696b3778db9cfaa2840d625c8d5aa7 — GitHub Actions workflow;
-- e888701e4ddbc3cba52b6f07dca505a0d0c908c7 — release documentation.
+- e888701e4ddbc3cba52b6f07dca505a0d0c908c7 — release documentation;
+- 6dd379d5381edff167732a48ae621fb40fe66422 — release-safe login audit;
+- 9266858f595f19d5f4d11f5ee9201388472ee83b — release-safe account audit;
+- c63d785acb71d46b51b9a0cdacbeb36a36cf9a76 — release-safe unified Portal audit;
+- e4120e960fb4792e326015a35d289e5fe3415ae7 — release-safe modern widgets audit;
+- 013591035bafadb129eeebaa87d02096eaba4af0 — release-safe Layout Matrix audit;
+- b884983fab6a4110269f9ba4efabd132f7fd63db — updated release documentation.
+
+Pull request:
+#29 — KOVCHEG Blog 3.5.5 — Portal UI Repair
 
 Deploy:
 Не выполнялся. Production VPS недоступен из текущего подключения; deploy допускается после CI и слияния в main.
 
 Статус:
-READY FOR PULL REQUEST
+CI RUNNING
