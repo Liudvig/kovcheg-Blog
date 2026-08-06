@@ -18,7 +18,7 @@ $expect($account,'Ланцет Семён Борисович','В кабинет
 $expect($sidebar,"['account','/account'",'Личный кабинет отсутствует в пользовательском меню.');
 $expect($mobile,"['account','/account'",'Личный кабинет отсутствует в мобильном меню.');
 if(!str_contains($studio,'Перейти на сайт')&&!str_contains($studio,'>Сайт<'))$errors[]='В Studio отсутствует кнопка перехода на сайт.';
-if(!str_contains($studio,'Личный кабинет')&&!str_contains($studio,'>Кабинет<'))$errors[]='В Studio отсутствует кнопка личного кабинета.';
+if(!str_contains($studio,'Личный кабинет')&&!str_contains($studio,'>Кабинет<')&&!str_contains($studio,'>Профиль<'))$errors[]='В Studio отсутствует кнопка профиля или личного кабинета.';
 $expect($studio,'studio-logout-action','В Studio отсутствует явная кнопка выхода в верхней панели.');
 $expect($studio,'studio-footer','В Studio отсутствует подвал.');
 $expect($studio,'studio-sidebar-meta','В левой колонке отсутствует служебный блок.');
