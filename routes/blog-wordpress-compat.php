@@ -20,6 +20,22 @@ if (!function_exists('kovcheg_redirect_home_permanent')) {
     }
 }
 
+if (!function_exists('kovcheg_render_legacy_home_alias')) {
+    function kovcheg_render_legacy_home_alias(): void
+    {
+        $categories=DB::all("SELECT c.id,c.name,c.slug,c.description,
+            (SELECT COUNT(*) FROM content_entry_categories ec JOIN content_entries e ON e.id=ec.entry_id
+             WHERE ec.category_id=c.id AND e.type='page' AND e.status='published' AND e.visibility='public'
+               AND e.deleted_at IS NULL AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)) page_count
+            FROM content_categories c ORDER BY c.sort_order,c.name");
+        Blog::render('home',[
+            'title'=>(string)setting('blog_home_title',setting('site_name','KOVCHEG CMS')),
+            'pages'=>Blog::entries('page',max(6,min(36,(int)setting('blog_posts_per_page','18')))),
+            'categories'=>$categories,
+        ]);
+    }
+}
+
 if (!function_exists('kovcheg_redirect_legacy_content')) {
     function kovcheg_redirect_legacy_content(string $slug): never
     {
@@ -35,9 +51,9 @@ if (!function_exists('kovcheg_redirect_legacy_content')) {
     }
 }
 
-/* Old public Blog and Portfolio URLs are compatibility aliases only. */
-$router->get('/blog', function () { kovcheg_redirect_home_permanent(); });
-$router->get('/portfolio', function () { kovcheg_redirect_home_permanent(); });
+/* Old top-level URLs display the same Pages home; they are not separate sections. */
+$router->get('/blog', function () { kovcheg_render_legacy_home_alias(); });
+$router->get('/portfolio', function () { kovcheg_render_legacy_home_alias(); });
 $router->get('/tag/{slug}', function () { kovcheg_redirect_home_permanent(); });
 $router->get('/blog/{slug}', function (array $params) { kovcheg_redirect_legacy_content((string)($params['slug']??'')); });
 $router->get('/portfolio/{slug}', function (array $params) { kovcheg_redirect_legacy_content((string)($params['slug']??'')); });
