@@ -5,13 +5,13 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
 
 $nav=[
  'dashboard'=>['Обзор','/studio','⌂','comments'],
- 'content'=>['Материалы','/studio/content','✎','content'],
+ 'posts'=>['Записи','/studio/posts','✎','content'],
  'categories'=>['Рубрики','/studio/categories','≡','content'],
+ 'pages'=>['Страницы','/studio/pages','▤','content'],
  'comments'=>['Комментарии','/studio/comments','◌','comments'],
- 'media'=>['Медиатека','/studio/media','▧','media'],
+ 'media'=>['Медиафайлы','/studio/media','▧','media'],
  'menus'=>['Меню','/studio/menus','☷','menus'],
- 'appearance'=>['Оформление','/studio/appearance','◇','themes'],
- 'growth'=>['SEO','/studio/growth','↗','site'],
+ 'appearance'=>['Внешний вид','/studio/appearance','◇','themes'],
  'users'=>['Пользователи','/studio/users','◎','site'],
  'settings'=>['Настройки','/studio/settings','⚙','settings'],
 ];
@@ -26,16 +26,14 @@ $copyright='© '.date('Y').' Ланцет Семён Борисович';
 <meta name="csrf-token" content="<?=e(\Kovcheg\Csrf::token())?>">
 <title><?=e($studioTitle)?> — KOVCHEG Studio</title>
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio.css?v='.rawurlencode(ASSET_REVISION)))?>">
-<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-builder.css?v='.rawurlencode(ASSET_REVISION)))?>">
-<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-widgets.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-unified.css?v='.rawurlencode(ASSET_REVISION)))?>">
-<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-zone-builder.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-upload.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-classic-editor.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-compact.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-simple.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-wordpress.css?v='.rawurlencode(ASSET_REVISION)))?>">
 </head>
-<body class="studio-body studio-body--simple" data-studio-section="<?=e($studioSection)?>">
+<body class="studio-body studio-body--simple studio-body--wordpress" data-studio-section="<?=e($studioSection)?>">
 <div class="studio-shell">
  <aside class="studio-sidebar" id="studio-sidebar" aria-label="Навигация KOVCHEG Studio">
   <header class="studio-brand"><a href="<?=e(app_url('/studio'))?>"><span>K</span><div><b>KOVCHEG Studio</b><small>Blog <?=e(APP_VERSION)?></small></div></a><button type="button" data-studio-close aria-label="Закрыть меню">×</button></header>
@@ -53,19 +51,18 @@ $copyright='© '.date('Y').' Ланцет Семён Борисович';
    <div class="studio-topbar-title"><small>KOVCHEG Blog</small><b><?=e($studioTitle)?></b></div>
    <div class="studio-top-actions">
     <a class="button studio-site-action" href="<?=e(app_url('/'))?>" target="_blank" rel="noopener"><span class="studio-action-icon">↗</span><span class="studio-action-label">Сайт</span></a>
-    <a class="button studio-account-action" href="<?=e(app_url('/account'))?>"><span class="studio-action-icon">◉</span><span class="studio-action-label">Кабинет</span></a>
-    <?php if(\Kovcheg\Blog\Studio::can('content')):?><a class="button primary" href="<?=e(app_url('/studio/content/new'))?>"><span class="studio-action-icon">＋</span><span class="studio-action-label">Новый материал</span></a><?php endif;?>
+    <a class="button studio-account-action" href="<?=e(app_url('/account'))?>"><span class="studio-action-icon">◉</span><span class="studio-action-label">Профиль</span></a>
+    <?php if(\Kovcheg\Blog\Studio::can('content')):?><a class="button primary" href="<?=e(app_url('/studio/posts/new'))?>"><span class="studio-action-icon">＋</span><span class="studio-action-label">Добавить запись</span></a><?php endif;?>
     <form method="post" action="<?=e(app_url('/logout'))?>"><?=csrf_field()?><button class="button studio-logout-action" type="submit"><span class="studio-action-icon">↪</span><span class="studio-action-label">Выйти</span></button></form>
    </div>
   </header>
   <?php if($flash):?><div class="studio-flashes"><?php foreach($flash as $message):?><div class="studio-flash <?=$message['type']==='error'?'error':'success'?>"><?=e($message['text'])?></div><?php endforeach;?></div><?php endif;?>
   <section class="studio-content"><?=$content?></section>
-  <footer class="studio-footer"><div><b>KOVCHEG Blog</b><span>Управление публикациями и страницами.</span></div><div><span><?=e($copyright)?></span><span>Все права защищены</span></div></footer>
+  <footer class="studio-footer"><div><b>KOVCHEG Blog</b><span>Записи, рубрики и страницы — без лишних конструкторов.</span></div><div><span><?=e($copyright)?></span><span>Все права защищены</span></div></footer>
  </main>
 </div>
 <script src="<?=e(app_url('/assets/js/blog-studio.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 <script src="<?=e(app_url('/assets/js/blog-classic-editor.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
-<script src="<?=e(app_url('/assets/js/blog-widgets.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 <script src="<?=e(app_url('/assets/js/blog-upload.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 </body>
 </html>
