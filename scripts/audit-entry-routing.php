@@ -25,11 +25,11 @@ $expect($routes,'Blog::storedEntry','Маршрут не проверяет су
 $expect($routes,"redirect('/studio/content/'",'Редактор не переводится на безопасный предпросмотр.');
 $expect($routes,'Blog::entryUrl($other)','Нет канонического перенаправления при изменении типа материала.');
 if(str_contains($routes,"header('Location: '.app_url('/portfolio')"))$errors[]='Маршрут портфолио не должен скрывать ошибку перенаправлением в архив.';
-if(str_contains($ux,"$router->get('/portfolio/{slug}'"))$errors[]='В UX-файле остался отдельный конфликтующий маршрут портфолио.';
+if(str_contains($ux,'$router->get(\'/portfolio/{slug}\''))$errors[]='В UX-файле остался отдельный конфликтующий маршрут портфолио.';
 
-$entryPos=strpos($index,"routes/blog-entry-routing.php");
-$blogPos=strpos($index,"routes/blog.php");
-$uxPos=strpos($index,"routes/blog-ux-fixes.php");
+$entryPos=strpos($index,'routes/blog-entry-routing.php');
+$blogPos=strpos($index,'routes/blog.php');
+$uxPos=strpos($index,'routes/blog-ux-fixes.php');
 if($entryPos===false||$blogPos===false||$uxPos===false||$entryPos>$uxPos||$entryPos>$blogPos)$errors[]='Единые маршруты материалов должны регистрироваться до старых обработчиков.';
 $expect($contentIndex,'Blog::canRead($entry)','Список Studio не проверяет реальную доступность материала.');
 $expect($contentIndex,"/preview'",'Для закрытых и неопубликованных материалов нет кнопки предпросмотра.');
