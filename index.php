@@ -46,6 +46,7 @@ $router = new \Kovcheg\Router();
 require __DIR__.'/routes/blog-preflight.php';
 require __DIR__.'/routes/blog-branding.php';
 require __DIR__.'/routes/blog-content-model.php';
+require __DIR__.'/routes/blog-categories.php';
 require __DIR__.'/routes/blog-menus.php';
 require __DIR__.'/routes/blog-growth.php';
 require __DIR__.'/routes/blog-layout.php';
