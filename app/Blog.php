@@ -59,6 +59,67 @@ final class Blog
         require $layoutFile;
     }
 
+    public static function readableVisibilitySql(string $alias = 'e'): string
+    {
+        if (!preg_match('/^[a-z][a-z0-9_]*$/i', $alias)) {
+            $alias = 'e';
+        }
+
+        $column = 'COALESCE('.$alias.'.visibility,\'public\')';
+        $role = (string)(Auth::user()['role'] ?? 'guest');
+
+        if (in_array($role, ['owner', 'admin', 'editor'], true)) {
+            return $column." IN ('public','users','private')";
+        }
+
+        if (Auth::check()) {
+            return $column." IN ('public','users')";
+        }
+
+        return $column."='public'";
+    }
+
+    public static function canRead(array $entry): bool
+    {
+        if (!empty($entry['deleted_at']) || (string)($entry['status'] ?? '') !== 'published') {
+            return false;
+        }
+
+        $publishedAt = trim((string)($entry['published_at'] ?? ''));
+        if ($publishedAt !== '') {
+            $publishedTime = strtotime($publishedAt);
+            if ($publishedTime !== false && $publishedTime > time()) {
+                return false;
+            }
+        }
+
+        return match ((string)($entry['visibility'] ?? 'public')) {
+            'public' => true,
+            'users' => Auth::check(),
+            'private' => in_array((string)(Auth::user()['role'] ?? ''), ['owner', 'admin', 'editor'], true),
+            default => false,
+        };
+    }
+
+    public static function isPubliclyReadable(array $entry): bool
+    {
+        if (!empty($entry['deleted_at']) || (string)($entry['status'] ?? '') !== 'published') {
+            return false;
+        }
+
+        if ((string)($entry['visibility'] ?? 'public') !== 'public') {
+            return false;
+        }
+
+        $publishedAt = trim((string)($entry['published_at'] ?? ''));
+        if ($publishedAt === '') {
+            return true;
+        }
+
+        $publishedTime = strtotime($publishedAt);
+        return $publishedTime === false || $publishedTime <= time();
+    }
+
     public static function entries(string $type, int $limit = 12, int $offset = 0): array
     {
         $allowed = ['post', 'page', 'portfolio'];
@@ -68,6 +129,7 @@ final class Blog
 
         $limit = max(1, min(100, $limit));
         $offset = max(0, $offset);
+        $visibilitySql = self::readableVisibilitySql('e');
 
         return DB::all(
             "SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,
@@ -75,7 +137,7 @@ final class Blog
                 (SELECT COUNT(*) FROM content_reactions r WHERE r.entry_id=e.id) reaction_count
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.type=? AND e.status='published' AND e.visibility='public'
+             WHERE e.type=? AND e.status='published' AND {$visibilitySql}
                AND e.deleted_at IS NULL AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)
              ORDER BY e.is_featured DESC,e.published_at DESC,e.id DESC
              LIMIT {$limit} OFFSET {$offset}",
@@ -96,13 +158,38 @@ final class Blog
             $typeSql = ' AND e.type=?';
             $params[] = $type;
         }
+        $visibilitySql = self::readableVisibilitySql('e');
 
         return DB::one(
             "SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,u.bio author_bio
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.slug=?{$typeSql} AND e.status='published' AND e.visibility='public'
+             WHERE e.slug=?{$typeSql} AND e.status='published' AND {$visibilitySql}
                AND e.deleted_at IS NULL AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)
+             LIMIT 1",
+            $params
+        );
+    }
+
+    public static function storedEntry(string $slug, ?string $type = null): ?array
+    {
+        $slug = trim($slug);
+        if ($slug === '') {
+            return null;
+        }
+
+        $params = [$slug];
+        $typeSql = '';
+        if ($type !== null) {
+            $typeSql = ' AND e.type=?';
+            $params[] = $type;
+        }
+
+        return DB::one(
+            "SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,u.bio author_bio
+             FROM content_entries e
+             JOIN users u ON u.id=e.author_id
+             WHERE e.slug=?{$typeSql} AND e.deleted_at IS NULL
              LIMIT 1",
             $params
         );
@@ -140,6 +227,8 @@ final class Blog
     public static function authorEntries(int $authorId, int $limit = 30): array
     {
         $limit = max(1, min(100, $limit));
+        $visibilitySql = self::readableVisibilitySql('e');
+
         return DB::all(
             "SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,
                 (SELECT COUNT(*) FROM content_comments c WHERE c.entry_id=e.id AND c.status='approved' AND c.deleted_at IS NULL) comment_count,
@@ -147,7 +236,7 @@ final class Blog
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
              WHERE e.author_id=? AND e.type IN ('post','portfolio') AND e.status='published'
-               AND e.visibility='public' AND e.deleted_at IS NULL
+               AND {$visibilitySql} AND e.deleted_at IS NULL
                AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)
              ORDER BY e.published_at DESC,e.id DESC LIMIT {$limit}",
             [$authorId]
