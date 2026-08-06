@@ -1,8 +1,8 @@
-name: KOVCHEG Simple Blog UI checks
+name: KOVCHEG CMS public UI checks
 
 on:
   push:
-    branches: [main, feature/simple-blog-ui-3.5.8, feature/page-final-view-3.5.9]
+    branches: [main, feature/posts-menus-widgets-3.8.0]
   pull_request:
     branches: [main]
 
@@ -24,32 +24,38 @@ jobs:
         run: |
           php -l app/bootstrap.php
           php -l app/Blog.php
-          php -l app/BlogStudio32.php
+          php -l app/BlogThemeSupport.php
           php -l index.php
           php -l themes/kovcheg-portal/home.php
           php -l themes/kovcheg-portal/archive.php
-          php -l themes/kovcheg-portal/entry.php
+          php -l themes/kovcheg-portal/post.php
+          php -l themes/kovcheg-portal/page.php
           php -l themes/kovcheg-portal/layout.php
-          php -l themes/kovcheg-portal/author.php
+          php -l themes/kovcheg-editorial/home.php
+          php -l themes/kovcheg-editorial/archive.php
+          php -l themes/kovcheg-editorial/post.php
+          php -l themes/kovcheg-editorial/page.php
+          php -l themes/kovcheg-editorial/layout.php
           php -l views/studio/layout.php
-          php -l views/studio/editor.php
+          php -l views/studio/content-editor.php
+          php -l views/studio/content-list.php
           php -l views/studio/menus.php
-          php -l views/studio/content-index.php
           php -l views/account-shell.php
           php -l views/profile.php
-          php -l routes/blog-simple-mode.php
-          php -l routes/blog-entry-routing.php
+          php -l routes/blog-content-model.php
+          php -l routes/blog-categories.php
+          php -l routes/blog-menus.php
           php -l routes/blog-ux-fixes.php
-          php -l scripts/audit-simple-blog.php
-          php -l scripts/audit-entry-routing.php
-          php -l scripts/audit-page-final-view.php
+          php -l scripts/audit-cms-core-3.8.php
       - name: JavaScript syntax
-        run: node --check assets/js/blog-classic-editor.js
+        run: |
+          node --check assets/js/blog-classic-editor.js
+          node --check assets/js/blog-widgets.js
+          node --check assets/js/blog-essential-widgets.js
       - name: Product audits
         run: |
-          php scripts/audit-simple-blog.php
-          php scripts/audit-entry-routing.php
-          php scripts/audit-page-final-view.php
+          php scripts/audit-cms-core-3.8.php
           php scripts/audit-classic-editor.php
           php scripts/audit-studio-compact.php
+          php scripts/audit-login-routing.php
           php scripts/audit-portal-ui.php
