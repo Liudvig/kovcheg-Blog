@@ -1,8 +1,8 @@
-name: KOVCHEG Pages and Rubrics checks
+name: KOVCHEG Posts Pages and Rubrics checks
 
 on:
   push:
-    branches: [main, feature/page-category-core-3.7.0]
+    branches: [main, feature/posts-menus-widgets-3.8.0]
   pull_request:
     branches: [main]
 
@@ -25,39 +25,33 @@ jobs:
           php -l app/bootstrap.php
           php -l app/Blog.php
           php -l app/BlogStudio32.php
+          php -l app/BlogThemeSupport.php
           php -l index.php
-          php -l routes/blog-wordpress-mode.php
-          php -l routes/blog-wordpress-compat.php
-          php -l routes/blog-entry-routing.php
+          php -l routes/blog-content-model.php
+          php -l routes/blog-categories.php
+          php -l routes/blog-menus.php
           php -l routes/blog-ux-fixes.php
           php -l views/studio/layout.php
           php -l views/studio/dashboard.php
-          php -l views/studio/entries-index.php
-          php -l views/studio/wp-editor.php
+          php -l views/studio/content-list.php
+          php -l views/studio/content-editor.php
           php -l views/studio/categories.php
           php -l views/studio/menus.php
           php -l themes/kovcheg-portal/home.php
           php -l themes/kovcheg-portal/archive.php
+          php -l themes/kovcheg-portal/post.php
           php -l themes/kovcheg-portal/page.php
           php -l themes/kovcheg-portal/layout.php
           php -l themes/kovcheg-editorial/home.php
           php -l themes/kovcheg-editorial/archive.php
+          php -l themes/kovcheg-editorial/post.php
           php -l themes/kovcheg-editorial/page.php
-          php -l themes/kovcheg-portfolio/page.php
-          php -l scripts/audit-page-category-core.php
+          php -l scripts/audit-cms-core-3.8.php
       - name: JavaScript syntax
         run: node --check assets/js/blog-classic-editor.js
-      - name: Pages and Rubrics core audit
-        run: php scripts/audit-page-category-core.php
-      - name: Public UI audit
-        run: php scripts/audit-simple-blog.php
-      - name: Page routing audit
-        run: php scripts/audit-entry-routing.php
-      - name: Public Page view audit
-        run: php scripts/audit-page-final-view.php
-      - name: Classic editor audit
-        run: php scripts/audit-classic-editor.php
-      - name: Compact Studio audit
-        run: php scripts/audit-studio-compact.php
+      - name: Posts Pages and Rubrics audit
+        run: php scripts/audit-cms-core-3.8.php
+      - name: Login and branding audit
+        run: php scripts/audit-login-routing.php
       - name: Portal UI audit
         run: php scripts/audit-portal-ui.php

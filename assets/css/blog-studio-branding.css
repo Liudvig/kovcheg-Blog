@@ -1,0 +1,22 @@
+/* KOVCHEG CMS 3.8.0 — branding controls
+ * Author and copyright: Ланцет Семён Борисович
+ * License: proprietary / all rights reserved
+ */
+.branding-panel{overflow:hidden}
+.branding-panel .panel-title-row p{max-width:820px;margin:5px 0 0;color:#667085;font-size:12px;line-height:1.5}
+.branding-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.branding-preview-card{display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:14px;border:1px solid #dfe6ee;border-radius:12px;background:#fbfcfe}
+.branding-preview-card--wide{grid-column:1/-1}
+.branding-preview-card>span{color:#344054;font-size:12px;font-weight:800}
+.branding-preview-card>small{color:#7b8798;font-size:10px;line-height:1.45}
+.branding-logo-preview,.branding-favicon-preview{display:grid;place-items:center;width:100%;min-height:116px;padding:16px;border:1px dashed #cad5e1;border-radius:10px;background:#fff}
+.branding-logo-preview img{display:block;max-width:min(100%,340px);max-height:84px;object-fit:contain}
+.branding-favicon-preview img{display:block;width:64px;height:64px;object-fit:contain;border-radius:14px}
+.branding-login-preview{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:150px;padding:18px;border-radius:11px;background-position:center;background-size:cover;background-color:#142033;background-image:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,64,96,.82));color:#fff;overflow:hidden}
+.branding-login-preview:before{content:"";position:absolute}
+.branding-login-preview img{display:block;width:58px;height:58px;object-fit:contain;border-radius:14px;background:rgba(255,255,255,.12);backdrop-filter:blur(6px)}
+.branding-login-preview b{font-size:22px;letter-spacing:-.02em;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+.branding-fields{margin-top:14px}
+.branding-fields>section{padding:0;border:0;background:transparent}
+.studio-brand a>img{display:block;width:32px;height:32px;object-fit:contain;border-radius:8px;background:#fff}
+@media(max-width:760px){.branding-grid{grid-template-columns:1fr}.branding-preview-card--wide{grid-column:auto}.branding-login-preview{min-height:126px}.branding-login-preview b{font-size:18px}}

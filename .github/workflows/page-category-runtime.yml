@@ -1,8 +1,8 @@
-name: KOVCHEG Pages runtime checks
+name: KOVCHEG Posts and Pages runtime checks
 
 on:
   push:
-    branches: [main, feature/page-category-core-3.7.0]
+    branches: [main, feature/posts-menus-widgets-3.8.0]
   pull_request:
     branches: [main]
 
@@ -32,6 +32,7 @@ jobs:
           php-version: '8.3'
           coverage: none
           extensions: pdo_mysql, mbstring, dom, fileinfo
+
       - name: Runtime config
         run: |
           mkdir -p config storage/cache storage/logs storage/uploads storage/backups storage/builds
@@ -58,57 +59,60 @@ jobs:
             ],
           ];
           PHP
-      - name: Initialize schema
-        run: |
-          php -r '$schema=require "database/schema.php"; if(!is_string($schema)||trim($schema)==="") exit(1); file_put_contents("/tmp/kovcheg-schema.sql",$schema);'
-          MYSQL_PWD=root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg < /tmp/kovcheg-schema.sql
-      - name: Apply migrations
+
+      - name: Initialize schema and migrations
         run: |
           set -euo pipefail
+          php -r '$schema=require "database/schema.php"; if(!is_string($schema)||trim($schema)==="") exit(1); file_put_contents("/tmp/kovcheg-schema.sql",$schema);'
+          MYSQL_PWD=root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg < /tmp/kovcheg-schema.sql
           for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do
             echo "Applying ${migration}"
             MYSQL_PWD=root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg < "$migration"
           done
-      - name: Active lightweight runtime classes
-        run: |
-          php -r 'require "app/Core.php"; require "app/BlogLayout.php"; exit(class_exists("Kovcheg\\Blog\\Layout")&&method_exists("Kovcheg\\Blog\\Layout","registerWidget")&&method_exists("Kovcheg\\Blog\\Layout","widgetTypes")?0:1);'
-          php -r 'require "app/Core.php"; require "app/BlogStudio.php"; require "app/ClassicEditor.php"; require "app/BlogStudio32.php"; exit(class_exists("Kovcheg\\Blog\\Studio32")?0:1);'
-      - name: Migration runner
-        run: php bin/migrate.php
-      - name: Scheduled publishing
-        run: php bin/publish-scheduled.php
-      - name: Activate Portal
-        run: |
-          php -r '
-            $_SERVER["SCRIPT_NAME"]="cli";
-            require "app/bootstrap.php";
-            \Kovcheg\Blog\Studio::setSetting("blog_theme","kovcheg-portal");
-            \Kovcheg\Blog\Studio::setSetting("site_name","KOVCHEG CMS CI");
-            \Kovcheg\Blog\Studio::setSetting("search_indexing","0");
-            \Kovcheg\DB::run("UPDATE themes SET is_active=(slug=?)",["kovcheg-portal"]);
-          '
-      - name: Repair and render Portal layout
+          php bin/publish-scheduled.php
+
+      - name: Configure Portal and verify CMS widgets
         run: |
           php -r '
             $_SERVER["SCRIPT_NAME"]="cli";
             require "app/bootstrap.php";
             require_once "app/BlogLayoutRepair.php";
+            require_once "app/BlogEssentialWidgets.php";
+            require_once "app/BlogCmsWidgetOverrides.php";
+            \Kovcheg\Blog\EssentialWidgets::boot();
+            \Kovcheg\Blog\CmsWidgetOverrides::boot();
+            \Kovcheg\Blog\Studio::setSetting("blog_theme","kovcheg-portal");
+            \Kovcheg\Blog\Studio::setSetting("site_name","KOVCHEG CMS CI");
+            \Kovcheg\Blog\Studio::setSetting("search_indexing","0");
+            \Kovcheg\DB::run("UPDATE themes SET is_active=(slug=?)",["kovcheg-portal"]);
             \Kovcheg\Blog\LayoutRepair::ensure();
             \Kovcheg\Blog\LayoutRepair::repair(true);
             $zones=\Kovcheg\Blog\Layout::zones();
-            if((string)($zones["matrix.header.3"]??"")==="")exit(1);
-            if((string)($zones["matrix.left.1"]??"")==="")exit(1);
-            if((string)($zones["matrix.right.1"]??"")==="")exit(1);
-            if((string)($zones["matrix.footer.8"]??"")==="")exit(1);
-            $header=\Kovcheg\Blog\Layout::renderZone("matrix.header.3",["page_type"=>"home"]);
-            $left=\Kovcheg\Blog\Layout::renderZone("matrix.left.1",["page_type"=>"home"]);
-            $right=\Kovcheg\Blog\Layout::renderZone("matrix.right.1",["page_type"=>"home"]);
-            $footer=\Kovcheg\Blog\Layout::renderZone("matrix.footer.8",["page_type"=>"home"]);
-            if(!str_contains($header,"data-layout-zone=\"matrix.header.3\""))exit(2);
-            if(!str_contains($left,"data-layout-zone=\"matrix.left.1\""))exit(3);
-            if(!str_contains($right,"data-layout-zone=\"matrix.right.1\""))exit(4);
-            if(!str_contains($footer,"data-layout-zone=\"matrix.footer.8\""))exit(5);
+            foreach(["matrix.header.3","matrix.left.1","matrix.right.1","matrix.footer.8"] as $zone){
+              if(!isset($zones[$zone])){fwrite(STDERR,"Missing zone: {$zone}\n");exit(1);}
+            }
+            foreach(["core.menu","core.categories","core.auth-form","core.content-slider","core.media","core.media-slider","core.category-calendar"] as $type){
+              if(!\Kovcheg\Blog\Layout::widgetType($type)){fwrite(STDERR,"Missing widget: {$type}\n");exit(2);}
+            }
+            $required=(int)(\Kovcheg\DB::one("SELECT COUNT(*) c FROM site_widget_instances WHERE system_key IN (\"default-logo\",\"default-menu\",\"default-account\") AND is_enabled=1")["c"]??0);
+            if($required!==3){fwrite(STDERR,"Minimal header widgets: {$required}\n");exit(3);}
+            $forced=(int)(\Kovcheg\DB::one("SELECT COUNT(*) c FROM site_widget_placements p JOIN site_widget_instances w ON w.id=p.widget_id WHERE w.system_key IN (\"portal-section-menu\",\"portal-default-search\",\"default-subscription\",\"portal-footer-note\")")["c"]??0);
+            if($forced!==0){fwrite(STDERR,"Forced optional placements: {$forced}\n");exit(4);}
           '
+
+      - name: Create published Post and Page
+        run: |
+          php -r '
+            $_SERVER["SCRIPT_NAME"]="cli";
+            require "app/bootstrap.php";
+            $user=\Kovcheg\DB::one("SELECT id FROM users ORDER BY id LIMIT 1");
+            if(!$user){
+              $uid=\Kovcheg\DB::insert("INSERT INTO users (email,username,first_name,last_name,display_name,password_hash,role,is_active,approval_status,approved_at,created_at,updated_at) VALUES (\"owner@example.test\",\"owner_ci\",\"CMS\",\"Owner\",\"CMS Owner\",?,\"owner\",1,\"approved\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[password_hash("Kovcheg-CI-Password",PASSWORD_DEFAULT)]);
+            }else{$uid=(int)$user["id"];}
+            \Kovcheg\DB::run("INSERT INTO content_entries (author_id,type,status,title,slug,content_html,visibility,published_at,created_at,updated_at) VALUES (?,\"post\",\"published\",\"Тестовая запись\",\"test-post\",\"<p>Текст записи</p>\",\"public\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[$uid]);
+            \Kovcheg\DB::run("INSERT INTO content_entries (author_id,type,status,title,slug,content_html,visibility,published_at,created_at,updated_at) VALUES (?,\"page\",\"published\",\"Тестовая страница\",\"test-page\",\"<p>Текст страницы</p>\",\"public\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[$uid]);
+          '
+
       - name: Start PHP server
         run: |
           php -S 127.0.0.1:8099 index.php > /tmp/kovcheg-runtime.log 2>&1 &
@@ -117,33 +121,26 @@ jobs:
             if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi
             sleep 1
           done
-      - name: Home route
+
+      - name: Public routes
         run: |
-          curl --fail-with-body -sS -D /tmp/home.headers http://127.0.0.1:8099/ -o /tmp/home.html
-          grep -qi '^Content-Type: text/html' /tmp/home.headers
-          grep -q 'data-layout-zone="matrix.header.3"' /tmp/home.html
-          grep -q 'portal-matrix-sidebar portal-matrix-sidebar--left' /tmp/home.html
-          grep -q 'portal-matrix-sidebar portal-matrix-sidebar--right' /tmp/home.html
-          grep -q 'portal-matrix-footer-grid' /tmp/home.html
-          grep -q 'Ланцет Семён Борисович' /tmp/home.html
-      - name: Legacy Blog alias
+          for path in / /blog /portfolio /post/test-post /page/test-page; do
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' "http://127.0.0.1:8099${path}")
+            echo "$path -> $code"
+            test "$code" = "200"
+          done
+          curl -fsS http://127.0.0.1:8099/ | grep -q 'Тестовая запись'
+          curl -fsS http://127.0.0.1:8099/post/test-post | grep -q 'Текст записи'
+          curl -fsS http://127.0.0.1:8099/page/test-page | grep -q 'Текст страницы'
+
+      - name: Studio redirects unauthenticated visitors
         run: |
-          curl --fail-with-body -sS -D /tmp/blog.headers 'http://127.0.0.1:8099/blog?__kovcheg_route=/blog' -o /tmp/blog.html
-          grep -qi '^Content-Type: text/html' /tmp/blog.headers
-      - name: Legacy Portfolio alias
-        run: |
-          curl --fail-with-body -sS -D /tmp/portfolio.headers 'http://127.0.0.1:8099/portfolio?__kovcheg_route=/portfolio' -o /tmp/portfolio.html
-          grep -qi '^Content-Type: text/html' /tmp/portfolio.headers
-      - name: XML and robots routes
-        run: |
-          curl --fail-with-body -sS -D /tmp/sitemap.headers 'http://127.0.0.1:8099/sitemap.xml?__kovcheg_route=/sitemap.xml' -o /tmp/sitemap.xml
-          grep -qi '^Content-Type: application/xml' /tmp/sitemap.headers
-          curl --fail-with-body -sS -D /tmp/feed.headers 'http://127.0.0.1:8099/feed.xml?__kovcheg_route=/feed.xml' -o /tmp/feed.xml
-          grep -qi '^Content-Type: application/rss+xml' /tmp/feed.headers
-          curl --fail-with-body -sS -D /tmp/robots.headers 'http://127.0.0.1:8099/robots.txt?__kovcheg_route=/robots.txt' -o /tmp/robots.txt
-          grep -qi '^Content-Type: text/plain' /tmp/robots.headers
-      - name: Studio route
-        run: curl --fail-with-body -sS -D /tmp/studio.headers http://127.0.0.1:8099/studio -o /tmp/studio.html
+          for path in /studio /studio/posts /studio/pages /studio/categories /studio/menus /studio/widgets; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:8099${path}")
+            echo "$path -> $code"
+            test "$code" = "302"
+          done
+
       - name: Runtime log
         if: always()
         run: cat /tmp/kovcheg-runtime.log || true

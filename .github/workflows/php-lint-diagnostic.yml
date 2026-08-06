@@ -1,0 +1,32 @@
+name: KOVCHEG PHP lint diagnostics
+
+on:
+  push:
+    branches: [feature/posts-menus-widgets-3.8.0]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Annotated PHP lint
+        shell: bash
+        run: |
+          failed=0
+          while IFS= read -r -d '' file; do
+            output=$(php -l "$file" 2>&1) || {
+              message=$(printf '%s' "$output" | tr '\n' ' ' | sed 's/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
+              echo "::error file=${file}::${message}"
+              failed=1
+            }
+          done < <(find . -path './.git' -prune -o -path './vendor' -prune -o -type f -name '*.php' -print0)
+          exit "$failed"

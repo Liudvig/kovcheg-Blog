@@ -1,0 +1,141 @@
+name: KOVCHEG CMS 3.8 checks
+
+on:
+  push:
+    branches: [main, feature/posts-menus-widgets-3.8.0]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: kovcheg_ci_root
+          MARIADB_DATABASE: kovcheg_ci
+        ports: [3306:3306]
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: kovcheg_mysql_root
+          MYSQL_DATABASE: kovcheg_mysql_ci
+        ports: [3307:3306]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pkovcheg_mysql_root --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: mbstring, fileinfo, openssl, pdo_mysql, zip, dom
+
+      - name: PHP syntax
+        run: |
+          php -l app/bootstrap.php
+          php -l app/Blog.php
+          php -l app/BlogStudio32.php
+          php -l app/BlogLayoutRepair.php
+          php -l app/BlogEssentialWidgets.php
+          php -l app/BlogCmsWidgetOverrides.php
+          php -l app/BlogThemeSupport.php
+          php -l index.php
+          php -l routes/blog-content-model.php
+          php -l routes/blog-categories.php
+          php -l routes/blog-menus.php
+          php -l routes/blog-layout.php
+          php -l routes/blog-branding.php
+          php -l routes/blog-legacy-urls.php
+          php -l views/studio/layout.php
+          php -l views/studio/dashboard.php
+          php -l views/studio/content-list.php
+          php -l views/studio/content-editor.php
+          php -l views/studio/categories.php
+          php -l views/studio/menus.php
+          php -l views/studio/widgets.php
+          php -l views/login.php
+          php -l views/register.php
+          php -l themes/kovcheg-portal/layout.php
+          php -l themes/kovcheg-portal/home.php
+          php -l themes/kovcheg-portal/post.php
+          php -l themes/kovcheg-portal/page.php
+          php -l themes/kovcheg-editorial/layout.php
+          php -l themes/kovcheg-editorial/home.php
+          php -l themes/kovcheg-editorial/post.php
+          php -l scripts/audit-cms-core-3.8.php
+
+      - name: JavaScript syntax
+        run: |
+          node --check assets/js/blog-classic-editor.js
+          node --check assets/js/blog-widgets.js
+          node --check assets/js/blog-essential-widgets.js
+
+      - name: CMS 3.8 product audit
+        run: php scripts/audit-cms-core-3.8.php
+
+      - name: Validate migration on MariaDB and MySQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -r '$schema=require "database/schema.php"; file_put_contents("/tmp/kovcheg-schema.sql",$schema);'
+          apply_database() {
+            local label="$1" port="$2" database="$3" password="$4"
+            echo "=== ${label} ==="
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < /tmp/kovcheg-schema.sql
+            for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+              MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < "$migration"
+            done
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM content_entries WHERE type='portfolio';" | grep -qx '0'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM content_entry_categories ec JOIN content_entries e ON e.id=ec.entry_id WHERE e.type='page';" | grep -qx '0'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_placements p JOIN site_widget_instances w ON w.id=p.widget_id WHERE w.system_key IN ('portal-section-menu','portal-default-search','default-subscription','portal-footer-note');" | grep -qx '0'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_instances WHERE system_key IN ('portal-section-menu','portal-default-search','default-subscription','portal-footer-note') AND is_enabled=1;" | grep -qx '0'
+          }
+          apply_database "MariaDB 11" 3306 kovcheg_ci kovcheg_ci_root
+          apply_database "MySQL 8.4" 3307 kovcheg_mysql_ci kovcheg_mysql_root
+
+      - name: Runtime widgets and HTTP smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p config storage/logs storage/cache storage/uploads storage/backups storage/builds
+          cat > config/config.php <<'PHP'
+          <?php
+          return [
+              'app'=>['name'=>'KOVCHEG CMS CI','url'=>'http://127.0.0.1:8099','timezone'=>'UTC','debug'=>true,'key'=>'base64:'.base64_encode(str_repeat('K',32))],
+              'database'=>['driver'=>'mysql','host'=>'127.0.0.1','port'=>3306,'name'=>'kovcheg_ci','user'=>'root','password'=>'kovcheg_ci_root','charset'=>'utf8mb4'],
+          ];
+          PHP
+          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; require_once "app/BlogEssentialWidgets.php"; require_once "app/BlogCmsWidgetOverrides.php"; Kovcheg\Blog\EssentialWidgets::boot(); Kovcheg\Blog\CmsWidgetOverrides::boot(); foreach(["core.menu","core.categories","core.auth-form","core.content-slider","core.media","core.media-slider","core.category-calendar"] as $type) if(!Kovcheg\Blog\Layout::widgetType($type)) exit(2); echo "CMS widgets OK\n";'
+          php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-cms-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/kovcheg-cms-http.log || true' EXIT
+          for attempt in $(seq 1 30); do if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi; sleep 1; done
+          for path in / /blog /portfolio /login; do
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' "http://127.0.0.1:8099${path}")
+            echo "$path -> $code"
+            test "$code" = "200"
+          done
+          grep -q 'KOVCHEG CMS' /tmp/body
+          code=$(curl -sS -o /tmp/body -w '%{http_code}' http://127.0.0.1:8099/studio/posts)
+          test "$code" = "302"
+          code=$(curl -sS -o /tmp/body -w '%{http_code}' http://127.0.0.1:8099/studio/pages)
+          test "$code" = "302"
+          kill "$server_pid"; wait "$server_pid" 2>/dev/null || true
+          trap - EXIT
+          rm -f config/config.php

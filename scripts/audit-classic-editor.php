@@ -8,25 +8,29 @@ $read=static function(string $path)use($root):string{$content=@file_get_contents
 
 $bootstrap=$read('app/bootstrap.php');
 $layout=$read('views/studio/layout.php');
-$editor=$read('views/studio/wp-editor.php');
+$editor=$read('views/studio/content-editor.php');
+$routes=$read('routes/blog-content-model.php');
 $studio32=$read('app/BlogStudio32.php');
 $classic=$read('app/ClassicEditor.php');
 $script=$read('assets/js/blog-classic-editor.js');
 $style=$read('assets/css/blog-classic-editor.css');
 
 $appVersion='';
-if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)){$appVersion=(string)$match[1];$require(version_compare($appVersion,'3.7.0','>='),'Версия должна быть 3.7.0 или новее.');}else{$require(false,'APP_VERSION не найден.');}
+if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)){$appVersion=(string)$match[1];$require(version_compare($appVersion,'3.8.0','>='),'Версия должна быть 3.8.0 или новее.');}else{$require(false,'APP_VERSION не найден.');}
 $require(str_contains($layout,'blog-classic-editor.css'),'CSS редактора не подключён.');
 $require(str_contains($layout,'blog-classic-editor.js'),'JavaScript редактора не подключён.');
 $require(str_contains($editor,'data-classic-visual'),'Нет визуальной области.');
 $require(str_contains($editor,'data-classic-source'),'Нет режима HTML.');
-$require(str_contains($editor,'name="type" value="page"'),'Редактор не фиксирует тип page.');
-$require(!str_contains($editor,'Новая запись'),'В редакторе осталось понятие записи.');
+$require(str_contains($editor,'name="type" value="<?=e($type)?>"'),'Редактор не фиксирует тип материала.');
+$require(str_contains($editor,'$isPost=$type===\'post\';'),'Редактор не различает Запись и Страницу.');
+$require(str_contains($editor,'name="category_ids[]"'),'В Записи отсутствует выбор рубрик.');
+$require(str_contains($editor,'Добавить в меню'),'Страница не связана с меню.');
 $require(!str_contains($editor,'value="portfolio"'),'В редакторе осталось портфолио.');
+$require(!str_contains($editor,'data-editor-tab="builder"'),'В редакторе остался конструктор секций.');
 $require(str_contains($editor,'data-action="media"'),'Нет кнопки изображения.');
 $require(str_contains($editor,'data-action="preview"'),'Нет предпросмотра.');
-$require(str_contains($editor,'name="category_ids[]"'),'Страница не может быть добавлена в рубрику.');
-$require(str_contains($studio32,'$type=\'page\';'),'Studio32 не фиксирует тип page.');
+$require(str_contains($routes,"['posts'=>'post', 'pages'=>'page']"),'Маршруты не разделяют Записи и Страницы.');
+$require(str_contains($studio32,"==='page'?'page':'post'"),'Studio32 не ограничивает типы post/page.');
 $require(str_contains($studio32,'ClassicEditor::normalizePayload'),'Studio32 не обрабатывает классический payload.');
 $require(!str_contains($studio32,'Builder::'),'Сохранение всё ещё зависит от Builder.');
 $require(str_contains($classic,'DROP_CONTENT_TAGS'),'Не найден allowlist-санитайзер.');
@@ -47,4 +51,4 @@ $payload=json_encode([['id'=>'classic-test','type'=>'classic','data'=>['html'=>'
 $normalized=\Kovcheg\Blog\ClassicEditor::normalizePayload($payload);$rendered=\Kovcheg\Blog\ClassicEditor::renderPayload($normalized);
 $require(str_contains($rendered,'<h2>Заголовок</h2>'),'Не сохранён заголовок.');
 $require(str_contains($rendered,'<em>Текст</em>'),'Не сохранён курсив.');
-if($failures){foreach($failures as $failure)fwrite(STDERR,"FAIL: {$failure}\n");exit(1);}echo "Page classic editor audit OK\n";
+if($failures){foreach($failures as $failure)fwrite(STDERR,"FAIL: {$failure}\n");exit(1);}echo "Posts and Pages classic editor audit OK\n";
