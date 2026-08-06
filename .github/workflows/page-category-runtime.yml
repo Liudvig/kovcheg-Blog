@@ -69,15 +69,15 @@ jobs:
             echo "Applying ${migration}"
             MYSQL_PWD=root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg < "$migration"
           done
-      - name: Seed runtime
+      - name: Activate Portal
         run: |
           php -r '
             $_SERVER["SCRIPT_NAME"]="cli";
             require "app/bootstrap.php";
-            \Kovcheg\DB::run("INSERT INTO users (username,email,password_hash,display_name,role,approval_status,is_active,created_at,updated_at) VALUES (?,?,?,?,\"owner\",\"approved\",1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",["owner","owner@example.test",password_hash("password",PASSWORD_DEFAULT),"Owner"]);
-            foreach(["site_name"=>"KOVCHEG CMS CI","blog_theme"=>"kovcheg-portal","search_indexing"=>"0"] as $key=>$value){
-              \Kovcheg\DB::run("INSERT INTO settings (setting_key,setting_value,updated_at) VALUES (?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value),updated_at=CURRENT_TIMESTAMP",[$key,$value]);
-            }
+            \Kovcheg\Blog\Studio::setSetting("blog_theme","kovcheg-portal");
+            \Kovcheg\Blog\Studio::setSetting("site_name","KOVCHEG CMS CI");
+            \Kovcheg\Blog\Studio::setSetting("search_indexing","0");
+            \Kovcheg\DB::run("UPDATE themes SET is_active=(slug=?)",["kovcheg-portal"]);
           '
       - name: Repair Portal layout
         run: |
