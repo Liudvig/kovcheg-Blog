@@ -1,0 +1,180 @@
+/* KOVCHEG Blog 3.5.8 — portal-style account and profile
+ * Author and copyright: Ланцет Семён Борисович.
+ * License: proprietary / all rights reserved.
+ */
+
+.portal-account-body{
+ margin:0;
+ min-height:100vh;
+ background:#edf2f7;
+ color:#111827;
+ font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+.portal-account-body *{box-sizing:border-box}
+.portal-account-header{
+ position:sticky;
+ top:0;
+ z-index:20;
+ border-top:3px solid #263442;
+ border-bottom:1px solid #dbe3ec;
+ background:rgba(255,255,255,.96);
+ backdrop-filter:blur(14px);
+}
+.portal-account-header__inner{
+ display:flex;
+ align-items:center;
+ gap:20px;
+ width:min(1180px,calc(100% - 24px));
+ min-height:66px;
+ margin:0 auto;
+}
+.portal-account-brand{display:flex;align-items:center;gap:10px;min-width:230px;color:#111827;text-decoration:none}
+.portal-account-brand img{width:44px;height:44px;object-fit:contain;border-radius:12px}
+.portal-account-brand b,.portal-account-brand small{display:block}
+.portal-account-brand b{font-size:18px}
+.portal-account-brand small{font-size:10px;color:#758195}
+.portal-account-nav{display:flex;align-items:center;justify-content:center;gap:4px;flex:1}
+.portal-account-nav a{padding:8px 11px;border-radius:8px;color:#263442;font-weight:700;text-decoration:none}
+.portal-account-nav a:hover,.portal-account-nav a.active{background:#edf3f9;color:#245b91}
+.portal-account-actions{display:flex;align-items:center;gap:6px}
+.portal-account-actions a,.portal-account-actions button{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ min-height:34px;
+ padding:7px 11px;
+ border:1px solid #cfd9e5;
+ border-radius:8px;
+ background:#fff;
+ color:#172033;
+ font:inherit;
+ font-weight:700;
+ text-decoration:none;
+ cursor:pointer;
+}
+.portal-account-actions .primary{border-color:#245b91;background:#245b91;color:#fff}
+.portal-account-actions form{margin:0}
+
+.portal-account-main{width:min(1180px,calc(100% - 24px));margin:0 auto;padding:18px 0 38px}
+.portal-account-hero{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto;
+ gap:18px;
+ align-items:center;
+ padding:18px;
+ border:1px solid #dbe3ec;
+ border-radius:14px;
+ background:#fff;
+ box-shadow:0 5px 18px rgba(15,23,42,.055);
+}
+.portal-account-identity{display:flex;align-items:center;gap:14px;min-width:0}
+.portal-account-identity .profile-avatar{width:76px;height:76px;border-radius:18px}
+.portal-account-identity h1{margin:2px 0 4px;font-size:29px;line-height:1.1}
+.portal-account-identity p{margin:0;color:#6d7889}
+.portal-account-kicker{display:block;color:#356b9f;font-size:10px;font-weight:800;letter-spacing:.1em}
+.portal-account-hero__buttons{display:flex;gap:7px;flex-wrap:wrap}
+.portal-account-button{display:inline-flex;padding:8px 12px;border:1px solid #cfd9e5;border-radius:8px;background:#fff;color:#172033;font-weight:700;text-decoration:none}
+.portal-account-button.primary{border-color:#245b91;background:#245b91;color:#fff}
+
+.portal-account-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:10px 0}
+.portal-account-stats article{padding:12px;border:1px solid #dbe3ec;border-radius:11px;background:#fff}
+.portal-account-stats strong,.portal-account-stats span{display:block}
+.portal-account-stats strong{font-size:23px;line-height:1.1}
+.portal-account-stats span{margin-top:3px;color:#6d7889;font-size:11px}
+.portal-account-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.portal-account-card{padding:14px;border:1px solid #dbe3ec;border-radius:12px;background:#fff}
+.portal-account-card h2{margin:0 0 9px;font-size:16px}
+.portal-account-card nav{display:grid;gap:5px}
+.portal-account-card nav a{display:flex;justify-content:space-between;gap:10px;padding:8px 9px;border-radius:7px;color:#263442;text-decoration:none}
+.portal-account-card nav a:hover{background:#edf3f9}
+.portal-account-card nav b,.portal-account-card nav small{display:block}
+.portal-account-card nav small{color:#758195;font-size:10px}
+.portal-account-footer{display:flex;justify-content:space-between;gap:15px;width:min(1180px,calc(100% - 24px));margin:0 auto;padding:12px 0 20px;border-top:1px solid #d6dfe9;color:#718096;font-size:10px}
+
+.portal-profile-shell{
+ width:min(1180px,calc(100% - 22px));
+ margin:0 auto;
+ padding:18px 0 44px;
+}
+.portal-profile-breadcrumbs{display:flex;gap:8px;margin-bottom:10px;font-size:12px}
+.portal-profile-breadcrumbs a{color:#356b9f;text-decoration:none}
+.portal-profile-grid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:12px;align-items:start}
+.portal-profile-aside,.portal-profile-card,.portal-profile-stats,.portal-profile-wall>article,.portal-profile-wall .wall-composer{
+ border:1px solid #dbe3ec!important;
+ border-radius:13px!important;
+ background:#fff!important;
+ box-shadow:0 4px 15px rgba(15,23,42,.045)!important;
+}
+.portal-profile-aside{position:sticky;top:78px;padding:12px}
+.portal-profile-aside .profile-avatar-interactive{margin:0 auto 10px}
+.portal-profile-aside .vk-profile-avatar{width:100%!important;max-width:194px!important;height:auto!important;aspect-ratio:1!important;border-radius:12px!important;object-fit:cover!important}
+.portal-profile-aside .profile-avatar-button{width:100%!important}
+.portal-profile-edit{display:flex;justify-content:center;width:100%;margin-top:8px;padding:8px 10px;border-radius:8px;background:#245b91;color:#fff;font-weight:700;text-decoration:none}
+.portal-profile-links{display:grid;gap:3px;margin-top:10px;padding-top:9px;border-top:1px solid #e4e9ef}
+.portal-profile-links a{padding:7px 8px;border-radius:7px;color:#344054;text-decoration:none}
+.portal-profile-links a:hover{background:#edf3f9}
+.portal-profile-main{display:grid;gap:10px;min-width:0}
+.portal-profile-card{padding:16px}
+.portal-profile-card__head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.portal-profile-card h1{margin:0 0 3px;font-size:27px;line-height:1.1}
+.portal-profile-card .portal-profile-handle{color:#667085;text-decoration:none}
+.portal-profile-online{font-size:11px;color:#3f7b55}
+.portal-profile-status{display:flex;gap:6px;margin-top:12px}
+.portal-profile-status input{flex:1;min-width:0;padding:8px 9px;border:1px solid #cfd9e5;border-radius:7px}
+.portal-profile-status button{padding:8px 11px;border:0;border-radius:7px;background:#245b91;color:#fff;font-weight:700}
+.portal-profile-bio{margin-top:12px;padding-top:12px;border-top:1px solid #e4e9ef;color:#4c596a}
+.portal-profile-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0 0}
+.portal-profile-fields div{padding:9px;border-radius:8px;background:#f5f8fb}
+.portal-profile-fields dt{font-size:10px;color:#778397}
+.portal-profile-fields dd{margin:2px 0 0;font-weight:700;overflow-wrap:anywhere}
+.portal-profile-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:hidden}
+.portal-profile-stats a{padding:11px;text-align:center;color:#344054;text-decoration:none}
+.portal-profile-stats a+a{border-left:1px solid #e4e9ef}
+.portal-profile-stats b,.portal-profile-stats span{display:block}
+.portal-profile-stats b{font-size:21px}
+.portal-profile-stats span{font-size:10px;color:#778397}
+.portal-profile-wall{display:grid;gap:9px}
+.portal-profile-wall .profile-wall,.portal-profile-wall .wall-list{display:grid!important;gap:9px!important}
+.portal-profile-wall .wall-composer,.portal-profile-wall .profile-wall-post,.portal-profile-wall .feed-post{padding:13px!important;border-radius:12px!important}
+.portal-profile-wall textarea{min-height:80px!important}
+.portal-profile-wall img{max-width:100%}
+.portal-profile-shell .vk-right-card,.portal-profile-shell .vk-profile-left,.portal-profile-shell .vk-profile-main{all:unset}
+
+@media(max-width:880px){
+ .portal-account-nav{display:none}
+ .portal-account-brand{min-width:0;flex:1}
+ .portal-account-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .portal-profile-grid{grid-template-columns:180px minmax(0,1fr)}
+}
+@media(max-width:680px){
+ .portal-account-header__inner{min-height:58px}
+ .portal-account-brand small,.portal-account-actions .label{display:none}
+ .portal-account-hero{grid-template-columns:1fr}
+ .portal-account-grid{grid-template-columns:1fr}
+ .portal-profile-grid{grid-template-columns:1fr}
+ .portal-profile-aside{position:static}
+ .portal-profile-aside .vk-profile-avatar{max-width:150px!important}
+ .portal-profile-fields{grid-template-columns:1fr}
+ .portal-account-footer{display:block}
+}
+
+
+.portal-profile-context{background:#edf2f7!important;color:#172033!important}
+.portal-profile-context .topbar{
+ position:sticky!important;
+ top:0!important;
+ min-height:68px!important;
+ border-top:3px solid #263442!important;
+ border-bottom:1px solid #dbe3ec!important;
+ background:rgba(255,255,255,.97)!important;
+ box-shadow:0 3px 14px rgba(15,23,42,.04)!important;
+ color:#172033!important;
+}
+.portal-profile-context .kov-header-inner{width:min(1180px,calc(100% - 24px))!important;min-height:64px!important;margin:0 auto!important}
+.portal-profile-context .brand-logo{width:44px!important;height:44px!important;border-radius:11px!important}
+.portal-profile-context .brand-site-name-170{color:#172033!important;font-size:18px!important}
+.portal-profile-context .top-global-search{max-width:420px!important;border:1px solid #d7e0ea!important;background:#f5f8fb!important}
+.portal-profile-context .top-global-search input{color:#172033!important}
+.portal-profile-context .kov-header-account-button,.portal-profile-context .notification-bell{color:#172033!important;background:#f5f8fb!important;border-color:#d7e0ea!important}
+.portal-profile-context #kovcheg-page-content{min-height:calc(100vh - 68px)!important}
+.portal-profile-context .mobile-navigation{background:#fff!important;border-color:#dbe3ec!important}

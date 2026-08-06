@@ -1,0 +1,34 @@
+/* KOVCHEG Blog 3.5.8 — simple blog Studio
+ * Author and copyright: Ланцет Семён Борисович.
+ * License: proprietary / all rights reserved.
+ */
+
+.studio-body--simple .studio-sidebar{width:210px!important}
+.studio-body--simple .studio-main{margin-left:210px!important;width:calc(100% - 210px)!important}
+.studio-body--simple .studio-nav a{padding:7px 9px!important}
+.studio-body--simple .studio-content{max-width:1240px!important}
+.studio-body--simple .editor-layout{grid-template-columns:minmax(0,1fr) 250px!important;gap:9px!important}
+.studio-body--simple .editor-main,.studio-body--simple .editor-side{gap:8px!important}
+.studio-body--simple .editor-card{padding:10px!important}
+.studio-body--simple .editor-card--basic .form-grid{grid-template-columns:180px minmax(0,1fr)!important}
+.studio-body--simple .classic-editor-panel{padding:7px!important}
+.studio-body--simple .classic-editor-visual,.studio-body--simple .classic-editor-source{min-height:230px!important;max-height:410px!important}
+.studio-body--simple .editor-details{padding:0!important;overflow:hidden}
+.studio-body--simple .editor-details>summary{cursor:pointer;padding:9px 10px;font-weight:700;list-style:none}
+.studio-body--simple .editor-details>summary::-webkit-details-marker{display:none}
+.studio-body--simple .editor-details>summary:after{content:'+';float:right;color:#667085}
+.studio-body--simple .editor-details[open]>summary:after{content:'−'}
+.studio-body--simple .editor-details[open]>*:not(summary){margin-left:10px;margin-right:10px}
+.studio-body--simple .media-picker--compact{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:7px;max-height:112px;overflow:auto}
+.studio-body--simple .media-picker--compact button{aspect-ratio:1;border-radius:5px}
+.studio-body--simple .upload-zone--compact{min-height:76px!important;padding:8px!important}
+.studio-body--simple .upload-zone--compact .upload-zone__icon{font-size:20px!important}
+.studio-body--simple .check-list{max-height:130px!important}
+.studio-body--simple .menu-layout{grid-template-columns:205px minmax(0,1fr)!important}
+.studio-body--simple .menu-item-row{min-height:0!important}
+
+@media(max-width:900px){
+ .studio-body--simple .studio-main{margin-left:0!important;width:100%!important}
+ .studio-body--simple .editor-layout{grid-template-columns:1fr!important}
+ .studio-body--simple .editor-card--basic .form-grid{grid-template-columns:1fr!important}
+}

@@ -1,0 +1,42 @@
+name: KOVCHEG Simple Blog UI checks
+
+on:
+  push:
+    branches: [main, feature/simple-blog-ui-3.5.8]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: dom, mbstring, fileinfo
+      - name: PHP syntax
+        run: |
+          php -l app/bootstrap.php
+          php -l themes/kovcheg-portal/home.php
+          php -l themes/kovcheg-portal/archive.php
+          php -l themes/kovcheg-portal/entry.php
+          php -l themes/kovcheg-portal/author.php
+          php -l views/studio/layout.php
+          php -l views/studio/editor.php
+          php -l views/studio/menus.php
+          php -l views/account-shell.php
+          php -l views/profile.php
+          php -l routes/blog-simple-mode.php
+          php -l scripts/audit-simple-blog.php
+      - name: Product audits
+        run: |
+          php scripts/audit-simple-blog.php
+          php scripts/audit-classic-editor.php
+          php scripts/audit-studio-compact.php
+          php scripts/audit-portal-ui.php

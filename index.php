@@ -42,6 +42,7 @@ require __DIR__.'/app/bootstrap.php';
 
 $router = new \Kovcheg\Router();
 require __DIR__.'/routes/blog-preflight.php';
+require __DIR__.'/routes/blog-simple-mode.php';
 require __DIR__.'/routes/blog-growth.php';
 require __DIR__.'/routes/blog-layout.php';
 require __DIR__.'/routes/blog-ux-fixes.php';
