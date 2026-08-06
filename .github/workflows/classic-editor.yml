@@ -2,7 +2,7 @@ name: KOVCHEG Classic Editor checks
 
 on:
   push:
-    branches: [main, feature/classic-editor-3.5.6]
+    branches: [main, feature/posts-menus-widgets-3.8.0]
   pull_request:
     branches: [main]
 
@@ -24,13 +24,13 @@ jobs:
         run: |
           php -l app/ClassicEditor.php
           php -l app/BlogStudio32.php
-          php -l app/BlogDemoSite.php
-          php -l routes/blog-demo.php
-          php -l views/studio/editor.php
+          php -l routes/blog-content-model.php
+          php -l views/studio/content-editor.php
           php -l views/studio/layout.php
-          php -l views/studio/presets.php
           php -l scripts/audit-classic-editor.php
       - name: JavaScript syntax
         run: node --check assets/js/blog-classic-editor.js
       - name: Classic editor audit
         run: php scripts/audit-classic-editor.php
+      - name: CMS content model audit
+        run: php scripts/audit-cms-core-3.8.php
