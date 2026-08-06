@@ -1,0 +1,147 @@
+name: Append KOVCHEG CMS 3.8.0 development log
+
+on:
+  push:
+    branches: [feature/posts-menus-widgets-3.8.0]
+
+permissions:
+  contents: write
+
+jobs:
+  append:
+    if: ${{ !contains(github.event.head_commit.message, '[development-log-appended]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/posts-menus-widgets-3.8.0
+          fetch-depth: 0
+      - name: Append release entry
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -q '^## 2026-08-06 — Posts, Menus, Widgets and Branding$' docs/DEVELOPMENT_LOG.md; then
+            echo 'Development log entry already exists.'
+            exit 0
+          fi
+          cat >> docs/DEVELOPMENT_LOG.md <<'LOG'
+
+---
+
+## 2026-08-06 — Posts, Menus, Widgets and Branding
+
+Версия:
+3.8.0
+
+Ветка:
+feature/posts-menus-widgets-3.8.0
+
+Цель:
+Продолжить KOVCHEG CMS как российский аналог WordPress с более цельным управлением Записями, Страницами, меню, зонами, виджетами и брендингом.
+
+Основная модель:
+- Записи — новости, статьи и хронологические публикации;
+- Рубрики — тематические группы только для Записей;
+- Страницы — постоянные разделы сайта;
+- отдельный обязательный раздел «Блог» не создаётся: владелец сам называет рубрику «Новости», «Блог», «Проекты», «Отчёты» или любым другим названием.
+
+Что изменено:
+- Записи возвращены и полностью отделены от Страниц;
+- для Записей сохранены рубрики, краткое описание, дата публикации, комментарии, обложка и SEO;
+- для Страниц сохранены постоянный URL, классический редактор и добавление в меню;
+- добавлены канонические публичные URL `/post/{slug}` и `/page/{slug}`;
+- архив рубрики выводит только опубликованные Записи;
+- главная страница выводит Записи, но блок рубрик не навязывается;
+- создано управление несколькими независимыми меню;
+- меню назначаются в шапку, левую колонку, правую колонку или подвал;
+- любое меню можно дополнительно разместить через виджет в любой зоне;
+- пункты меню создаются из Страниц, Рубрик и произвольных ссылок;
+- меню и отдельные пункты можно включать, отключать, редактировать и удалять;
+- система виджетов оставлена визуальной, но очищена от обязательных демо-блоков;
+- каждый виджет можно создать, настроить, включить, отключить, копировать, удалить или убрать с сайта;
+- добавлены виджеты входа и регистрации, слайдера записей выбранной рубрики, фото, видео, аудио, медиаслайдера и календаря записей;
+- сохранены виджеты меню, логотипа, поиска, профиля, рубрик, последних записей, текста, подписки и социальных ссылок;
+- рубрики, поиск, подписка и footer-блоки больше не размещаются принудительно;
+- рубрики можно полностью не использовать, например на сайте-портфолио;
+- добавлен единый брендинг логотипа, favicon, фона входа и регистрации, названия, подписи и основного цвета;
+- логотип используется на публичном сайте, входе, регистрации и в KOVCHEG Studio;
+- регистрация скрывается из публичного интерфейса, когда она отключена;
+- старые работы портфолио переводятся в обычные Страницы без удаления текста и медиа;
+- старые адреса `/blog` и `/portfolio` сохранены для совместимости, но не добавляются в меню;
+- из runtime исключены устаревшие WordPress-mode, compatibility, demo и Builder routes.
+
+Основные файлы:
+- app/bootstrap.php
+- app/Blog.php
+- app/BlogStudio32.php
+- app/BlogLayoutRepair.php
+- app/BlogEssentialWidgets.php
+- app/BlogCmsWidgetOverrides.php
+- app/BlogThemeSupport.php
+- index.php
+- routes/blog-content-model.php
+- routes/blog-categories.php
+- routes/blog-menus.php
+- routes/blog-layout.php
+- routes/blog-branding.php
+- routes/blog-legacy-urls.php
+- views/studio/layout.php
+- views/studio/dashboard.php
+- views/studio/content-list.php
+- views/studio/content-editor.php
+- views/studio/categories.php
+- views/studio/menus.php
+- views/studio/widgets.php
+- views/login.php
+- views/register.php
+- themes/kovcheg-portal/layout.php
+- themes/kovcheg-portal/home.php
+- themes/kovcheg-portal/post.php
+- themes/kovcheg-portal/page.php
+- themes/kovcheg-editorial/layout.php
+- themes/kovcheg-editorial/home.php
+- themes/kovcheg-editorial/post.php
+- migrations/20260806_posts_menus_widgets.sql
+- scripts/audit-cms-core-3.8.php
+- docs/releases/KOVCHEG_CMS_3.8.0.md
+
+Миграция:
+`migrations/20260806_posts_menus_widgets.sql`
+
+Сохранность данных:
+- тексты, изображения, ревизии и медиаданные не удаляются;
+- `portfolio` переводится в `page`;
+- связи рубрик со Страницами удаляются, потому что рубрики относятся только к Записям;
+- старые обязательные пункты «Блог» и «Портфолио» удаляются из демонстрационного меню;
+- принудительные боковые, поисковые, подписные и footer-виджеты снимаются с позиций и отключаются.
+
+Проверка:
+- полный PHP lint — success;
+- JavaScript syntax — success;
+- JSON validation — success;
+- CMS 3.8 Posts, Menus, Widgets and Branding audit — success;
+- Login and Branding audit — success;
+- Account actions audit — success;
+- Classic Editor audit — success;
+- Compact Studio audit — success;
+- Portal UI audit — success;
+- миграции проверены на MariaDB 11 и MySQL 8.4;
+- runtime-проверка создала опубликованную Запись и Страницу;
+- `/`, `/blog`, `/portfolio`, `/post/test-post` и `/page/test-page` вернули HTTP 200;
+- маршруты Studio корректно переводят неавторизованного посетителя на вход;
+- 21 GitHub Actions run на commit `7356744be2077c2ecf6450188b42f67f426c177d` завершён успешно.
+
+Pull request:
+#39 — KOVCHEG CMS 3.8.0 — Записи, меню, виджеты и брендинг
+
+Deploy:
+Не выполнялся. Разрешён после итогового CI, слияния PR №39, резервной копии production и применения миграции.
+
+Статус:
+IMPLEMENTED — CI PASSED — READY TO MERGE
+LOG
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/DEVELOPMENT_LOG.md
+          git commit -m 'Document KOVCHEG CMS 3.8.0 [development-log-appended]'
+          git push origin HEAD:feature/posts-menus-widgets-3.8.0
