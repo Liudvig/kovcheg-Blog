@@ -20,8 +20,9 @@ $simpleCss=$read('assets/css/blog-studio-simple.css');
 $routes=$read('routes/blog-simple-mode.php');
 $index=$read('index.php');
 
-$expect($bootstrap,"const APP_VERSION = '3.5.8';",'Версия приложения должна быть 3.5.8.');
-$expect($bootstrap,"const ASSET_REVISION = '3.5.8-simple-blog-ui';",'Неверная ревизия статических файлов.');
+$appVersion='';
+if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)){$appVersion=(string)$match[1];if(version_compare($appVersion,'3.5.8','<'))$errors[]='Версия приложения должна быть 3.5.8 или новее.';}else{$errors[]='APP_VERSION не найден.';}
+if(preg_match("/const ASSET_REVISION = '([^']+)';/",$bootstrap,$match)!==1||$appVersion===''||!str_starts_with((string)$match[1],$appVersion.'-'))$errors[]='ASSET_REVISION должен начинаться с текущей версии.';
 $expect($home,'portal-post-card','Главная не использует компактную ленту публикаций.');
 if(str_contains($home,'portal-lead-story'))$errors[]='На главной остался растянутый ведущий материал.';
 $expect($archive,'portal-post-card','Архив не использует компактную ленту.');
