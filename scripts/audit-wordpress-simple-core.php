@@ -31,7 +31,7 @@ if($wpPos===false||$compatPos===false||$legacyPos===false||$wpPos>$compatPos||$c
 if(str_contains($index,'routes/blog-demo.php'))$errors[]='Демо-маршрут загружается в runtime.';
 
 foreach(['/studio/posts','/studio/pages','/studio/categories','/studio/entry/save'] as $route)$expect($wpRoutes,$route,'Нет маршрута '.$route);
-$expect($compat,"/studio/content/save",'Старая форма сохранения не нормализуется.');
+$expect($compat,'/studio/content/save','Старая форма сохранения не нормализуется.');
 $expect($wpRoutes,"target_kind']??''",'Меню не различает страницу, рубрику и ссылку.');
 $expect($wpRoutes,"type='page'",'Список источников меню не ограничен страницами.');
 $expect($wpRoutes,"e.type='post'",'Архив рубрики не ограничен записями.');
@@ -48,13 +48,13 @@ $expect($editor,'name="type"','Тип записи не зафиксирован
 $expect($editor,'data-classic-visual','Классический редактор отсутствует.');
 foreach(['value="portfolio"','name="tags"','portfolio_client','data-editor-tab="builder"'] as $token)if(str_contains($editor,$token))$errors[]='В редакторе осталось лишнее поле '.$token;
 $expect($editor,'Рубрики','В редакторе записи отсутствуют рубрики.');
-$expect($entries,"$entryType==='page'",'Списки записей и страниц не разделены.');
+$expect($entries,'$entryType===\'page\'','Списки записей и страниц не разделены.');
 if(str_contains($categories,'name="sort_order"'))$errors[]='В рубриках осталось ручное поле сортировки.';
 foreach(['target_kind" value="page"','target_kind" value="category"','target_kind" value="custom"'] as $token)$expect($menus,$token,'В меню отсутствует источник '.$token);
 
-$expect($studio32,"$type=(string)($input['type']??'')==='page'?'page':'post';",'Сохранение не ограничивает типы post/page.');
-$expect($studio32,"$type==='post'?(array)($input['category_ids']??[]):[]",'Рубрики не ограничены записями.');
-$expect($studio32,"self::syncTags($id,'');",'Теги не очищаются при сохранении.');
+$expect($studio32,'$type=(string)($input[\'type\']??\'\')===\'page\'?\'page\':\'post\';','Сохранение не ограничивает типы post/page.');
+$expect($studio32,'$type===\'post\'?(array)($input[\'category_ids\']??[]):[]','Рубрики не ограничены записями.');
+$expect($studio32,"self::syncTags(\$id,'');",'Теги не очищаются при сохранении.');
 if(str_contains($studio32,'Builder::'))$errors[]='Сохранение всё ещё зависит от Builder.';
 if(str_contains($entryRoutes,'/portfolio/{slug}'))$errors[]='Портфолио осталось каноническим типом.';
 if(str_contains($home,'portfolio'))$errors[]='На главной осталось портфолио.';
@@ -63,6 +63,6 @@ if(str_contains($entry,'portfolio')||str_contains($entry,'/tag/'))$errors[]='И�
 $expect($migration,"SET type = 'page'",'Миграция не переводит портфолио в страницы.');
 $expect($migration,"WHERE type = 'portfolio'",'Миграция не ограничена портфолио.');
 $expect($migration,"WHERE e.type = 'page'",'Миграция не удаляет рубрики со страниц.');
-foreach([$css] as $sheet)if(substr_count($sheet,'{')!==substr_count($sheet,'}'))$errors[]='В WordPress CSS нарушен баланс скобок.';
+if(substr_count($css,'{')!==substr_count($css,'}'))$errors[]='В WordPress CSS нарушен баланс скобок.';
 
 if($errors){fwrite(STDERR,"WordPress simple core audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}echo "WordPress simple core audit OK\n";
