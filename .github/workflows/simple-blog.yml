@@ -23,6 +23,8 @@ jobs:
       - name: PHP syntax
         run: |
           php -l app/bootstrap.php
+          php -l app/Blog.php
+          php -l index.php
           php -l themes/kovcheg-portal/home.php
           php -l themes/kovcheg-portal/archive.php
           php -l themes/kovcheg-portal/entry.php
@@ -30,13 +32,18 @@ jobs:
           php -l views/studio/layout.php
           php -l views/studio/editor.php
           php -l views/studio/menus.php
+          php -l views/studio/content-index.php
           php -l views/account-shell.php
           php -l views/profile.php
           php -l routes/blog-simple-mode.php
+          php -l routes/blog-entry-routing.php
+          php -l routes/blog-ux-fixes.php
           php -l scripts/audit-simple-blog.php
+          php -l scripts/audit-entry-routing.php
       - name: Product audits
         run: |
           php scripts/audit-simple-blog.php
+          php scripts/audit-entry-routing.php
           php scripts/audit-classic-editor.php
           php scripts/audit-studio-compact.php
           php scripts/audit-portal-ui.php
