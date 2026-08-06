@@ -12,45 +12,69 @@ use Kovcheg\Blog\Studio32;
 require_once BASE_PATH.'/app/BlogStudio.php';
 require_once BASE_PATH.'/app/BlogStudio32.php';
 
-/* Old public bookmark remains HTTP 200, but shows ordinary Posts only. */
-$router->get('/portfolio', function () {
-    Blog::render('archive',[
-        'title'=>'Записи',
-        'archiveTitle'=>'Записи',
-        'archiveDescription'=>'Новости и статьи блога.',
-        'entries'=>Blog::entries('post',100),
-        'entryType'=>'post',
-    ]);
-});
+if (!function_exists('kovcheg_redirect_home_permanent')) {
+    function kovcheg_redirect_home_permanent(): never
+    {
+        header('Location: '.app_url('/'), true, 301);
+        exit;
+    }
+}
 
-/* Old forms and bookmarks keep working, but content is normalized to post/page. */
+if (!function_exists('kovcheg_redirect_legacy_content')) {
+    function kovcheg_redirect_legacy_content(string $slug): never
+    {
+        $slug=trim($slug);
+        if($slug!==''){
+            $entry=DB::one('SELECT slug FROM content_entries WHERE slug=? AND deleted_at IS NULL LIMIT 1',[$slug]);
+            if($entry){
+                header('Location: '.app_url('/page/'.rawurlencode((string)$entry['slug'])),true,301);
+                exit;
+            }
+        }
+        kovcheg_redirect_home_permanent();
+    }
+}
+
+/* Old public Blog and Portfolio URLs are compatibility aliases only. */
+$router->get('/blog', function () { kovcheg_redirect_home_permanent(); });
+$router->get('/portfolio', function () { kovcheg_redirect_home_permanent(); });
+$router->get('/tag/{slug}', function () { kovcheg_redirect_home_permanent(); });
+$router->get('/blog/{slug}', function (array $params) { kovcheg_redirect_legacy_content((string)($params['slug']??'')); });
+$router->get('/portfolio/{slug}', function (array $params) { kovcheg_redirect_legacy_content((string)($params['slug']??'')); });
+
+/* Old Studio bookmarks all open the single Pages section. */
+$router->get('/studio/posts', function () { redirect('/studio/pages'); });
+$router->get('/studio/posts/new', function () { redirect('/studio/pages/new'); });
+$router->get('/studio/posts/{id}/edit', function (array $params) { redirect('/studio/pages/'.(int)$params['id'].'/edit'); });
+$router->get('/studio/content', function () { redirect('/studio/pages'); });
+$router->get('/studio/content/new', function () { redirect('/studio/pages/new'); });
+$router->get('/studio/content/{id}/edit', function (array $params) { redirect('/studio/pages/'.(int)$params['id'].'/edit'); });
+$router->get('/studio/portfolio', function () { redirect('/studio/pages'); });
+
+/* Old save forms remain accepted, but always create or update a Page. */
 $router->post('/studio/content/save', function () {
     Studio::require('content');
     Csrf::validate();
     $input=$_POST;
-    $input['type']=(string)($input['type']??'')==='page'?'page':'post';
+    $input['type']='page';
     $input['tags']='';
-    if($input['type']==='page'){
-        $input['category_ids']=[];
-        $input['excerpt']='';
-    }
     if(!empty($_FILES['featured_image']['name'])){
         $media=Studio32::storeMedia($_FILES['featured_image'],Auth::id(),0);
         $input['featured_image_path']=(string)($media['stored_path']??'');
     }
     $id=Studio32::saveEntry($input,Auth::id(),(int)($_POST['id']??0));
-    $_SESSION['flash_success']=$input['type']==='page'?'Страница сохранена.':'Запись сохранена.';
-    redirect('/studio/'.($input['type']==='page'?'pages':'posts').'/'.$id.'/edit');
+    $_SESSION['flash_success']='Страница сохранена.';
+    redirect('/studio/pages/'.$id.'/edit');
 });
 
-/* Categories belong only to Posts, as in WordPress. */
+/* Rubrics are optional sections for Pages: Новости, Блог, Документы, etc. */
 $router->get('/studio/categories', function () {
     Studio::require('content');
     $categories=DB::all("SELECT c.*,
         (SELECT COUNT(*) FROM content_entry_categories ec
          JOIN content_entries e ON e.id=ec.entry_id
-         WHERE ec.category_id=c.id AND e.type='post' AND e.deleted_at IS NULL) entry_count
-        FROM content_categories c ORDER BY c.name");
+         WHERE ec.category_id=c.id AND e.type='page' AND e.deleted_at IS NULL) entry_count
+        FROM content_categories c ORDER BY c.sort_order,c.name");
     Studio::render('categories',['studioSection'=>'categories','studioTitle'=>'Рубрики','categories'=>$categories]);
 });
 
@@ -69,7 +93,7 @@ $router->post('/studio/categories/save', function () {
     }else{
         $id=DB::insert('INSERT INTO content_categories (name,slug,description,sort_order,created_at,updated_at) VALUES (?,?,?,0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)',[$name,$slug,$description?:null]);
     }
-    audit('blog.category.save','content_category',$id);
+    audit('cms.category.save','content_category',$id);
     $_SESSION['flash_success']='Рубрика сохранена.';
     redirect('/studio/categories');
 });
@@ -79,7 +103,7 @@ $router->post('/studio/categories/{id}/delete', function (array $params) {
     Csrf::validate();
     $id=(int)$params['id'];
     DB::run('DELETE FROM content_categories WHERE id=?',[$id]);
-    audit('blog.category.delete','content_category',$id);
-    $_SESSION['flash_success']='Рубрика удалена. Записи сохранены.';
+    audit('cms.category.delete','content_category',$id);
+    $_SESSION['flash_success']='Рубрика удалена. Страницы сохранены.';
     redirect('/studio/categories');
 });
