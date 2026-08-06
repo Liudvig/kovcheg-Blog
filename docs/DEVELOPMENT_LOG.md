@@ -89,10 +89,14 @@ feature/portal-ui-repair-3.5.5
 - php -l для scripts/audit-portal-ui.php и обновлённых audit-скриптов;
 - статический аудит порядка подключения portal-ui-repair.css после blog-widgets.css;
 - проверка обязательных CSS-правил и баланса фигурных скобок;
-- KOVCHEG Portal UI checks завершился успешно;
 - первый запуск старых workflow выявил жёстко прошитую версию 3.5.4;
 - проверки login, account, unified Portal, modern widgets и Layout Matrix переведены на минимальную совместимую версию 3.5.4+;
-- повторный полный CI запускается через pull request #29.
+- повторный CI pull request #29 завершён успешно:
+  - KOVCHEG Blog checks — success;
+  - KOVCHEG Blog login routing — success;
+  - KOVCHEG Blog account actions — success;
+  - KOVCHEG Blog Layout Matrix — success;
+  - KOVCHEG Portal UI checks — success.
 
 Commits:
 - d4bce56dc20175929c38fdb7426ed6cf4abe4e81 — scoped Portal UI stylesheet;
@@ -106,7 +110,8 @@ Commits:
 - c63d785acb71d46b51b9a0cdacbeb36a36cf9a76 — release-safe unified Portal audit;
 - e4120e960fb4792e326015a35d289e5fe3415ae7 — release-safe modern widgets audit;
 - 013591035bafadb129eeebaa87d02096eaba4af0 — release-safe Layout Matrix audit;
-- b884983fab6a4110269f9ba4efabd132f7fd63db — updated release documentation.
+- b884983fab6a4110269f9ba4efabd132f7fd63db — updated release documentation;
+- df3822a5c25f5f9c59be5f203ea0747392a96435 — CI status and audit history.
 
 Pull request:
 #29 — KOVCHEG Blog 3.5.5 — Portal UI Repair
@@ -115,4 +120,4 @@ Deploy:
 Не выполнялся. Production VPS недоступен из текущего подключения; deploy допускается после CI и слияния в main.
 
 Статус:
-CI RUNNING
+CI PASSED — READY TO MERGE
