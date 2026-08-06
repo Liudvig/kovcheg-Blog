@@ -24,8 +24,8 @@ if(preg_match("/const APP_VERSION = '([0-9.]+)';/",$bootstrap,$versionMatch)===1
 if(preg_match("/const ASSET_REVISION = '([^']+)';/",$bootstrap,$assetMatch)===1)$assetRevision=$assetMatch[1];
 if($appVersion===''||version_compare($appVersion,'3.5.4','<'))$errors[]='Версия приложения должна быть 3.5.4 или новее.';
 if($assetRevision===''||$appVersion===''||!str_starts_with($assetRevision,$appVersion))$errors[]='ASSET_REVISION должен начинаться с текущей версии приложения.';
-$expect($studioLayout,'blog-zone-builder.css','Studio не подключает стили конструктора зон.');
-$expect($widgets,'widget-builder-shell--matrix','Макет не использует двухколоночную схему: каталог и рабочая область.');
+if(str_contains($studioLayout,'blog-zone-builder.css'))$errors[]='Обычная Studio не должна загружать стили конструктора зон.';
+$expect($widgets,'widget-builder-shell--matrix','Legacy-макет конструктора зон повреждён.');
 if(str_contains($widgets,'widget-revisions">'))$errors[]='На странице осталась отдельная правая колонка ревизий.';
 $expect($widgets,'widget-catalog--accordion','Каталог виджетов не сворачивается.');
 $expect($widgets,"\$renderZone('matrix.preheader'",'Отсутствует сплошная область над шапкой.');
@@ -39,7 +39,7 @@ $expect($widgets,"for(\$i=5;\$i<=12;\$i++)\$renderZone('matrix.center.'.\$i",'О
 $expect($widgets,"\$renderZone('matrix.banner.bottom'",'Отсутствует нижняя баннерная полоса.');
 $expect($widgets,"for(\$i=1;\$i<=8;\$i++)\$renderZone('matrix.footer.'.\$i",'Подвал не создаёт восемь блоков.');
 $expect($widgets,'matrix-copyright-lock','Отсутствует длинный блок копирайта.');
-$expect($builderCss,'grid-template-columns:300px minmax(0,1fr)','Конструктор не отдаёт всю оставшуюся ширину схеме.');
+$expect($builderCss,'grid-template-columns:300px minmax(0,1fr)','Legacy-конструктор повреждён.');
 $expect($builderCss,'grid-template-columns:repeat(5','Шапка не делится на пять секций.');
 $expect($builderCss,'grid-template-columns:repeat(4','Центр и подвал не делятся по четыре блока.');
 $expect($builderCss,'grid-template-rows:repeat(4','Боковые колонки не делятся на четыре вертикальных блока.');

@@ -16,17 +16,14 @@ if (!function_exists('kovcheg_entry_preview_context')) {
     function kovcheg_entry_preview_context(array $entry): array
     {
         $id=(int)($entry['id']??0);
-        $categories=DB::all('SELECT c.id,c.name,c.slug FROM content_categories c JOIN content_entry_categories ec ON ec.category_id=c.id WHERE ec.entry_id=? ORDER BY c.sort_order,c.name',[$id]);
-        $tags=DB::all('SELECT t.id,t.name,t.slug FROM content_tags t JOIN content_entry_tags et ON et.tag_id=t.id WHERE et.entry_id=? ORDER BY t.name',[$id]);
-        $meta=[];
-        foreach(DB::all('SELECT meta_key,meta_value FROM content_entry_meta WHERE entry_id=?',[$id]) as $item){
-            $meta[(string)$item['meta_key']]=(string)($item['meta_value']??'');
-        }
+        $categories=(string)($entry['type']??'post')==='post'
+            ? DB::all('SELECT c.id,c.name,c.slug FROM content_categories c JOIN content_entry_categories ec ON ec.category_id=c.id WHERE ec.entry_id=? ORDER BY c.name',[$id])
+            : [];
         $views=(int)(DB::one('SELECT COALESCE(SUM(views),0) total FROM content_views_daily WHERE entry_id=?',[$id])['total']??0);
         return [
             'categories'=>$categories,
-            'tags'=>$tags,
-            'portfolioMeta'=>$meta,
+            'tags'=>[],
+            'portfolioMeta'=>[],
             'viewCount'=>$views,
             'relatedEntries'=>[],
         ];
@@ -38,8 +35,8 @@ $router->get('/studio/content/{id}/preview', function (array $params) {
     Studio::require('content');
     $entry=DB::one("SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,u.bio author_bio
         FROM content_entries e JOIN users u ON u.id=e.author_id
-        WHERE e.id=? AND e.deleted_at IS NULL LIMIT 1",[(int)$params['id']]);
-    if(!$entry)abort(404,'Материал не найден.');
+        WHERE e.id=? AND e.type IN ('post','page') AND e.deleted_at IS NULL LIMIT 1",[(int)$params['id']]);
+    if(!$entry)abort(404,'Запись или страница не найдена.');
 
     if(Blog::canRead($entry)){
         header('Location: '.Blog::entryUrl($entry),true,302);

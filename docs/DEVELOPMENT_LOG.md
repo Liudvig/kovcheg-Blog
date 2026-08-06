@@ -658,3 +658,95 @@ Deploy:
 
 Статус:
 IMPLEMENTED — CI PENDING
+
+---
+
+## 2026-08-06 — WordPress Simple Core
+
+Версия:
+3.6.0
+
+Ветка:
+feature/wordpress-simple-core-3.6.0
+
+Цель:
+Сделать KOVCHEG Blog обычным лёгким блоговым движком с понятной логикой WordPress, без смешивания публикаций, страниц, портфолио, тегов, пресетов и конструкторов в одном рабочем процессе.
+
+Основная модель:
+- Записи — новости и статьи, которые выводятся в хронологической ленте;
+- Рубрики — тематические разделы только для записей;
+- Страницы — постоянные материалы сайта, которые можно привязывать к меню.
+
+Что изменено:
+- в Studio созданы отдельные разделы «Записи», «Рубрики» и «Страницы»;
+- универсальный список материалов заменён отдельными списками записей и страниц;
+- тип материала теперь определяется выбранным разделом и не меняется вручную в редакторе;
+- классический редактор документа оставлен единственным основным редактором;
+- из редактора убраны портфолио, теги, конструктор секций, ручная сортировка и служебные поля;
+- для записей доступны рубрики и краткое описание;
+- страницы публикуются отдельно, имеют постоянный URL и кнопку добавления в меню;
+- редактор меню принимает страницы, рубрики и произвольные ссылки;
+- рубрики больше не прикрепляются к страницам;
+- главная страница выводит только записи;
+- публичные канонические маршруты оставлены только для `/blog/{slug}` и `/page/{slug}`;
+- старый `/portfolio` обслуживается совместимым архивом записей, а старые ссылки работ переводятся на соответствующие страницы или в блог;
+- теги убраны из обычной работы и старые адреса тегов переводятся в блог;
+- демо-маршрут исключён из runtime;
+- сложные конструкторы и Widget Engine скрыты из обычного меню Studio;
+- Builder больше не загружается в bootstrap каждого запроса;
+- Studio больше не загружает CSS и JavaScript конструкторов на обычных страницах;
+- preview и публичный рендер не выполняют запросы тегов и portfolio metadata;
+- сохранение материалов больше не зависит от Builder.
+
+Сохранность данных:
+- существующие записи и страницы не удаляются;
+- существующие работы портфолио переводятся в обычные страницы;
+- тексты, изображения, постоянные адреса, ревизии и метаданные сохраняются;
+- связи рубрик со страницами удаляются, потому что рубрики относятся только к записям.
+
+Миграция:
+- migrations/20260806_wordpress_content_model.sql
+
+Основные файлы:
+- app/bootstrap.php
+- app/BlogStudio32.php
+- index.php
+- routes/blog-wordpress-mode.php
+- routes/blog-wordpress-compat.php
+- routes/blog-entry-routing.php
+- routes/blog-ux-fixes.php
+- views/studio/layout.php
+- views/studio/dashboard.php
+- views/studio/entries-index.php
+- views/studio/wp-editor.php
+- views/studio/categories.php
+- views/studio/menus.php
+- assets/css/blog-studio-wordpress.css
+- themes/kovcheg-portal/home.php
+- themes/kovcheg-editorial/entry.php
+- scripts/audit-wordpress-simple-core.php
+- .github/workflows/wordpress-simple-core.yml
+- docs/releases/KOVCHEG_BLOG_3.6.0.md
+- docs/DEVELOPMENT_LOG.md
+
+Проверка:
+- PHP syntax новых и изменённых файлов — success;
+- JavaScript syntax классического редактора — success;
+- WordPress Simple Core audit — success;
+- Simple Blog UI audit — success;
+- Public Entry Routing audit — success;
+- Final Page View audit — success;
+- Classic Editor audit — success;
+- Compact Studio audit — success;
+- Portal UI audit — success;
+- старые account, login и Layout Matrix проверки адаптированы к облегчённой Studio;
+- полный CI повторно запускается после итогового обновления журнала.
+
+Pull request:
+#37 — KOVCHEG Blog 3.6.0 — WordPress Simple Core
+
+Deploy:
+Не выполнялся. Допускается после успешного итогового CI, слияния pull request в main, резервной копии production и применения миграции.
+
+Статус:
+IMPLEMENTED — FINAL CI RUNNING
