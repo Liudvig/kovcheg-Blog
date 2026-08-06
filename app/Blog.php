@@ -37,18 +37,18 @@ final class Blog
         $layoutFile = BASE_PATH.'/themes/'.$theme.'/layout.php';
 
         if (!is_file($viewFile) || !is_file($layoutFile)) {
-            throw new RuntimeException('Файлы темы блога отсутствуют.');
+            throw new RuntimeException('Файлы темы сайта отсутствуют.');
         }
 
         extract($data, EXTR_SKIP);
-        $siteName = (string)setting('site_name', cfg('app.name', 'KOVCHEG Blog'));
+        $siteName = (string)setting('site_name', cfg('app.name', 'KOVCHEG CMS'));
         $menuItems = self::menu('header');
         $currentUser = Auth::user() ?? [];
         $themeAsset = static fn(string $path): string => self::themeAsset($path);
         $layoutContext = [
             'page_type' => $safeView !== '' ? $safeView : 'default',
             'view' => $safeView,
-            'entry_type' => isset($entry) && is_array($entry) ? (string)($entry['type'] ?? '') : '',
+            'entry_type' => isset($entry) && is_array($entry) ? 'page' : '',
             'entry_id' => isset($entry) && is_array($entry) ? (int)($entry['id'] ?? 0) : 0,
         ];
 
@@ -120,10 +120,13 @@ final class Blog
         return $publishedTime === false || $publishedTime <= time();
     }
 
-    public static function entries(string $type, int $limit = 12, int $offset = 0): array
+    /**
+     * Pages are the single content entity. Legacy post/portfolio calls are
+     * normalized to Pages so feeds and old integrations keep working.
+     */
+    public static function entries(string $type = 'page', int $limit = 12, int $offset = 0): array
     {
-        $allowed = ['post', 'page', 'portfolio'];
-        if (!in_array($type, $allowed, true)) {
+        if (!in_array($type, ['page', 'post', 'portfolio'], true)) {
             return [];
         }
 
@@ -137,11 +140,10 @@ final class Blog
                 (SELECT COUNT(*) FROM content_reactions r WHERE r.entry_id=e.id) reaction_count
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.type=? AND e.status='published' AND {$visibilitySql}
+             WHERE e.type='page' AND e.status='published' AND {$visibilitySql}
                AND e.deleted_at IS NULL AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)
              ORDER BY e.is_featured DESC,e.published_at DESC,e.id DESC
-             LIMIT {$limit} OFFSET {$offset}",
-            [$type]
+             LIMIT {$limit} OFFSET {$offset}"
         );
     }
 
@@ -152,22 +154,16 @@ final class Blog
             return null;
         }
 
-        $params = [$slug];
-        $typeSql = '';
-        if ($type !== null) {
-            $typeSql = ' AND e.type=?';
-            $params[] = $type;
-        }
         $visibilitySql = self::readableVisibilitySql('e');
 
         return DB::one(
             "SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,u.bio author_bio
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.slug=?{$typeSql} AND e.status='published' AND {$visibilitySql}
+             WHERE e.slug=? AND e.type='page' AND e.status='published' AND {$visibilitySql}
                AND e.deleted_at IS NULL AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)
              LIMIT 1",
-            $params
+            [$slug]
         );
     }
 
@@ -178,20 +174,13 @@ final class Blog
             return null;
         }
 
-        $params = [$slug];
-        $typeSql = '';
-        if ($type !== null) {
-            $typeSql = ' AND e.type=?';
-            $params[] = $type;
-        }
-
         return DB::one(
             "SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,u.bio author_bio
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.slug=?{$typeSql} AND e.deleted_at IS NULL
+             WHERE e.slug=? AND e.type='page' AND e.deleted_at IS NULL
              LIMIT 1",
-            $params
+            [$slug]
         );
     }
 
@@ -235,7 +224,7 @@ final class Blog
                 (SELECT COUNT(*) FROM content_reactions r WHERE r.entry_id=e.id) reaction_count
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.author_id=? AND e.type IN ('post','portfolio') AND e.status='published'
+             WHERE e.author_id=? AND e.type='page' AND e.status='published'
                AND {$visibilitySql} AND e.deleted_at IS NULL
                AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)
              ORDER BY e.published_at DESC,e.id DESC LIMIT {$limit}",
@@ -266,18 +255,12 @@ final class Blog
     {
         return [
             ['label' => 'Главная', 'url' => app_url('/'), 'parent_id' => null],
-            ['label' => 'Блог', 'url' => app_url('/blog'), 'parent_id' => null],
-            ['label' => 'Портфолио', 'url' => app_url('/portfolio'), 'parent_id' => null],
         ];
     }
 
     public static function entryUrl(array $entry): string
     {
-        return match ((string)($entry['type'] ?? 'post')) {
-            'page' => app_url('/page/'.rawurlencode((string)$entry['slug'])),
-            'portfolio' => app_url('/portfolio/'.rawurlencode((string)$entry['slug'])),
-            default => app_url('/blog/'.rawurlencode((string)$entry['slug'])),
-        };
+        return app_url('/page/'.rawurlencode((string)($entry['slug'] ?? '')));
     }
 
     public static function canModerate(): bool
