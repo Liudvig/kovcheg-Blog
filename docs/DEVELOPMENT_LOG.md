@@ -364,3 +364,72 @@ Deploy:
 
 Статус:
 IMPLEMENTED — READY FOR PULL REQUEST
+
+---
+
+## 2026-08-06 — Simple Blog UI
+
+Версия:
+3.5.8
+
+Ветка:
+feature/simple-blog-ui-3.5.8
+
+Что изменено:
+- публичная тема KOVCHEG Portal переведена на компактную блоговую ленту;
+- огромный ведущий материал удалён с главной и архивных страниц;
+- карточки публикаций используют небольшую миниатюру слева и текст справа, а на телефоне — изображение над текстом;
+- ограничены размеры обложек отдельных публикаций и работ портфолио;
+- уменьшены общая ширина сайта, боковые колонки, отступы, подвал и карточки;
+- портфолио на главной выводится компактным списком;
+- в обычном меню Studio скрыты конструктор, пресеты и демо, виджеты и модули;
+- старые служебные маршруты перенаправляются в стандартные разделы без физического удаления совместимого кода;
+- редактор оставлен только классический, без вкладки конструктора секций;
+- редкие поля материала свёрнуты в раздел «Дополнительно»;
+- ручная сортировка при добавлении пункта меню убрана, порядок назначается автоматически;
+- личный кабинет получил светлую оболочку в стиле KOVCHEG Portal;
+- профиль переведён на компактную двухколоночную сетку сайта с сохранением аватара, статуса и стены;
+- версия приложения повышена до 3.5.8 и обновлена ревизия статических файлов.
+
+Файлы:
+- app/bootstrap.php
+- index.php
+- routes/blog-simple-mode.php
+- themes/kovcheg-portal/home.php
+- themes/kovcheg-portal/archive.php
+- themes/kovcheg-portal/entry.php
+- themes/kovcheg-portal/author.php
+- themes/kovcheg-portal/assets/blog-compact.css
+- views/studio/layout.php
+- views/studio/editor.php
+- views/studio/menus.php
+- views/account-shell.php
+- views/profile.php
+- assets/css/blog-studio-simple.css
+- assets/css/blog-profile-portal.css
+- scripts/audit-simple-blog.php
+- scripts/audit-classic-editor.php
+- scripts/audit-studio-compact.php
+- .github/workflows/simple-blog.yml
+- docs/releases/KOVCHEG_BLOG_3.5.8.md
+- docs/DEVELOPMENT_LOG.md
+
+База данных:
+Миграции не требуются. Схема и существующие данные не изменяются.
+
+Проверка:
+- PHP lint изменённых PHP-файлов — успешно;
+- Simple blog UI audit — успешно;
+- Classic editor audit — успешно;
+- Studio compact UX audit — успешно;
+- Portal UI audit — успешно;
+- GitHub Actions KOVCHEG Simple Blog UI checks — success.
+
+Основной commit разработки:
+5cc5a387fa2b0993b2b7d6cecd4d45d211d30009
+
+Deploy:
+Не выполнялся. Разрешён после слияния pull request в main и резервной копии production.
+
+Статус:
+IMPLEMENTED — CI PASSED
