@@ -12,6 +12,7 @@ $script=$read('assets/js/blog-classic-editor.js');
 $compact=$read('assets/css/blog-studio-compact.css');
 $simple=$read('assets/css/blog-studio-simple.css');
 $routes=$read('routes/blog-ux-fixes.php');
+$entryRoutes=$read('routes/blog-entry-routing.php');
 $index=$read('index.php');
 
 $appVersion='';
@@ -26,9 +27,10 @@ $require($classicPos!==false&&$compactPos>$classicPos&&$simplePos>$compactPos,'�
 foreach(["shell.addEventListener('click'",'openMediaModal','openPreview','inlineUploadUrl','data-inline-media-upload'] as $token)$require(str_contains($script,$token),'В JavaScript отсутствует исправление: '.$token);
 foreach(['.classic-editor-visual{min-height:225px','.studio-topbar{flex-basis:54px','.classic-editor-inline-upload'] as $token)$require(str_contains($compact,$token),'В compact CSS отсутствует правило: '.$token);
 foreach(['.studio-body--simple .editor-layout','.studio-body--simple .media-picker--compact','.studio-body--simple .menu-layout'] as $token)$require(str_contains($simple,$token),'В simple CSS отсутствует правило: '.$token);
-foreach(["/studio/content/{id}/preview","/studio/media/upload-inline","/portfolio/{slug}"] as $token)$require(str_contains($routes,$token),'В UX-маршрутах отсутствует: '.$token);
-$uxPos=strpos($index,'routes/blog-ux-fixes.php');$blogPos=strpos($index,'routes/blog.php');
-$require($uxPos!==false&&$blogPos!==false&&$uxPos<$blogPos,'UX-маршруты должны быть перед публичными blog-маршрутами.');
+foreach(["/studio/content/{id}/preview","/studio/media/upload-inline"] as $token)$require(str_contains($routes,$token),'В UX-маршрутах отсутствует: '.$token);
+$require(str_contains($entryRoutes,"/portfolio/{slug}"),'В единых маршрутах отсутствует /portfolio/{slug}.');
+$uxPos=strpos($index,'routes/blog-ux-fixes.php');$entryPos=strpos($index,'routes/blog-entry-routing.php');$blogPos=strpos($index,'routes/blog.php');
+$require($uxPos!==false&&$entryPos!==false&&$blogPos!==false&&$entryPos<$uxPos&&$uxPos<$blogPos,'Маршруты entry/UX должны быть перед legacy blog-маршрутами.');
 $require(substr_count($compact,'{')===substr_count($compact,'}'),'В compact CSS нарушен баланс скобок.');
 $require(substr_count($simple,'{')===substr_count($simple,'}'),'В simple CSS нарушен баланс скобок.');
 if($failures){foreach($failures as $failure)fwrite(STDERR,"FAIL: {$failure}\n");exit(1);}echo "Studio compact UX audit OK\n";
