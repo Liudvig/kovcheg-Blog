@@ -41,7 +41,7 @@ final class Studio32
         $seoTitle=mb_substr(trim((string)($input['seo_title']??'')),0,255);
         $seoDescription=mb_substr(trim((string)($input['seo_description']??'')),0,320);
         $publishedAt=self::normalizeDateTime((string)($input['published_at']??''));
-        if($status==='published'&&$publishedAt===null)$publishedAt=date('Y-m-d H:i:s');
+        if($status==='published'&&($publishedAt===null||strtotime($publishedAt)>time()))$publishedAt=date('Y-m-d H:i:s');
         if($status==='scheduled'&&($publishedAt===null||strtotime($publishedAt)<=time()))abort(422,'Для запланированной публикации укажите будущую дату.');
         $flag=static fn(string $key):int=>!empty($input[$key])?1:0;
         $sort=max(-9999,min(9999,(int)($input['sort_order']??0)));
