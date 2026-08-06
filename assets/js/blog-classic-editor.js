@@ -13,6 +13,11 @@
   const state = document.querySelector('[data-autosave-state]');
   const mediaModal = document.querySelector('[data-classic-media-modal]');
   const previewModal = document.querySelector('[data-classic-preview]');
+  const typeField = form?.querySelector('[data-entry-type]');
+  const slugField = form?.querySelector('[data-entry-slug]');
+  const publicUrlField = form?.querySelector('[data-entry-public-url]');
+  const copyPublicUrlButton = form?.querySelector('[data-copy-public-url]');
+  const publicLinks = Array.from(document.querySelectorAll('[data-entry-public-link]'));
   const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
   if (!shell || !form || !jsonField || !modeField || !visual || !source) return;
@@ -21,6 +26,7 @@
 
   const autosaveUrl = form.dataset.autosaveUrl || '';
   const appBase = new URL(form.action, window.location.href).pathname.replace(/\/studio\/content\/save\/?$/, '');
+  const appRoot = (form.dataset.appUrl || window.location.origin).replace(/\/+$/, '');
   const inlineUploadUrl = `${appBase}/studio/media/upload-inline`;
   let classicAutosaveTimer = 0;
   let classicDirty = false;
@@ -34,6 +40,55 @@
 
   const syncVisualToSource = () => { source.value = visual.innerHTML.trim(); };
   const syncSourceToVisual = () => { visual.innerHTML = source.value; };
+
+  const updatePermalink = () => {
+    const type = typeField?.value || 'post';
+    const prefix = type === 'page' ? '/page/' : (type === 'portfolio' ? '/portfolio/' : '/blog/');
+    const slug = (slugField?.value || '').trim().replace(/^\/+|\/+$/g, '');
+    const url = slug === '' ? '' : `${appRoot}${prefix}${encodeURIComponent(slug)}`;
+
+    if (publicUrlField) {
+      publicUrlField.value = url;
+      publicUrlField.placeholder = slug === ''
+        ? 'Сохраните материал, чтобы получить ссылку'
+        : '';
+    }
+
+    publicLinks.forEach((link) => {
+      if (url === '') {
+        link.removeAttribute('href');
+        link.setAttribute('aria-disabled', 'true');
+      } else {
+        link.href = url;
+        link.removeAttribute('aria-disabled');
+      }
+    });
+
+    if (copyPublicUrlButton) copyPublicUrlButton.disabled = url === '';
+  };
+
+  const copyPublicUrl = async () => {
+    const url = publicUrlField?.value.trim() || '';
+    if (url === '' || !copyPublicUrlButton) return;
+
+    const original = copyPublicUrlButton.textContent;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        publicUrlField.focus();
+        publicUrlField.select();
+        document.execCommand('copy');
+        publicUrlField.setSelectionRange(0, 0);
+      }
+      copyPublicUrlButton.textContent = 'Скопировано';
+    } catch (_) {
+      copyPublicUrlButton.textContent = 'Выделите ссылку';
+      publicUrlField.focus();
+      publicUrlField.select();
+    }
+    window.setTimeout(() => { copyPublicUrlButton.textContent = original; }, 1600);
+  };
 
   const syncPayload = () => {
     if (modeField.value !== 'classic') return;
@@ -284,8 +339,12 @@
     const frame = previewModal?.querySelector('iframe');
     if (!previewModal || !frame) return;
     frame.setAttribute('sandbox', '');
-    frame.srcdoc = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{max-width:860px;margin:0 auto;padding:30px 24px;font:16px/1.65 Georgia,serif;color:#202124}h2,h3,h4{font-family:Arial,sans-serif;line-height:1.25}img{max-width:100%;height:auto}blockquote{margin:20px 0;padding:12px 18px;border-left:4px solid #2271b1;background:#f6f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccd0d4;padding:7px}.text-align-center{text-align:center}.text-align-right{text-align:right}.text-align-justify{text-align:justify}</style></head><body>${visual.innerHTML}</body></html>`;
+    frame.setAttribute('scrolling', 'yes');
+    frame.setAttribute('tabindex', '0');
+    frame.srcdoc = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html{min-height:100%;overflow-y:auto}body{box-sizing:border-box;min-height:100%;max-width:860px;margin:0 auto;padding:30px 24px 80px;font:16px/1.65 Georgia,serif;color:#202124;overflow-y:auto;overflow-x:hidden}h2,h3,h4{font-family:Arial,sans-serif;line-height:1.25}img{max-width:100%;height:auto}blockquote{margin:20px 0;padding:12px 18px;border-left:4px solid #2271b1;background:#f6f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccd0d4;padding:7px}.text-align-center{text-align:center}.text-align-right{text-align:right}.text-align-justify{text-align:justify}</style></head><body>${visual.innerHTML}</body></html>`;
+    frame.addEventListener('load', () => frame.contentWindow?.scrollTo(0, 0), {once: true});
     previewModal.removeAttribute('hidden');
+    frame.focus();
   };
 
   document.querySelectorAll('[data-editor-tab]').forEach((button) => {
@@ -332,6 +391,9 @@
   visual.addEventListener('input', changed);
   source.addEventListener('input', changed);
   visual.addEventListener('blur', syncVisualToSource);
+  typeField?.addEventListener('change', updatePermalink);
+  slugField?.addEventListener('input', updatePermalink);
+  copyPublicUrlButton?.addEventListener('click', copyPublicUrl);
 
   visual.addEventListener('paste', (event) => {
     const html = event.clipboardData?.getData('text/html') || '';
@@ -408,5 +470,6 @@
   switchEditorMode(modeField.value || 'classic');
   syncVisualToSource();
   syncPayload();
+  updatePermalink();
   updateCount();
 })();
