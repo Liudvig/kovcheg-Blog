@@ -31,7 +31,7 @@ $require(str_contains($layout,'Страница'),'Нет быстрой кно�
 $require(str_contains($editor,'page-only-editor'),'Редактор не использует компактный layout документа.');
 $require(str_contains($editor,'$isPost'),'Редактор не различает Записи и Страницы.');
 $require(str_contains($contentList,'page-list-card'),'Список материалов не использует компактные карточки.');
-$require(str_contains($contentList,"$entryType==='post'"),'Список не различает Записи и Страницы.');
+$require(str_contains($contentList,'$entryType===\'post\''),'Список не различает Записи и Страницы.');
 $require(str_contains($categories,'categories-layout--pages'),'Рубрики не используют компактный layout.');
 $require(str_contains($menus,'cms-menu-layout'),'Меню не использует компактный layout.');
 foreach(["shell.addEventListener('click'",'openMediaModal','openPreview','inlineUploadUrl'] as $token)$require(str_contains($script,$token),'В JavaScript отсутствует '.$token);
