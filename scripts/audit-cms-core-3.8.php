@@ -61,7 +61,7 @@ foreach([
 
 foreach(['/studio/posts','/studio/pages','/studio/entry/save','/post/{slug}','/page/{slug}','/category/{slug}'] as $route)$expect($content,$route,'Нет маршрута '.$route);
 $expect($content,"e.type='post'",'Публичная рубрика не ограничена записями.');
-$expect($content,"$input['type'] = (string)($_POST['type'] ?? '') === 'page' ? 'page' : 'post';",'Сохранение не различает Записи и Страницы.');
+$expect($content,"\$input['type'] = (string)(\$_POST['type'] ?? '') === 'page' ? 'page' : 'post';",'Сохранение не различает Записи и Страницы.');
 $expect($categories,"e.type='post'",'Счётчик рубрик включает не только записи.');
 $expect($categories,'Записи сохранены без неё','Удаление рубрики должно сохранять записи.');
 $expect($editor,'$isPost','Редактор не различает Запись и Страницу.');
@@ -77,17 +77,17 @@ if(str_contains($blog,"['Главная','/']")||str_contains($blog,"['Блог'
 foreach(['core.auth-form','core.content-slider','core.media','core.media-slider','core.category-calendar'] as $type)$expect($essential,$type,'Не зарегистрирован виджет '.$type);
 foreach(['core.menu','core.account','core.categories'] as $type)$expect($overrides,$type,'Не переопределён виджет '.$type);
 $expect($overrides,"e.type='post'",'Виджет рубрик считает не только записи.');
-$expect($overrides,"registration_mode",'Виджет профиля не учитывает закрытую регистрацию.');
+$expect($overrides,'registration_mode','Виджет профиля не учитывает закрытую регистрацию.');
 $expect($layoutRoutes,'CmsWidgetOverrides::boot();','Widget overrides не активируются.');
 $expect($widgetsView,'Главная, запись или страница','Конструктор зон не знает о Записях и Страницах.');
 $expect($widgetsView,'Ненужные виджеты можно отключить','Интерфейс не объясняет отключение виджетов.');
 if(str_contains($layoutRepair,'portal-section-menu')||str_contains($layoutRepair,'portal-default-search'))$errors[]='LayoutRepair всё ещё принудительно создаёт боковые виджеты.';
 
 foreach([$portalLayout,$editorialLayout] as $themeLayout){
-    $expect($themeLayout,'ThemeSupport::menuHtml(\'header\'','Тема не выводит назначенное меню шапки.');
-    $expect($themeLayout,'ThemeSupport::menuHtml(\'left\'','Тема не выводит назначенное левое меню.');
-    $expect($themeLayout,'ThemeSupport::menuHtml(\'right\'','Тема не выводит назначенное правое меню.');
-    $expect($themeLayout,'ThemeSupport::menuHtml(\'footer\'','Тема не выводит назначенное меню подвала.');
+    $expect($themeLayout,"ThemeSupport::menuHtml('header'",'Тема не выводит назначенное меню шапки.');
+    $expect($themeLayout,"ThemeSupport::menuHtml('left'",'Тема не выводит назначенное левое меню.');
+    $expect($themeLayout,"ThemeSupport::menuHtml('right'",'Тема не выводит назначенное правое меню.');
+    $expect($themeLayout,"ThemeSupport::menuHtml('footer'",'Тема не выводит назначенное меню подвала.');
 }
 $expect($themeSupport,'registration_mode','ThemeSupport не скрывает закрытую регистрацию.');
 $expect($portalHome,'$posts','Portal home не выводит Записи.');
@@ -99,9 +99,9 @@ foreach(['blog-auth-brand.css','/brand/logo','/brand/login-background'] as $toke
 foreach(['blog-registration.css','/brand/logo','/brand/login-background'] as $token)$expect($register,$token,'Регистрация не использует брендинг: '.$token);
 $expect($studioLayout,'/brand/logo','Studio не использует логотип сайта.');
 $expect($studioLayout,'blog-studio-menus.css','Studio не подключает оформление меню.');
-$expect($dashboard,'$stats[\'posts\']','Dashboard не показывает Записи.');
+$expect($dashboard,"\$stats['posts']",'Dashboard не показывает Записи.');
 
-foreach(["SET type='page'","WHERE type='portfolio'","WHERE e.type='page'","portal-section-menu","default-subscription"] as $token)$expect($migration,$token,'Миграция 3.8.0 не содержит '.$token);
+foreach(["SET type='page'","WHERE type='portfolio'","WHERE e.type='page'",'portal-section-menu','default-subscription'] as $token)$expect($migration,$token,'Миграция 3.8.0 не содержит '.$token);
 $expect($migration,'DELETE p','Миграция не удаляет принудительные размещения виджетов.');
 
 foreach([$menuCss,$registrationCss] as $css)if(substr_count($css,'{')!==substr_count($css,'}'))$errors[]='В CSS нарушен баланс фигурных скобок.';
