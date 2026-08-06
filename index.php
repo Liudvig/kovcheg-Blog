@@ -28,17 +28,11 @@ if ($currentPath === '/index.php' || $currentPath === 'index.php') {
         }
 
         $routePath = (string)(parse_url($routeCandidate, PHP_URL_PATH) ?: '/');
-        if ($routePath === '/index.php') {
-            continue;
-        }
+        if ($routePath === '/index.php') continue;
 
         unset($_GET['__kovcheg_route'], $_REQUEST['__kovcheg_route']);
-
         $routeQuery = (string)(parse_url($routeCandidate, PHP_URL_QUERY) ?? '');
-        if ($routeQuery === '' && $_GET !== []) {
-            $routeQuery = http_build_query($_GET, '', '&', PHP_QUERY_RFC3986);
-        }
-
+        if ($routeQuery === '' && $_GET !== []) $routeQuery = http_build_query($_GET, '', '&', PHP_QUERY_RFC3986);
         $_SERVER['REQUEST_URI'] = $routePath.($routeQuery !== '' ? '?'.$routeQuery : '');
         break;
     }
@@ -51,6 +45,7 @@ require __DIR__.'/routes/blog-preflight.php';
 require __DIR__.'/routes/blog-growth.php';
 require __DIR__.'/routes/blog-layout.php';
 require __DIR__.'/routes/blog-builder.php';
+require __DIR__.'/routes/blog-demo.php';
 require __DIR__.'/routes/blog.php';
 require __DIR__.'/routes/blog-studio.php';
 require __DIR__.'/routes/account.php';

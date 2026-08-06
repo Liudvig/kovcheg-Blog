@@ -8,6 +8,8 @@ use Kovcheg\Auth;
 use Kovcheg\DB;
 use Throwable;
 
+require_once __DIR__.'/ClassicEditor.php';
+
 final class Studio32
 {
     public static function saveEntry(array $input, int $authorId, int $entryId = 0): int
@@ -24,8 +26,16 @@ final class Studio32
         if(mb_strlen($title)<2||mb_strlen($title)>255)abort(422,'Заголовок должен содержать от 2 до 255 символов.');
         $slug=Studio::uniqueSlug(trim((string)($input['slug']??''))?:$title,$entryId);
         $excerpt=mb_substr(trim((string)($input['excerpt']??'')),0,2000);
-        $contentJson=Builder::normalize((string)($input['content_json']??'[]'));
-        $contentHtml=Builder::render($contentJson);
+        $rawContent=(string)($input['content_json']??'[]');
+        if(ClassicEditor::isClassicPayload($rawContent)){
+            $contentJson=ClassicEditor::normalizePayload($rawContent);
+            $contentHtml=ClassicEditor::renderPayload($contentJson);
+            $editor='classic';
+        }else{
+            $contentJson=Builder::normalize($rawContent);
+            $contentHtml=Builder::render($contentJson);
+            $editor='builder';
+        }
         $featured=self::safeStoredPath((string)($input['featured_image_path']??''));
         $template=preg_match('/^[a-z0-9_-]{0,80}$/',(string)($input['template']??''))?(string)($input['template']??''):'';
         $seoTitle=mb_substr(trim((string)($input['seo_title']??'')),0,255);
@@ -54,11 +64,12 @@ final class Studio32
                 'project_url'=>self::safeUrl((string)($input['portfolio_url']??'')),
                 'layout_width'=>in_array((string)($input['layout_width']??''),['narrow','normal','wide','full'],true)?(string)$input['layout_width']:'normal',
                 'accent'=>preg_match('/^#[0-9a-fA-F]{6}$/',(string)($input['accent']??''))?(string)$input['accent']:'',
+                'editor_mode'=>$editor,
             ]);
             DB::run("DELETE FROM content_autosaves WHERE user_id=? AND (entry_id=? OR autosave_key='new')",[$authorId,$id]);
             DB::pdo()->commit();
         }catch(Throwable $e){if(DB::pdo()->inTransaction())DB::pdo()->rollBack();throw $e;}
-        audit($current?'blog.entry.update':'blog.entry.create','content_entry',$id,['type'=>$type,'status'=>$status,'builder'=>'3.2']);
+        audit($current?'blog.entry.update':'blog.entry.create','content_entry',$id,['type'=>$type,'status'=>$status,'editor'=>$editor]);
         return $id;
     }
 
@@ -77,7 +88,9 @@ final class Studio32
         Studio::require('content');
         $entryId=max(0,$entryId);
         if($entryId&&!DB::one('SELECT id FROM content_entries WHERE id=? AND deleted_at IS NULL',[$entryId]))abort(404,'Материал не найден.');
-        $normalized=Builder::normalize($contentJson);
+        $normalized=ClassicEditor::isClassicPayload($contentJson)
+            ? ClassicEditor::normalizePayload($contentJson)
+            : Builder::normalize($contentJson);
         $key=$entryId>0?'entry:'.$entryId:'new';
         DB::run('INSERT INTO content_autosaves (entry_id,user_id,autosave_key,title,excerpt,content_json,saved_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE entry_id=VALUES(entry_id),title=VALUES(title),excerpt=VALUES(excerpt),content_json=VALUES(content_json),saved_at=CURRENT_TIMESTAMP',[$entryId?:null,$userId,$key,mb_substr(trim($title),0,255),mb_substr(trim($excerpt),0,2000),$normalized]);
     }
