@@ -102,7 +102,25 @@ jobs:
               'database'=>['driver'=>'mysql','host'=>'127.0.0.1','port'=>3306,'name'=>'kovcheg_ci','user'=>'root','password'=>'kovcheg_ci_root','charset'=>'utf8mb4'],
           ];
           PHP
-          php -r '$_SERVER["SCRIPT_NAME"]="cli"; require "app/bootstrap.php"; require_once "app/BlogLayoutRepair.php"; require_once "app/BlogEssentialWidgets.php"; require_once "app/BlogCmsWidgetOverrides.php"; Kovcheg\Blog\EssentialWidgets::boot(); Kovcheg\Blog\CmsWidgetOverrides::boot(); Kovcheg\Blog\LayoutRepair::ensure(); Kovcheg\Blog\LayoutRepair::repair(true); foreach(["core.menu","core.categories","core.auth-form","core.content-slider","core.media","core.media-slider","core.category-calendar"] as $type) if(!Kovcheg\Blog\Layout::widgetType($type)) exit(2); $header=Kovcheg\Blog\Layout::renderZone("matrix.header.3",["page_type"=>"home"]); if($header==="") exit(3); foreach(["matrix.left.1","matrix.right.1","matrix.footer.8"] as $zone) if(Kovcheg\Blog\Layout::renderZone($zone,["page_type"=>"home"])!=="") exit(4); echo "Runtime widgets OK\n";'
+          php -r '
+            $_SERVER["SCRIPT_NAME"]="cli";
+            require "app/bootstrap.php";
+            require_once "app/BlogLayoutRepair.php";
+            require_once "app/BlogEssentialWidgets.php";
+            require_once "app/BlogCmsWidgetOverrides.php";
+            Kovcheg\Blog\EssentialWidgets::boot();
+            Kovcheg\Blog\CmsWidgetOverrides::boot();
+            Kovcheg\Blog\LayoutRepair::ensure();
+            Kovcheg\Blog\LayoutRepair::repair(true);
+            foreach(["core.menu","core.categories","core.auth-form","core.content-slider","core.media","core.media-slider","core.category-calendar"] as $type){
+              if(!Kovcheg\Blog\Layout::widgetType($type)){fwrite(STDERR,"Missing widget: {$type}\n");exit(2);}
+            }
+            $required=(int)(Kovcheg\DB::one("SELECT COUNT(*) c FROM site_widget_instances WHERE system_key IN (\"default-logo\",\"default-menu\",\"default-account\") AND is_enabled=1")["c"]??0);
+            if($required!==3){fwrite(STDERR,"Minimal header widgets: {$required}\n");exit(3);}
+            $forced=(int)(Kovcheg\DB::one("SELECT COUNT(*) c FROM site_widget_placements p JOIN site_widget_instances w ON w.id=p.widget_id WHERE w.system_key IN (\"portal-section-menu\",\"portal-default-search\",\"default-subscription\",\"portal-footer-note\")")["c"]??0);
+            if($forced!==0){fwrite(STDERR,"Forced optional placements: {$forced}\n");exit(4);}
+            echo "Runtime widgets OK\n";
+          '
           php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-http.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/kovcheg-http.log || true' EXIT
@@ -115,6 +133,7 @@ jobs:
           grep -q 'KOVCHEG' /tmp/body
           for path in /studio /studio/posts /studio/pages /studio/categories /studio/menus /studio/widgets; do
             code=$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:8099${path}")
+            echo "$path -> $code"
             test "$code" = "302"
           done
           kill "$server_pid"; wait "$server_pid" 2>/dev/null || true
