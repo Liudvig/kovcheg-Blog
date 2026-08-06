@@ -495,7 +495,7 @@ feature/simple-blog-ui-3.5.8
 Основные commits:
 - 2568aef7e3a8cba15ae3c65cfa42309f2654370b — единая логика видимости и доступности;
 - ca9b98fe4ea7d821e2a6aef0821da83254e7002b — единые публичные маршруты;
-- a76c9550e381e5ff188fec9346e111b5b8fa7567 — регистрация маршрутов до legacy handlers;
+- a76c9550e381e2e6c073a3c7f3855d6fa8eb47 — регистрация маршрутов до legacy handlers;
 - b6fcf65c9e2ef406b880709fb3ef2aab0574fc5f — удаление portfolio-only workaround;
 - 771478ab994022f847ee20cfc67f69d1117caa3d — безопасные кнопки просмотра в Studio;
 - c4bb26ab2234ac7d9107e4b7a553314f9ed311f2 — CI маршрутов;
@@ -610,3 +610,51 @@ Deploy:
 
 Статус:
 IMPLEMENTED — CI PASSED — READY TO MERGE
+
+---
+
+## 2026-08-06 — Public Material Page Scroll Repair
+
+Версия:
+3.5.10
+
+Ветка:
+feature/public-page-scroll-3.5.10
+
+Обнаруженная ошибка:
+Итоговые публикации, обычные страницы и работы портфолио открывались, но длинный материал на публичном сайте не прокручивался. Фиксированная desktop-оболочка KOVCHEG Portal блокировала `html` и `body` через `height:100vh` и `overflow:hidden`, а режим естественной прокрутки был включён только для Studio Preview.
+
+Что исправлено:
+- итоговое представление `entry` получает отдельный класс `blog-theme-document`;
+- добавлен последний CSS-слой `public-page-scroll.css`, который не затрагивает главную и архивы;
+- на итоговых материалах сняты ограничения фиксированной высоты и overflow-lock с `html` и `body`;
+- viewport, центральная колонка, боковые панели и footer переведены на естественную высоту документа;
+- включена прокрутка колёсиком мыши, тачпадом и сенсорным жестом;
+- длинные публикации, страницы и портфолио прокручиваются до конца вместе с комментариями, связанными материалами и подвалом;
+- шапка остаётся доступной при чтении длинного материала;
+- версия приложения повышена до 3.5.10, ревизия assets изменена на `3.5.10-public-page-scroll`.
+
+Файлы:
+- app/bootstrap.php
+- themes/kovcheg-portal/layout.php
+- themes/kovcheg-portal/assets/public-page-scroll.css
+- scripts/audit-page-final-view.php
+- docs/releases/KOVCHEG_BLOG_3.5.10.md
+- docs/DEVELOPMENT_LOG.md
+
+База данных:
+Миграции не требуются. Схема и данные не изменяются.
+
+Проверка:
+- PHP lint `app/bootstrap.php`;
+- PHP lint `themes/kovcheg-portal/layout.php`;
+- PHP lint `scripts/audit-page-final-view.php`;
+- проверка баланса CSS-скобок;
+- Page final view audit проверяет класс документа, подключение CSS, снятие overflow-lock и touch scrolling;
+- полный GitHub Actions CI запускается через pull request.
+
+Deploy:
+Не выполнялся. Разрешён после успешного CI, слияния pull request в `main`, резервной копии production и проверки реальной длинной страницы.
+
+Статус:
+IMPLEMENTED — CI PENDING
