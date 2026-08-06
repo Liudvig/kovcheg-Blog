@@ -28,4 +28,4 @@ foreach(['.site-page{','.site-page-content{','.site-page-cover{','.site-page-rel
 foreach(['data-entry-public-url','data-copy-public-url','Добавить в меню'] as $token)$expect($editor,$token,'В редакторе отсутствует '.$token);
 $expect($editorJs,"frame.setAttribute('scrolling', 'yes')",'Iframe предпросмотра не прокручивается.');
 if(substr_count($pageCss,'{')!==substr_count($pageCss,'}'))$errors[]='В CSS страницы нарушен баланс скобок.';
-if($errors){fwrite(STDERR,"Public Page view audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}echo "Public Page view audit OK\n";
+if($errors){foreach($errors as $error)echo '::error::'.$error.PHP_EOL;fwrite(STDERR,"Public Page view audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}echo "Public Page view audit OK\n";
