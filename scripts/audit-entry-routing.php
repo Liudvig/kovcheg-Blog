@@ -19,12 +19,12 @@ if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)!==1||version
 $expect($blog,'public static function storedEntry','Нет получения сохранённой страницы.');
 $expect($blog,'public static function isPubliclyReadable','Нет проверки публичной доступности страницы.');
 $expect($blog,"return app_url('/page/'",'entryUrl не формирует адрес страницы.');
-$expect($routes,"$router->get('/page/{slug}'",'Не зарегистрирован маршрут /page/{slug}.');
+$expect($routes,'$router->get(\'/page/{slug}\'','Не зарегистрирован маршрут /page/{slug}.');
 $expect($routes,"Blog::render('page'",'Публичный маршрут не использует шаблон page.');
-$reject($routes,"$router->get('/blog/{slug}'",'Блог остался каноническим маршрутом.');
-$reject($routes,"$router->get('/portfolio/{slug}'",'Портфолио осталось каноническим маршрутом.');
-$expect($compat,"$router->get('/blog/{slug}'",'Нет перенаправления старых адресов блога.');
-$expect($compat,"$router->get('/portfolio/{slug}'",'Нет перенаправления старых адресов портфолио.');
+$reject($routes,'$router->get(\'/blog/{slug}\'','Блог остался каноническим маршрутом.');
+$reject($routes,'$router->get(\'/portfolio/{slug}\'','Портфолио осталось каноническим маршрутом.');
+$expect($compat,'$router->get(\'/blog/{slug}\'','Нет перенаправления старых адресов блога.');
+$expect($compat,'$router->get(\'/portfolio/{slug}\'','Нет перенаправления старых адресов портфолио.');
 $expect($compat,"app_url('/page/'",'Старые адреса не переводятся на страницы.');
 $expect($preview,"Blog::render('page'",'Studio Preview не использует страницу.');
 $expect($preview,"e.type='page'",'Studio Preview не ограничен страницами.');
