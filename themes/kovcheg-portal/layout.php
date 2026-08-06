@@ -77,6 +77,7 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
 <link rel="stylesheet" href="<?=e($themeAsset('fixed-shell.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <link rel="stylesheet" href="<?=e($themeAsset('layout-matrix.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-widgets.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e($themeAsset('portal-ui-repair.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <?=\Kovcheg\Hooks::fire('blog.layout.head','')?>
 </head>
 <body class="blog-theme blog-theme-portal blog-theme-portal-matrix <?=e($columnsClass)?>">
