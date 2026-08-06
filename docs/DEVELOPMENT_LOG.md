@@ -610,3 +610,51 @@ Deploy:
 
 Статус:
 IMPLEMENTED — CI PASSED — READY TO MERGE
+
+---
+
+## 2026-08-06 — Public Material Page Scroll Repair
+
+Версия:
+3.5.10
+
+Ветка:
+feature/public-page-scroll-3.5.10
+
+Обнаруженная ошибка:
+Итоговые публикации, обычные страницы и работы портфолио открывались, но длинный материал на публичном сайте не прокручивался. Фиксированная desktop-оболочка KOVCHEG Portal блокировала `html` и `body` через `height:100vh` и `overflow:hidden`, а режим естественной прокрутки был включён только для Studio Preview.
+
+Что исправлено:
+- итоговое представление `entry` получает отдельный класс `blog-theme-document`;
+- добавлен последний CSS-слой `public-page-scroll.css`, который не затрагивает главную и архивы;
+- на итоговых материалах сняты ограничения фиксированной высоты и overflow-lock с `html` и `body`;
+- viewport, центральная колонка, боковые панели и footer переведены на естественную высоту документа;
+- включена прокрутка колёсиком мыши, тачпадом и сенсорным жестом;
+- длинные публикации, страницы и портфолио прокручиваются до конца вместе с комментариями, связанными материалами и подвалом;
+- шапка остаётся доступной при чтении длинного материала;
+- версия приложения повышена до 3.5.10, ревизия assets изменена на `3.5.10-public-page-scroll`.
+
+Файлы:
+- app/bootstrap.php
+- themes/kovcheg-portal/layout.php
+- themes/kovcheg-portal/assets/public-page-scroll.css
+- scripts/audit-page-final-view.php
+- docs/releases/KOVCHEG_BLOG_3.5.10.md
+- docs/DEVELOPMENT_LOG.md
+
+База данных:
+Миграции не требуются. Схема и данные не изменяются.
+
+Проверка:
+- PHP lint `app/bootstrap.php`;
+- PHP lint `themes/kovcheg-portal/layout.php`;
+- PHP lint `scripts/audit-page-final-view.php`;
+- проверка баланса CSS-скобок;
+- Page final view audit проверяет класс документа, подключение CSS, снятие overflow-lock и touch scrolling;
+- полный GitHub Actions CI запускается через pull request.
+
+Deploy:
+Не выполнялся. Разрешён после успешного CI, слияния pull request в `main`, резервной копии production и проверки реальной длинной страницы.
+
+Статус:
+IMPLEMENTED — CI PENDING
