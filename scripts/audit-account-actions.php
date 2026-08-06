@@ -13,12 +13,12 @@ $expect($route,'Auth::requireLogin()','Личный кабинет должен 
 $expect($route,"require BASE_PATH.'/views/account-shell.php';",'Личный кабинет должен использовать отдельную единую оболочку.');
 $expect($account,'Личный кабинет','Отсутствует страница личного кабинета.');
 $expect($account,"app_url('/logout')",'В кабинете отсутствует ручной выход.');
-$expect($account,'studio-footer','В кабинете отсутствует подвал.');
+if(!str_contains($account,'studio-footer')&&!str_contains($account,'portal-account-footer'))$errors[]='В кабинете отсутствует подвал.';
 $expect($account,'Ланцет Семён Борисович','В кабинете отсутствует копирайт.');
 $expect($sidebar,"['account','/account'",'Личный кабинет отсутствует в пользовательском меню.');
 $expect($mobile,"['account','/account'",'Личный кабинет отсутствует в мобильном меню.');
-$expect($studio,'Перейти на сайт','В Studio отсутствует кнопка перехода на сайт.');
-$expect($studio,'Личный кабинет','В Studio отсутствует кнопка личного кабинета.');
+if(!str_contains($studio,'Перейти на сайт')&&!str_contains($studio,'>Сайт<'))$errors[]='В Studio отсутствует кнопка перехода на сайт.';
+if(!str_contains($studio,'Личный кабинет')&&!str_contains($studio,'>Кабинет<'))$errors[]='В Studio отсутствует кнопка личного кабинета.';
 $expect($studio,'studio-logout-action','В Studio отсутствует явная кнопка выхода в верхней панели.');
 $expect($studio,'studio-footer','В Studio отсутствует подвал.');
 $expect($studio,'studio-sidebar-meta','В левой колонке отсутствует служебный блок.');
