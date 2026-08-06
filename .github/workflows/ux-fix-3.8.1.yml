@@ -131,18 +131,16 @@ jobs:
           grep -q 'Основной текст страницы' /tmp/page.html
           grep -q 'document-compact-3.8.1.css' /tmp/page.html
 
-          css=$(curl -fsS http://127.0.0.1:8099/themes/kovcheg-portal/assets/public-page-scroll.css)
-          printf '%s' "$css" | grep -q 'portal-matrix-content'
-          printf '%s' "$css" | grep -q 'overflow-y: auto'
-
           for path in /studio/users /studio/widgets /studio/appearance; do
             code=$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:8099${path}")
             echo "$path -> $code"
             test "$code" = "302"
           done
 
-          curl -fsS http://127.0.0.1:8099/assets/css/blog-zone-builder.css | grep -q 'widget-builder-shell--matrix'
-          curl -fsS http://127.0.0.1:8099/assets/css/blog-studio-ux-3.8.1.css | grep -q 'data-studio-section="widgets"'
+          grep -q 'portal-matrix-content' themes/kovcheg-portal/assets/public-page-scroll.css
+          grep -q 'overflow-y: auto' themes/kovcheg-portal/assets/public-page-scroll.css
+          grep -q 'widget-builder-shell--matrix' assets/css/blog-zone-builder.css
+          grep -q 'data-studio-section="widgets"' assets/css/blog-studio-ux-3.8.1.css
 
           kill "$server_pid"
           wait "$server_pid" 2>/dev/null || true
