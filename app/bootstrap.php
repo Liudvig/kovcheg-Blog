@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.5.5';
-const ASSET_REVISION = '3.5.5-portal-ui-repair';
+const APP_VERSION = '3.5.6';
+const ASSET_REVISION = '3.5.6-classic-editor-demo';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
@@ -65,6 +65,7 @@ require_once BASE_PATH.'/app/modern-ui.php';
 require_once BASE_PATH.'/app/Blog.php';
 require_once BASE_PATH.'/app/BlogStudio.php';
 require_once BASE_PATH.'/app/BlogBuilder.php';
+require_once BASE_PATH.'/app/ClassicEditor.php';
 require_once BASE_PATH.'/app/BlogStudio32.php';
 require_once BASE_PATH.'/app/BlogModules.php';
 require_once BASE_PATH.'/app/BlogGrowth.php';

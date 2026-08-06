@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * KOVCHEG Blog 3.5.5 — Portal UI static audit.
+ * KOVCHEG Blog 3.5.5+ — Portal UI static audit.
  * Author and copyright: Ланцет Семён Борисович.
  * License: proprietary / all rights reserved.
  */
@@ -59,12 +59,20 @@ if (substr_count($css, '{') !== substr_count($css, '}')) {
     $failures[] = 'Portal repair stylesheet has unbalanced braces.';
 }
 
-if (!str_contains($bootstrap, "const APP_VERSION = '3.5.5';")) {
-    $failures[] = 'APP_VERSION is not 3.5.5.';
+$appVersion = '';
+if (!preg_match("/const APP_VERSION = '([^']+)';/", $bootstrap, $versionMatch)) {
+    $failures[] = 'APP_VERSION is not declared.';
+} else {
+    $appVersion = (string)$versionMatch[1];
+    if (version_compare($appVersion, '3.5.5', '<')) {
+        $failures[] = 'APP_VERSION must be 3.5.5 or newer.';
+    }
 }
 
-if (!str_contains($bootstrap, "const ASSET_REVISION = '3.5.5-portal-ui-repair';")) {
-    $failures[] = 'ASSET_REVISION does not invalidate cached Portal assets.';
+if (!preg_match("/const ASSET_REVISION = '([^']+)';/", $bootstrap, $revisionMatch)) {
+    $failures[] = 'ASSET_REVISION is not declared.';
+} elseif ($appVersion !== '' && !str_starts_with((string)$revisionMatch[1], $appVersion.'-')) {
+    $failures[] = 'ASSET_REVISION must begin with the current APP_VERSION.';
 }
 
 if ($failures !== []) {

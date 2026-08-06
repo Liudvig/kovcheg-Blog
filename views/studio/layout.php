@@ -12,7 +12,7 @@ $nav=[
  'menus'=>['Меню','/studio/menus','☷','menus'],
  'widgets'=>['Виджеты и зоны','/studio/widgets','▦','site'],
  'appearance'=>['Темы','/studio/appearance','◇','themes'],
- 'presets'=>['Пресеты','/studio/presets','✦','site'],
+ 'presets'=>['Пресеты и демо','/studio/presets','✦','site'],
  'growth'=>['SEO и рост','/studio/growth','↗','site'],
  'users'=>['Пользователи','/studio/users','◎','site'],
  'modules'=>['Модули','/studio/modules','⬡','site'],
@@ -33,6 +33,7 @@ $copyright='© '.date('Y').' Ланцет Семён Борисович';
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-unified.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-zone-builder.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-upload.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-classic-editor.css?v='.rawurlencode(ASSET_REVISION)))?>">
 </head>
 <body class="studio-body" data-studio-section="<?=e($studioSection)?>">
 <div class="studio-shell">
@@ -70,6 +71,7 @@ $copyright='© '.date('Y').' Ланцет Семён Борисович';
  </main>
 </div>
 <script src="<?=e(app_url('/assets/js/blog-studio.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
+<script src="<?=e(app_url('/assets/js/blog-classic-editor.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 <script src="<?=e(app_url('/assets/js/blog-widgets.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 <script src="<?=e(app_url('/assets/js/blog-upload.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 </body>

@@ -1,0 +1,36 @@
+name: KOVCHEG Classic Editor checks
+
+on:
+  push:
+    branches: [main, feature/classic-editor-3.5.6]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: dom, mbstring
+      - name: PHP syntax
+        run: |
+          php -l app/ClassicEditor.php
+          php -l app/BlogStudio32.php
+          php -l app/BlogDemoSite.php
+          php -l routes/blog-demo.php
+          php -l views/studio/editor.php
+          php -l views/studio/layout.php
+          php -l views/studio/presets.php
+          php -l scripts/audit-classic-editor.php
+      - name: JavaScript syntax
+        run: node --check assets/js/blog-classic-editor.js
+      - name: Classic editor audit
+        run: php scripts/audit-classic-editor.php
