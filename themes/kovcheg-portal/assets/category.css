@@ -1,0 +1,29 @@
+/* KOVCHEG CMS 3.7.0 — Rubric page
+ * Author and copyright: Ланцет Семён Борисович
+ * License: proprietary / all rights reserved
+ */
+
+.category-page{width:min(100%,1060px);margin:0 auto;padding:28px;border:1px solid #dce5ee;border-radius:18px;background:#fff;box-shadow:0 12px 34px rgba(15,23,42,.06)}
+.category-page>nav{margin-bottom:20px}
+.category-page>nav a{color:#52739a;font-size:12px;font-weight:700;text-decoration:none}
+.category-page>header{padding-bottom:22px;border-bottom:1px solid #e5ebf1}
+.category-page>header span{color:#52739a;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.category-page>header h1{margin:6px 0 8px;color:#111827;font-size:clamp(34px,5vw,54px);line-height:1.04;letter-spacing:-.045em}
+.category-page>header p{max-width:760px;margin:0;color:#5f6c7e;font-size:16px;line-height:1.55}
+.category-page-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:22px}
+.category-page-card{display:grid;grid-template-columns:155px minmax(0,1fr);min-width:0;overflow:hidden;border:1px solid #e0e7ef;border-radius:12px;background:#fbfcfe}
+.category-page-card.without-cover{grid-template-columns:1fr}
+.category-page-card__cover{display:block;width:155px;height:165px;overflow:hidden;background:#e9eef4}
+.category-page-card__cover img{display:block;width:100%;height:100%;object-fit:cover}
+.category-page-card>div{display:flex;flex-direction:column;min-width:0;padding:16px}
+.category-page-card h2{margin:0 0 8px;font-size:20px;line-height:1.25}
+.category-page-card h2 a{color:#142033;text-decoration:none}
+.category-page-card p{display:-webkit-box;overflow:hidden;margin:0 0 12px;color:#657286;font-size:12px;line-height:1.5;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.category-page-card footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;color:#8a95a5;font-size:10px}
+.category-page-card footer a{color:#245f9e;font-size:12px;font-weight:700;text-decoration:none}
+.category-page-empty{display:grid;place-content:center;min-height:240px;margin-top:22px;padding:28px;border:1px dashed #ccd7e2;border-radius:12px;background:#f8fafc;text-align:center}
+.category-page-empty h2{margin:0 0 8px;font-size:24px}
+.category-page-empty p{margin:0;color:#667386}
+
+@media(max-width:980px){.category-page-grid{grid-template-columns:1fr}}
+@media(max-width:620px){.category-page{padding:19px 15px;border-radius:13px}.category-page-card{display:block}.category-page-card__cover{width:100%;height:210px}.category-page>header h1{font-size:35px}}
