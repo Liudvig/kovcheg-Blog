@@ -48,7 +48,7 @@ final class Blog
         $layoutContext = [
             'page_type' => $safeView !== '' ? $safeView : 'default',
             'view' => $safeView,
-            'entry_type' => isset($entry) && is_array($entry) ? 'page' : '',
+            'entry_type' => isset($entry) && is_array($entry) ? (string)($entry['type'] ?? '') : '',
             'entry_id' => isset($entry) && is_array($entry) ? (int)($entry['id'] ?? 0) : 0,
         ];
 
@@ -120,13 +120,9 @@ final class Blog
         return $publishedTime === false || $publishedTime <= time();
     }
 
-    /**
-     * Pages are the single content entity. Legacy post/portfolio calls are
-     * normalized to Pages so feeds and old integrations keep working.
-     */
-    public static function entries(string $type = 'page', int $limit = 12, int $offset = 0): array
+    public static function entries(string $type = 'post', int $limit = 12, int $offset = 0): array
     {
-        if (!in_array($type, ['page', 'post', 'portfolio'], true)) {
+        if (!in_array($type, ['post', 'page', 'portfolio'], true)) {
             return [];
         }
 
@@ -140,10 +136,11 @@ final class Blog
                 (SELECT COUNT(*) FROM content_reactions r WHERE r.entry_id=e.id) reaction_count
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.type='page' AND e.status='published' AND {$visibilitySql}
+             WHERE e.type=? AND e.status='published' AND {$visibilitySql}
                AND e.deleted_at IS NULL AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)
              ORDER BY e.is_featured DESC,e.published_at DESC,e.id DESC
-             LIMIT {$limit} OFFSET {$offset}"
+             LIMIT {$limit} OFFSET {$offset}",
+            [$type]
         );
     }
 
@@ -154,16 +151,22 @@ final class Blog
             return null;
         }
 
+        $params = [$slug];
+        $typeSql = '';
+        if ($type !== null) {
+            $typeSql = ' AND e.type=?';
+            $params[] = $type;
+        }
         $visibilitySql = self::readableVisibilitySql('e');
 
         return DB::one(
             "SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,u.bio author_bio
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.slug=? AND e.type='page' AND e.status='published' AND {$visibilitySql}
+             WHERE e.slug=?{$typeSql} AND e.status='published' AND {$visibilitySql}
                AND e.deleted_at IS NULL AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)
              LIMIT 1",
-            [$slug]
+            $params
         );
     }
 
@@ -174,13 +177,20 @@ final class Blog
             return null;
         }
 
+        $params = [$slug];
+        $typeSql = '';
+        if ($type !== null) {
+            $typeSql = ' AND e.type=?';
+            $params[] = $type;
+        }
+
         return DB::one(
             "SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,u.bio author_bio
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.slug=? AND e.type='page' AND e.deleted_at IS NULL
+             WHERE e.slug=?{$typeSql} AND e.deleted_at IS NULL
              LIMIT 1",
-            [$slug]
+            $params
         );
     }
 
@@ -224,7 +234,7 @@ final class Blog
                 (SELECT COUNT(*) FROM content_reactions r WHERE r.entry_id=e.id) reaction_count
              FROM content_entries e
              JOIN users u ON u.id=e.author_id
-             WHERE e.author_id=? AND e.type='page' AND e.status='published'
+             WHERE e.author_id=? AND e.type='post' AND e.status='published'
                AND {$visibilitySql} AND e.deleted_at IS NULL
                AND (e.published_at IS NULL OR e.published_at<=CURRENT_TIMESTAMP)
              ORDER BY e.published_at DESC,e.id DESC LIMIT {$limit}",
@@ -260,7 +270,11 @@ final class Blog
 
     public static function entryUrl(array $entry): string
     {
-        return app_url('/page/'.rawurlencode((string)($entry['slug'] ?? '')));
+        return match ((string)($entry['type'] ?? 'post')) {
+            'page' => app_url('/page/'.rawurlencode((string)($entry['slug'] ?? ''))),
+            'portfolio' => app_url('/portfolio/'.rawurlencode((string)($entry['slug'] ?? ''))),
+            default => app_url('/post/'.rawurlencode((string)($entry['slug'] ?? ''))),
+        };
     }
 
     public static function canModerate(): bool
