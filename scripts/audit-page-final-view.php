@@ -24,7 +24,7 @@ foreach(['site-page-breadcrumbs','site-page-title-row','site-page-content','site
 $expect($layout,'in_array($pageType,[\'entry\',\'page\'],true)','Page view не получает document mode.');
 $expect($layout,'$pageType===\'page\'?\' blog-theme-page\'','Page view не получает отдельный класс.');
 $expect($scrollCss,'html:has(body.blog-theme-document)','Для документа не включена естественная прокрутка.');
-foreach(['.site-page{','.site-page-content{','.site-page-cover{','.site-page-related{','@media(max-width:560px)'] as $token)$expect($pageCss,$token,'В CSS страницы отсутствует '.$token);
+foreach(['.site-page{','.site-page-content{','.site-page-cover{','.site-page-related,','@media(max-width:560px)'] as $token)$expect($pageCss,$token,'В CSS страницы отсутствует '.$token);
 foreach(['data-entry-public-url','data-copy-public-url','Добавить в меню'] as $token)$expect($editor,$token,'В редакторе отсутствует '.$token);
 $expect($editorJs,"frame.setAttribute('scrolling', 'yes')",'Iframe предпросмотра не прокручивается.');
 if(substr_count($pageCss,'{')!==substr_count($pageCss,'}'))$errors[]='В CSS страницы нарушен баланс скобок.';
