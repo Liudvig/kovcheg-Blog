@@ -117,7 +117,60 @@ Pull request:
 #29 — KOVCHEG Blog 3.5.5 — Portal UI Repair
 
 Deploy:
-Не выполнялся. Production VPS недоступен из текущего подключения; deploy допускается после CI и слияния в main.
+Не выполнялся на момент завершения разработки; выполнен отдельным этапом ниже.
 
 Статус:
-CI PASSED — READY TO MERGE
+MERGED TO MAIN
+
+---
+
+## 2026-08-06 — Production Deploy 3.5.5
+
+Версия:
+3.5.5
+
+Ветка:
+main
+
+Production:
+https://kovchegcms.ru
+
+Каталог:
+/var/www/kovchegcms_r_usr/data/www/kovchegcms.ru
+
+Что выполнено:
+- проверено состояние production-репозитория;
+- подтверждено отсутствие локальных изменений в отслеживаемых файлах;
+- создана резервная копия файлов;
+- создан дамп production-базы данных;
+- выполнен fast-forward с b42e91376eee9e943c4507dead4e6844be18e7df до 23ca73a4c9d7263e94623e0ec074e9165d452759;
+- восстановлены и проверены runtime-каталоги и права storage;
+- очищен runtime cache;
+- повторно запущены миграции;
+- выполнены PHP lint и Portal UI audit;
+- проверены публичные HTTP-маршруты и новый CSS-файл.
+
+Миграции:
+Все миграции отмечены SKIP. База данных актуальна: Database is up to date.
+
+Проверка:
+- app/bootstrap.php — синтаксис корректен;
+- themes/kovcheg-portal/layout.php — синтаксис корректен;
+- scripts/audit-portal-ui.php — синтаксис корректен;
+- Portal UI audit OK;
+- APP_VERSION = 3.5.5;
+- ASSET_REVISION = 3.5.5-portal-ui-repair;
+- / — HTTP 200;
+- /blog — HTTP 200;
+- /portfolio — HTTP 200;
+- /studio — HTTP 200;
+- /themes/kovcheg-portal/assets/portal-ui-repair.css — HTTP 200.
+
+Production commit:
+23ca73a4c9d7263e94623e0ec074e9165d452759
+
+Резервная копия:
+/root/kovcheg-blog-backup-20260806-034835
+
+Статус:
+DEPLOY SUCCESS
