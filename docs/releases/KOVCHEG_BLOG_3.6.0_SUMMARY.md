@@ -1,0 +1,1 @@
+Posts, Categories and Pages are the only primary content concepts in KOVCHEG Blog 3.6.0.
