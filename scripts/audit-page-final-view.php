@@ -15,11 +15,12 @@ $contentIndex=$read('views/studio/content-index.php');
 $menus=$read('views/studio/menus.php');
 $layout=$read('themes/kovcheg-portal/layout.php');
 $matrixCss=$read('themes/kovcheg-portal/assets/layout-matrix.css');
+$scrollCss=$read('themes/kovcheg-portal/assets/public-page-scroll.css');
 $editorCss=$read('assets/css/blog-classic-editor.css');
 $editorJs=$read('assets/js/blog-classic-editor.js');
 
-if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)!==1||version_compare((string)$match[1],'3.5.9','<'))$errors[]='Версия приложения должна быть 3.5.9 или новее.';
-$expect($bootstrap,"const ASSET_REVISION = '3.5.9-page-final-view';",'Не обновлена ревизия статических файлов 3.5.9.');
+if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)!==1||version_compare((string)$match[1],'3.5.10','<'))$errors[]='Версия приложения должна быть 3.5.10 или новее.';
+$expect($bootstrap,"const ASSET_REVISION = '3.5.10-public-page-scroll';",'Не обновлена ревизия статических файлов 3.5.10.');
 $expect($studio32,"\$status==='published'&&(\$publishedAt===null||strtotime(\$publishedAt)>time())",'Опубликованный материал с будущей датой не переводится на текущую дату.');
 $expect($studio32,"\$status==='scheduled'&&(\$publishedAt===null||strtotime(\$publishedAt)<=time())",'Запланированная публикация не проверяет будущую дату.');
 
@@ -48,7 +49,17 @@ $expect($editorJs,'const updatePermalink','JavaScript не обновляет п
 $expect($editorJs,"frame.setAttribute('scrolling', 'yes')",'Iframe preview не включает прокрутку.');
 $expect($editorJs,'overflow-y:auto','Документ внутри iframe preview не прокручивается.');
 
+$expect($layout,"$pageType=(string)($layoutContext['page_type']??'default');",'Тема не определяет тип публичного представления.');
+$expect($layout,"$documentClass=$pageType==='entry'?' blog-theme-document':'';",'Итоговая страница не получает класс документа.');
+$expect($layout,"public-page-scroll.css",'CSS исправления публичной прокрутки не подключён.');
+$expect($scrollCss,'html:has(body.blog-theme-document)','Корневой HTML не переведён на естественную прокрутку документа.');
+$expect($scrollCss,'body.blog-theme-document','Итоговый материал не переведён на естественную прокрутку.');
+$expect($scrollCss,'overflow-y: auto !important','Вертикальная прокрутка итоговой страницы не включена принудительно.');
+$expect($scrollCss,'touch-action: pan-y','Сенсорная вертикальная прокрутка итоговой страницы не разрешена.');
+$expect($scrollCss,'body.blog-theme-document .portal-matrix-content','Центральная область итоговой страницы не освобождена от overflow lock.');
+
 if(substr_count($matrixCss,'{')!==substr_count($matrixCss,'}'))$errors[]='В layout-matrix.css нарушен баланс скобок.';
+if(substr_count($scrollCss,'{')!==substr_count($scrollCss,'}'))$errors[]='В public-page-scroll.css нарушен баланс скобок.';
 if(substr_count($editorCss,'{')!==substr_count($editorCss,'}'))$errors[]='В blog-classic-editor.css нарушен баланс скобок.';
 
 if($errors){fwrite(STDERR,"Page final view audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}echo "Page final view audit OK\n";
