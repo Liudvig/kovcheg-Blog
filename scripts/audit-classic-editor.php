@@ -26,7 +26,7 @@ $require(!str_contains($editor,'value="portfolio"'),'В редакторе ос�
 $require(str_contains($editor,'data-action="media"'),'Нет кнопки изображения.');
 $require(str_contains($editor,'data-action="preview"'),'Нет предпросмотра.');
 $require(str_contains($editor,'name="category_ids[]"'),'Страница не может быть добавлена в рубрику.');
-$require(str_contains($studio32,"$type='page';"),'Studio32 не фиксирует тип page.');
+$require(str_contains($studio32,'$type=\'page\';'),'Studio32 не фиксирует тип page.');
 $require(str_contains($studio32,'ClassicEditor::normalizePayload'),'Studio32 не обрабатывает классический payload.');
 $require(!str_contains($studio32,'Builder::'),'Сохранение всё ещё зависит от Builder.');
 $require(str_contains($classic,'DROP_CONTENT_TAGS'),'Не найден allowlist-санитайзер.');
