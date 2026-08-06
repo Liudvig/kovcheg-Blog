@@ -33,7 +33,7 @@ $uxPos=strpos($index,'routes/blog-ux-fixes.php');
 if($entryPos===false||$blogPos===false||$uxPos===false||$entryPos>$uxPos||$entryPos>$blogPos)$errors[]='Единые маршруты материалов должны регистрироваться до старых обработчиков.';
 $expect($contentIndex,'Blog::canRead($entry)','Список Studio не проверяет реальную доступность материала.');
 $expect($contentIndex,"/preview'",'Для закрытых и неопубликованных материалов нет кнопки предпросмотра.');
-$expect($contentIndex,"\$direct?'Просмотр':'Предпросмотр'",'Кнопка Studio не различает публичный просмотр и preview.');
+$expect($contentIndex,"$direct?'Просмотр':'Предпросмотр'",'Кнопка Studio не различает публичный просмотр и preview.');
 
 if(!defined('BASE_PATH'))define('BASE_PATH',$root);
 require_once $root.'/app/Core.php';
