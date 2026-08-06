@@ -27,16 +27,16 @@ $expect($bootstrap,"const ASSET_REVISION = '3.6.0-wordpress-simple-core';",'Не
 if(str_contains($bootstrap,"require_once BASE_PATH.'/app/BlogBuilder.php'"))$errors[]='Тяжёлый Builder загружается в bootstrap каждого запроса.';
 
 $wpPos=strpos($index,'routes/blog-wordpress-mode.php');$compatPos=strpos($index,'routes/blog-wordpress-compat.php');$legacyPos=strpos($index,'routes/blog-builder.php');
-if($wpPos===false||$compatPos===false||$legacyPos===false||$wpPos>$compatPos||$compatPos>$legacyPos)$errors[]='WordPress-маршруты должны регистрироваться раньше legacy Studio.';
+if($wpPos===false||$compatPos===false||$legacyPos===false||$compatPos>$wpPos||$wpPos>$legacyPos)$errors[]='Compatibility и WordPress-маршруты должны регистрироваться раньше legacy Studio.';
 if(str_contains($index,'routes/blog-demo.php'))$errors[]='Демо-маршрут загружается в runtime.';
 
 foreach(['/studio/posts','/studio/pages','/studio/entry/save'] as $route)$expect($wpRoutes,$route,'Нет маршрута '.$route);
 $expect($compat,'/studio/categories','Нет маршрута /studio/categories.');
 $expect($compat,'/studio/content/save','Старая форма сохранения не нормализуется.');
+$expect($compat,"$router->get('/portfolio'",'Старый URL /portfolio не обслуживается совместимым архивом записей.');
 $expect($wpRoutes,"target_kind']??''",'Меню не различает страницу, рубрику и ссылку.');
 $expect($wpRoutes,"type='page'",'Список источников меню не ограничен страницами.');
 $expect($wpRoutes,"e.type='post'",'Архив рубрики не ограничен записями.');
-$expect($wpRoutes,"/portfolio', function () { redirect('/blog')",'Старый архив портфолио не отключён.');
 $expect($wpRoutes,"/tag/{slug}', function () { redirect('/blog')",'Старые теги не отключены.');
 
 foreach(["'posts'=>['Записи'","'categories'=>['Рубрики'","'pages'=>['Страницы'"] as $token)$expect($layout,$token,'В меню Studio отсутствует '.$token);
