@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.7.1';
-const ASSET_REVISION = '3.7.1-posts-categories';
+const APP_VERSION = '3.8.0';
+const ASSET_REVISION = '3.8.0-posts-menus-widgets-branding';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
@@ -69,6 +69,7 @@ require_once BASE_PATH.'/app/BlogStudio32.php';
 require_once BASE_PATH.'/app/BlogModules.php';
 require_once BASE_PATH.'/app/BlogGrowth.php';
 require_once BASE_PATH.'/app/BlogLayout.php';
+require_once BASE_PATH.'/app/BlogThemeSupport.php';
 
 set_exception_handler(static function (Throwable $error): void {
     log_error($error);
