@@ -12,7 +12,9 @@ $loginError=(string)($_SESSION['flash_error']??'');
 $loginSuccess=(string)($_SESSION['flash_success']??'');
 unset($_SESSION['flash_error'],$_SESSION['flash_success']);
 \Kovcheg\Hooks::on('layout.head',static function($html){
-    return (string)$html.'<link rel="stylesheet" href="'.e(app_url('/assets/css/blog-login.css?v='.rawurlencode(ASSET_REVISION))).'">';
+    return (string)$html
+        .'<link rel="stylesheet" href="'.e(app_url('/assets/css/blog-login.css?v='.rawurlencode(ASSET_REVISION))).'">'
+        .'<link rel="stylesheet" href="'.e(app_url('/assets/css/blog-auth-brand.css?v='.rawurlencode(ASSET_REVISION))).'">';
 });
 ?>
 <main class="blog-login-page" style="--brand-accent:<?=e($accent)?>">
