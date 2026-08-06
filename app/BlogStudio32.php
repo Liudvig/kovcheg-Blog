@@ -17,9 +17,9 @@ final class Studio32
         Studio::require('content');
         $entryId=max(0,$entryId);
         $current=$entryId?Studio::entry($entryId):null;
-        if($entryId&&!$current)abort(404,'Страница не найдена.');
+        if($entryId&&!$current)abort(404,'Материал не найден.');
 
-        $type='page';
+        $type=(string)($input['type']??'')==='page'?'page':'post';
         $status=in_array((string)($input['status']??''),['draft','published','scheduled','private'],true)?(string)$input['status']:'draft';
         $visibility=in_array((string)($input['visibility']??''),['public','users','private'],true)?(string)$input['visibility']:'public';
         $title=trim((string)($input['title']??''));
@@ -54,7 +54,7 @@ final class Studio32
             }else{
                 $id=DB::insert('INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_json,content_html,featured_image_path,template,visibility,comments_enabled,reactions_enabled,is_featured,sort_order,seo_title,seo_description,published_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,NULL,?,?,0,?,0,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$visibility,$flag('comments_enabled'),$flag('is_featured'),$seoTitle?:null,$seoDescription?:null,$publishedAt]);
             }
-            self::syncCategories($id,(array)($input['category_ids']??[]));
+            self::syncCategories($id,$type==='post'?(array)($input['category_ids']??[]):[]);
             self::syncTags($id,'');
             self::syncMeta($id,[
                 'layout_width'=>'normal',
@@ -64,7 +64,7 @@ final class Studio32
             DB::run("DELETE FROM content_autosaves WHERE user_id=? AND (entry_id=? OR autosave_key='new')",[$authorId,$id]);
             DB::pdo()->commit();
         }catch(Throwable $e){if(DB::pdo()->inTransaction())DB::pdo()->rollBack();throw $e;}
-        audit($current?'cms.page.update':'cms.page.create','content_entry',$id,['type'=>'page','status'=>$status,'editor'=>'classic']);
+        audit($current?'cms.content.update':'cms.content.create','content_entry',$id,['type'=>$type,'status'=>$status,'editor'=>'classic']);
         return $id;
     }
 
@@ -82,7 +82,7 @@ final class Studio32
     {
         Studio::require('content');
         $entryId=max(0,$entryId);
-        if($entryId&&!DB::one("SELECT id FROM content_entries WHERE id=? AND type='page' AND deleted_at IS NULL",[$entryId]))abort(404,'Страница не найдена.');
+        if($entryId&&!DB::one("SELECT id FROM content_entries WHERE id=? AND type IN ('post','page') AND deleted_at IS NULL",[$entryId]))abort(404,'Материал не найден.');
         if(!ClassicEditor::isClassicPayload($contentJson)){
             $contentJson=json_encode([[
                 'id'=>'classic-'.bin2hex(random_bytes(6)),
