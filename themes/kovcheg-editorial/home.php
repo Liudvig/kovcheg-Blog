@@ -40,7 +40,7 @@ $coverUrl=static function(array $entry):string{
     <?php foreach($posts as $index=>$entry):$cover=$coverUrl($entry);?>
       <article class="entry-card <?=$index===0?'entry-card--lead':''?>">
         <?php if($cover!==''):?><a class="entry-card__cover" href="<?=e(Blog::entryUrl($entry))?>"><img src="<?=e($cover)?>" alt="<?=e((string)$entry['title'])?>" loading="lazy"></a><?php endif;?>
-        <div class="entry-card__meta"><span><?=e(date('d.m.Y',strtotime((string)($entry['published_at']?:$entry['created_at'])))?></span><span>Комментарии: <?=(int)($entry['comment_count']??0)?></span></div>
+        <div class="entry-card__meta"><span><?=e(date('d.m.Y',strtotime((string)($entry['published_at']?:$entry['created_at']))))?></span><span>Комментарии: <?=(int)($entry['comment_count']??0)?></span></div>
         <h3><a href="<?=e(Blog::entryUrl($entry))?>"><?=e((string)$entry['title'])?></a></h3>
         <p><?=e(Blog::excerpt($entry,$index===0?320:190))?></p>
         <footer><a href="<?=e(Blog::entryUrl($entry))?>">Читать →</a></footer>
