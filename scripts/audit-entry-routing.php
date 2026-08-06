@@ -10,6 +10,7 @@ $bootstrap=$read('app/bootstrap.php');
 $blog=$read('app/Blog.php');
 $index=$read('index.php');
 $routes=$read('routes/blog-entry-routing.php');
+$compat=$read('routes/blog-wordpress-compat.php');
 $wpRoutes=$read('routes/blog-wordpress-mode.php');
 $ux=$read('routes/blog-ux-fixes.php');
 $contentIndex=$read('views/studio/entries-index.php');
@@ -26,10 +27,15 @@ $expect($routes,'kovcheg_render_entry_record($stored, true);','Редактор 
 $expect($routes,'Blog::entryUrl($other)','Нет канонического перенаправления при изменении типа.');
 $expect($ux,'if(Blog::canRead($entry))','Studio Preview не распознаёт опубликованный материал.');
 $expect($ux,"e.type IN ('post','page')",'Studio Preview не ограничен записями и страницами.');
-$expect($wpRoutes,"/portfolio', function () { redirect('/blog')",'Старый архив портфолио не перенаправляется в блог.');
+$expect($compat,"\$router->get('/portfolio'",'Старый адрес портфолио не обслуживается совместимым архивом.');
+$expect($compat,"'entries'=>Blog::entries('post',100)",'Совместимый архив портфолио должен показывать только записи.');
 
-$wpPos=strpos($index,'routes/blog-wordpress-mode.php');$entryPos=strpos($index,'routes/blog-entry-routing.php');$blogPos=strpos($index,'routes/blog.php');$uxPos=strpos($index,'routes/blog-ux-fixes.php');
-if($wpPos===false||$entryPos===false||$blogPos===false||$uxPos===false||$wpPos>$entryPos||$entryPos>$uxPos||$entryPos>$blogPos)$errors[]='Маршруты WordPress и материалов зарегистрированы в неверном порядке.';
+$compatPos=strpos($index,'routes/blog-wordpress-compat.php');
+$wpPos=strpos($index,'routes/blog-wordpress-mode.php');
+$entryPos=strpos($index,'routes/blog-entry-routing.php');
+$uxPos=strpos($index,'routes/blog-ux-fixes.php');
+$blogPos=strpos($index,'routes/blog.php');
+if($compatPos===false||$wpPos===false||$entryPos===false||$uxPos===false||$blogPos===false||$compatPos>$wpPos||$wpPos>$entryPos||$entryPos>$uxPos||$entryPos>$blogPos)$errors[]='Compatibility, WordPress и публичные маршруты зарегистрированы в неверном порядке.';
 $expect($contentIndex,'Blog::isPubliclyReadable($entry)','Список Studio не различает просмотр и предпросмотр.');
 $expect($contentIndex,'Blog::entryUrl($entry)','Список Studio не использует канонический адрес.');
 $expect($contentIndex,'Посмотреть','В списке Studio отсутствует публичный просмотр.');
