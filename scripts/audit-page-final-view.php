@@ -21,8 +21,8 @@ $expect($bootstrap,"const ASSET_REVISION = '3.7.0-page-category-core';",'Нев�
 $expect($routes,"Blog::render('page'",'Итоговая страница не использует Page view.');
 $expect($preview,"Blog::render('page'",'Предпросмотр не использует Page view.');
 foreach(['site-page-breadcrumbs','site-page-title-row','site-page-content','site-page-rubrics','site-page-related','site-page-comments'] as $token)$expect($page,$token,'В Page view отсутствует '.$token);
-$expect($layout,"in_array($pageType,['entry','page'],true)",'Page view не получает document mode.');
-$expect($layout,"$pageType==='page'?' blog-theme-page'",'Page view не получает отдельный класс.');
+$expect($layout,'in_array($pageType,[\'entry\',\'page\'],true)','Page view не получает document mode.');
+$expect($layout,'$pageType===\'page\'?\' blog-theme-page\'','Page view не получает отдельный класс.');
 $expect($scrollCss,'html:has(body.blog-theme-document)','Для документа не включена естественная прокрутка.');
 foreach(['.site-page{','.site-page-content{','.site-page-cover{','.site-page-related{','@media(max-width:560px)'] as $token)$expect($pageCss,$token,'В CSS страницы отсутствует '.$token);
 foreach(['data-entry-public-url','data-copy-public-url','Добавить в меню'] as $token)$expect($editor,$token,'В редакторе отсутствует '.$token);
