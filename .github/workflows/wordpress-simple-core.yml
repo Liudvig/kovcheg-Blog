@@ -1,0 +1,51 @@
+name: KOVCHEG WordPress Simple Core checks
+
+on:
+  push:
+    branches: [main, feature/wordpress-simple-core-3.6.0]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: dom, mbstring, fileinfo
+      - name: PHP syntax
+        run: |
+          php -l app/bootstrap.php
+          php -l app/BlogStudio32.php
+          php -l index.php
+          php -l routes/blog-wordpress-mode.php
+          php -l routes/blog-wordpress-compat.php
+          php -l routes/blog-entry-routing.php
+          php -l routes/blog-ux-fixes.php
+          php -l views/studio/layout.php
+          php -l views/studio/dashboard.php
+          php -l views/studio/entries-index.php
+          php -l views/studio/wp-editor.php
+          php -l views/studio/categories.php
+          php -l views/studio/menus.php
+          php -l themes/kovcheg-portal/home.php
+          php -l themes/kovcheg-editorial/entry.php
+          php -l scripts/audit-wordpress-simple-core.php
+      - name: JavaScript syntax
+        run: node --check assets/js/blog-classic-editor.js
+      - name: Product audits
+        run: |
+          php scripts/audit-wordpress-simple-core.php
+          php scripts/audit-simple-blog.php
+          php scripts/audit-entry-routing.php
+          php scripts/audit-page-final-view.php
+          php scripts/audit-classic-editor.php
+          php scripts/audit-studio-compact.php
+          php scripts/audit-portal-ui.php
