@@ -14,12 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mariadb:
-        image: mariadb:10.11
+        image: mariadb:11
         env:
           MARIADB_ROOT_PASSWORD: root
           MARIADB_DATABASE: kovcheg
-          MARIADB_USER: kovcheg
-          MARIADB_PASSWORD: kovcheg
         ports:
           - 3306:3306
         options: >-
@@ -50,18 +48,20 @@ jobs:
               'key'=>'base64:'.base64_encode(str_repeat('k',32)),
             ],
             'database'=>[
+              'driver'=>'mysql',
               'host'=>'127.0.0.1',
               'port'=>3306,
               'name'=>'kovcheg',
-              'user'=>'kovcheg',
-              'password'=>'kovcheg',
+              'user'=>'root',
+              'password'=>'root',
               'charset'=>'utf8mb4',
-              'prefix'=>'',
             ],
           ];
           PHP
       - name: Initialize schema
-        run: mariadb --host=127.0.0.1 --port=3306 --user=kovcheg --password=kovcheg kovcheg < database/schema.sql
+        run: |
+          php -r '$schema=require "database/schema.php"; if(!is_string($schema)||trim($schema)==="") exit(1); file_put_contents("/tmp/kovcheg-schema.sql",$schema);'
+          MYSQL_PWD=root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg < /tmp/kovcheg-schema.sql
       - name: Migrate
         run: php bin/migrate.php
       - name: Seed runtime
@@ -74,21 +74,38 @@ jobs:
               \Kovcheg\DB::run("INSERT INTO settings (setting_key,setting_value,updated_at) VALUES (?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value),updated_at=CURRENT_TIMESTAMP",[$key,$value]);
             }
           '
+      - name: Repair Portal layout
+        run: |
+          php -r '
+            $_SERVER["SCRIPT_NAME"]="cli";
+            require "app/bootstrap.php";
+            require_once "app/BlogLayoutRepair.php";
+            \Kovcheg\Blog\LayoutRepair::ensure();
+          '
       - name: Start PHP server
         run: |
-          php -S 127.0.0.1:8099 router.php > /tmp/kovcheg-runtime.log 2>&1 &
+          php -S 127.0.0.1:8099 index.php > /tmp/kovcheg-runtime.log 2>&1 &
           echo $! > /tmp/kovcheg-runtime.pid
-          sleep 2
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi
+            sleep 1
+          done
       - name: Home route
-        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/ -o /tmp/home.html
+        run: |
+          curl --fail-with-body -sS -D /tmp/home.headers http://127.0.0.1:8099/ -o /tmp/home.html
+          grep -q 'data-layout-zone="matrix.header.3"' /tmp/home.html
+          grep -q 'portal-matrix-sidebar portal-matrix-sidebar--left' /tmp/home.html
+          grep -q 'portal-matrix-sidebar portal-matrix-sidebar--right' /tmp/home.html
+          grep -q 'portal-matrix-footer-grid' /tmp/home.html
+          grep -q 'Ланцет Семён Борисович' /tmp/home.html
       - name: Legacy Blog alias
-        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/blog -o /tmp/blog.html
+        run: curl --fail-with-body -sS -D /tmp/blog.headers http://127.0.0.1:8099/blog -o /tmp/blog.html
       - name: Legacy Portfolio alias
-        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/portfolio -o /tmp/portfolio.html
+        run: curl --fail-with-body -sS -D /tmp/portfolio.headers http://127.0.0.1:8099/portfolio -o /tmp/portfolio.html
       - name: Studio route
-        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/studio -o /tmp/studio.html
+        run: curl --fail-with-body -sS -D /tmp/studio.headers http://127.0.0.1:8099/studio -o /tmp/studio.html
       - name: Appearance route
-        run: curl --fail-with-body -sS -D - http://127.0.0.1:8099/appearance -o /tmp/appearance.html
+        run: curl --fail-with-body -sS -D /tmp/appearance.headers http://127.0.0.1:8099/appearance -o /tmp/appearance.html
       - name: Runtime log
         if: always()
         run: cat /tmp/kovcheg-runtime.log || true
