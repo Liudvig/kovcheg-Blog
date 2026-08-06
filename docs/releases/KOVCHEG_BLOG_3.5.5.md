@@ -22,7 +22,8 @@ License: **proprietary / all rights reserved**
 - пустая главная страница оформлена как полноценное состояние портала;
 - форма подписки больше не раздувает подвал;
 - сохранена матрица подвала 4 × 2 и отдельная полоса copyright;
-- добавлены правила для планшетов и телефонов, включая мобильное меню.
+- добавлены правила для планшетов и телефонов, включая мобильное меню;
+- старые audit-скрипты больше не блокируют следующий patch-релиз из-за жёстко прошитой версии 3.5.4.
 
 ## Реализация
 
@@ -32,23 +33,31 @@ License: **proprietary / all rights reserved**
 
 Он подключается после общего `assets/css/blog-widgets.css`, поэтому тема безопасно переопределяет только публичное оформление Portal и не меняет рендереры виджетов или другие темы.
 
+Проверки предыдущего релиза переведены с требования точного номера версии на безопасную проверку минимальной совместимой версии `3.5.4+`. Для `ASSET_REVISION` проверяется соответствие текущему `APP_VERSION`.
+
 ## Изменённые файлы
 
 - `themes/kovcheg-portal/assets/portal-ui-repair.css`;
 - `themes/kovcheg-portal/layout.php`;
 - `app/bootstrap.php`;
 - `scripts/audit-portal-ui.php`;
+- `scripts/audit-login-routing.php`;
+- `scripts/audit-account-actions.php`;
+- `scripts/audit-unified-portal.php`;
+- `scripts/audit-modern-portal-widgets.php`;
+- `scripts/audit-visual-zone-builder.php`;
 - `.github/workflows/portal-ui.yml`;
 - `docs/releases/KOVCHEG_BLOG_3.5.5.md`;
 - `docs/DEVELOPMENT_LOG.md`.
 
 ## Проверка
 
-- PHP syntax lint для layout, bootstrap и audit-скрипта;
+- PHP syntax lint для layout, bootstrap и audit-скриптов;
 - статический аудит порядка подключения CSS;
 - проверка обязательных правил логотипа, аватара, боковых колонок, подвала и мобильной версии;
 - проверка баланса фигурных скобок CSS;
-- отдельный GitHub Actions workflow `KOVCHEG Portal UI checks`.
+- отдельный GitHub Actions workflow `KOVCHEG Portal UI checks`;
+- полный набор существующих GitHub Actions после устранения жёсткой привязки audit-скриптов к 3.5.4.
 
 ## Миграции
 
