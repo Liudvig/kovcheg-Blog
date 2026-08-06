@@ -49,9 +49,9 @@ $expect($editorJs,'const updatePermalink','JavaScript не обновляет п
 $expect($editorJs,"frame.setAttribute('scrolling', 'yes')",'Iframe preview не включает прокрутку.');
 $expect($editorJs,'overflow-y:auto','Документ внутри iframe preview не прокручивается.');
 
-$expect($layout,"$pageType=(string)($layoutContext['page_type']??'default');",'Тема не определяет тип публичного представления.');
-$expect($layout,"$documentClass=$pageType==='entry'?' blog-theme-document':'';",'Итоговая страница не получает класс документа.');
-$expect($layout,"public-page-scroll.css",'CSS исправления публичной прокрутки не подключён.');
+$expect($layout,"\$pageType=(string)(\$layoutContext['page_type']??'default');",'Тема не определяет тип публичного представления.');
+$expect($layout,"\$documentClass=\$pageType==='entry'?' blog-theme-document':'';",'Итоговая страница не получает класс документа.');
+$expect($layout,'public-page-scroll.css','CSS исправления публичной прокрутки не подключён.');
 $expect($scrollCss,'html:has(body.blog-theme-document)','Корневой HTML не переведён на естественную прокрутку документа.');
 $expect($scrollCss,'body.blog-theme-document','Итоговый материал не переведён на естественную прокрутку.');
 $expect($scrollCss,'overflow-y: auto !important','Вертикальная прокрутка итоговой страницы не включена принудительно.');
