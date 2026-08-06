@@ -5,9 +5,8 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
 
 $nav=[
  'dashboard'=>['Обзор','/studio','⌂','comments'],
- 'posts'=>['Записи','/studio/posts','✎','content'],
- 'categories'=>['Рубрики','/studio/categories','≡','content'],
  'pages'=>['Страницы','/studio/pages','▤','content'],
+ 'categories'=>['Рубрики','/studio/categories','≡','content'],
  'comments'=>['Комментарии','/studio/comments','◌','comments'],
  'media'=>['Медиафайлы','/studio/media','▧','media'],
  'menus'=>['Меню','/studio/menus','☷','menus'],
@@ -32,33 +31,34 @@ $copyright='© '.date('Y').' Ланцет Семён Борисович';
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-compact.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-simple.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-wordpress.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-pages.css?v='.rawurlencode(ASSET_REVISION)))?>">
 </head>
-<body class="studio-body studio-body--simple studio-body--wordpress" data-studio-section="<?=e($studioSection)?>">
+<body class="studio-body studio-body--simple studio-body--wordpress studio-body--pages" data-studio-section="<?=e($studioSection)?>">
 <div class="studio-shell">
  <aside class="studio-sidebar" id="studio-sidebar" aria-label="Навигация KOVCHEG Studio">
-  <header class="studio-brand"><a href="<?=e(app_url('/studio'))?>"><span>K</span><div><b>KOVCHEG Studio</b><small>Blog <?=e(APP_VERSION)?></small></div></a><button type="button" data-studio-close aria-label="Закрыть меню">×</button></header>
+  <header class="studio-brand"><a href="<?=e(app_url('/studio'))?>"><span>K</span><div><b>KOVCHEG Studio</b><small>CMS <?=e(APP_VERSION)?></small></div></a><button type="button" data-studio-close aria-label="Закрыть меню">×</button></header>
   <nav class="studio-nav">
    <?php foreach($nav as $key=>$item):if(!\Kovcheg\Blog\Studio::can($item[3]))continue;?>
    <a class="<?=$studioSection===$key?'active':''?>" href="<?=e(app_url($item[1]))?>"><i><?=$item[2]?></i><span><?=$item[0]?></span></a>
    <?php endforeach;?>
   </nav>
-  <div class="studio-sidebar-meta"><b>KOVCHEG Blog <?=e(APP_VERSION)?></b><small><?=e((string)($currentUser['display_name']??''))?> · <?=e($studioRole)?></small><small><?=e($copyright)?></small></div>
+  <div class="studio-sidebar-meta"><b>KOVCHEG CMS <?=e(APP_VERSION)?></b><small><?=e((string)($currentUser['display_name']??''))?> · <?=e($studioRole)?></small><small><?=e($copyright)?></small></div>
  </aside>
  <button class="studio-overlay" type="button" data-studio-overlay hidden aria-label="Закрыть меню"></button>
  <main class="studio-main" id="studio-main">
   <header class="studio-topbar">
    <button type="button" class="studio-menu-button" data-studio-open aria-label="Открыть меню">☰</button>
-   <div class="studio-topbar-title"><small>KOVCHEG Blog</small><b><?=e($studioTitle)?></b></div>
+   <div class="studio-topbar-title"><small>KOVCHEG CMS</small><b><?=e($studioTitle)?></b></div>
    <div class="studio-top-actions">
     <a class="button studio-site-action" href="<?=e(app_url('/'))?>" target="_blank" rel="noopener"><span class="studio-action-icon">↗</span><span class="studio-action-label">Сайт</span></a>
     <a class="button studio-account-action" href="<?=e(app_url('/account'))?>"><span class="studio-action-icon">◉</span><span class="studio-action-label">Профиль</span></a>
-    <?php if(\Kovcheg\Blog\Studio::can('content')):?><a class="button primary" href="<?=e(app_url('/studio/posts/new'))?>"><span class="studio-action-icon">＋</span><span class="studio-action-label">Добавить запись</span></a><?php endif;?>
+    <?php if(\Kovcheg\Blog\Studio::can('content')):?><a class="button primary" href="<?=e(app_url('/studio/pages/new'))?>"><span class="studio-action-icon">＋</span><span class="studio-action-label">Добавить страницу</span></a><?php endif;?>
     <form method="post" action="<?=e(app_url('/logout'))?>"><?=csrf_field()?><button class="button studio-logout-action" type="submit"><span class="studio-action-icon">↪</span><span class="studio-action-label">Выйти</span></button></form>
    </div>
   </header>
   <?php if($flash):?><div class="studio-flashes"><?php foreach($flash as $message):?><div class="studio-flash <?=$message['type']==='error'?'error':'success'?>"><?=e($message['text'])?></div><?php endforeach;?></div><?php endif;?>
   <section class="studio-content"><?=$content?></section>
-  <footer class="studio-footer"><div><b>KOVCHEG Blog</b><span>Записи, рубрики и страницы — без лишних конструкторов.</span></div><div><span><?=e($copyright)?></span><span>Все права защищены</span></div></footer>
+  <footer class="studio-footer"><div><b>KOVCHEG CMS</b><span>Страницы и рубрики — без лишних сущностей.</span></div><div><span><?=e($copyright)?></span><span>Все права защищены</span></div></footer>
  </main>
 </div>
 <script src="<?=e(app_url('/assets/js/blog-studio.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>

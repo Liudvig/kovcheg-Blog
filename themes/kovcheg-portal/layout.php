@@ -6,7 +6,7 @@ use Kovcheg\Blog\Layout;
 
 $pageTitle = trim((string)($title ?? ''));
 $siteSeoTitle = trim((string)setting('seo_site_title', '')) ?: $siteName;
-$metaDescription = trim((string)($description ?? setting('seo_default_description', setting('seo_description', 'Новости, статьи, проекты и аналитика.'))));
+$metaDescription = trim((string)($description ?? setting('seo_default_description', setting('seo_description', 'Информация и разделы сайта.'))));
 $canonical = current_absolute_url();
 $indexing = setting('seo_robots_index', setting('search_indexing', '0')) === '1';
 $logo = app_url('/brand/logo?v='.rawurlencode(APP_VERSION));
@@ -51,7 +51,8 @@ $hasLeft=implode('',$leftSlots)!=='';
 $hasRight=implode('',$rightSlots)!=='';
 $columnsClass=$hasLeft&&$hasRight?'portal-matrix--three':($hasLeft?'portal-matrix--left':($hasRight?'portal-matrix--right':'portal-matrix--single'));
 $pageType=(string)($layoutContext['page_type']??'default');
-$documentClass=$pageType==='entry'?' blog-theme-document':'';
+$documentClass=in_array($pageType,['entry','page'],true)?' blog-theme-document':'';
+$pageClass=$pageType==='page'?' blog-theme-page':'';
 $previewClass=!empty($studioPreview)?' blog-theme-preview':'';
 $copyright='© '.date('Y').' Ланцет Семён Борисович';
 $flash=[];
@@ -84,12 +85,12 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
 <link rel="stylesheet" href="<?=e($themeAsset('public-page-scroll.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <?=\Kovcheg\Hooks::fire('blog.layout.head','')?>
 </head>
-<body class="blog-theme blog-theme-portal blog-theme-portal-matrix <?=e($columnsClass)?><?=e($documentClass)?><?=e($previewClass)?>">
+<body class="blog-theme blog-theme-portal blog-theme-portal-matrix <?=e($columnsClass)?><?=e($documentClass)?><?=e($pageClass)?><?=e($previewClass)?>">
 <a class="skip-link" href="#main-content">Перейти к содержанию</a>
 <header class="portal-matrix-header">
  <?php if($preheader!==''):?><div class="portal-matrix-preheader"><?=$preheader?></div><?php endif;?>
  <div class="portal-matrix-header-grid">
-  <?php for($i=1;$i<=5;$i++):?><div class="portal-matrix-header-cell portal-matrix-header-cell--<?=$i?>"><?php if($headerSlots[$i]!==''):?><?=$headerSlots[$i]?><?php elseif($i===1):?><a class="portal-brand-fallback" href="<?=e(app_url('/'))?>"><img src="<?=e($logo)?>" alt=""><span><b><?=e($siteName)?></b><small><?=e(setting('blog_tagline','Новости · мнения · проекты'))?></small></span></a><?php endif;?></div><?php endfor;?>
+  <?php for($i=1;$i<=5;$i++):?><div class="portal-matrix-header-cell portal-matrix-header-cell--<?=$i?>"><?php if($headerSlots[$i]!==''):?><?=$headerSlots[$i]?><?php elseif($i===1):?><a class="portal-brand-fallback" href="<?=e(app_url('/'))?>"><img src="<?=e($logo)?>" alt=""><span><b><?=e($siteName)?></b><small><?=e(setting('blog_tagline','Страницы · рубрики · информация'))?></small></span></a><?php endif;?></div><?php endfor;?>
  </div>
  <?php if($postheader!==''):?><div class="portal-matrix-postheader"><?=$postheader?></div><?php endif;?>
 </header>
@@ -105,7 +106,7 @@ if(!empty($_SESSION['flash_success'])){$flash[]=['type'=>'success','text'=>(stri
 </div>
 <footer class="portal-matrix-footer">
  <div class="portal-matrix-footer-grid"><?php for($i=1;$i<=8;$i++):?><div class="portal-matrix-slot portal-matrix-slot--footer"><?=$footerSlots[$i]?></div><?php endfor;?></div>
- <div class="portal-matrix-copyright"><span><?=e($copyright)?></span><span>KOVCHEG Blog <?=e(APP_VERSION)?> · Все права защищены</span><?php if(setting('seo_rss_enabled','1')==='1'):?><a href="<?=e(app_url('/feed.xml'))?>">RSS</a><?php endif;?></div>
+ <div class="portal-matrix-copyright"><span><?=e($copyright)?></span><span>KOVCHEG CMS <?=e(APP_VERSION)?> · Все права защищены</span><?php if(setting('seo_rss_enabled','1')==='1'):?><a href="<?=e(app_url('/feed.xml'))?>">RSS</a><?php endif;?></div>
 </footer>
 <script src="<?=e(app_url('/assets/js/blog-widgets.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 <?=\Kovcheg\Hooks::fire('blog.layout.scripts','')?>

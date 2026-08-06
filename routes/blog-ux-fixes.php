@@ -12,31 +12,26 @@ use Kovcheg\Blog\Studio32;
 require_once BASE_PATH.'/app/BlogStudio.php';
 require_once BASE_PATH.'/app/BlogStudio32.php';
 
-if (!function_exists('kovcheg_entry_preview_context')) {
-    function kovcheg_entry_preview_context(array $entry): array
+if (!function_exists('kovcheg_page_preview_context')) {
+    function kovcheg_page_preview_context(array $entry): array
     {
         $id=(int)($entry['id']??0);
-        $categories=(string)($entry['type']??'post')==='post'
-            ? DB::all('SELECT c.id,c.name,c.slug FROM content_categories c JOIN content_entry_categories ec ON ec.category_id=c.id WHERE ec.entry_id=? ORDER BY c.name',[$id])
-            : [];
+        $categories=DB::all('SELECT c.id,c.name,c.slug,c.description FROM content_categories c JOIN content_entry_categories ec ON ec.category_id=c.id WHERE ec.entry_id=? ORDER BY c.sort_order,c.name',[$id]);
         $views=(int)(DB::one('SELECT COALESCE(SUM(views),0) total FROM content_views_daily WHERE entry_id=?',[$id])['total']??0);
         return [
             'categories'=>$categories,
-            'tags'=>[],
-            'portfolioMeta'=>[],
             'viewCount'=>$views,
             'relatedEntries'=>[],
         ];
     }
 }
 
-/* Studio preview for drafts, private entries and future publications. */
 $router->get('/studio/content/{id}/preview', function (array $params) {
     Studio::require('content');
     $entry=DB::one("SELECT e.*,u.display_name author_name,u.username author_username,u.avatar_path,u.bio author_bio
         FROM content_entries e JOIN users u ON u.id=e.author_id
-        WHERE e.id=? AND e.type IN ('post','page') AND e.deleted_at IS NULL LIMIT 1",[(int)$params['id']]);
-    if(!$entry)abort(404,'Запись или страница не найдена.');
+        WHERE e.id=? AND e.type='page' AND e.deleted_at IS NULL LIMIT 1",[(int)$params['id']]);
+    if(!$entry)abort(404,'Страница не найдена.');
 
     if(Blog::canRead($entry)){
         header('Location: '.Blog::entryUrl($entry),true,302);
@@ -44,18 +39,16 @@ $router->get('/studio/content/{id}/preview', function (array $params) {
     }
 
     header('X-Robots-Tag: noindex, nofollow, noarchive');
-    Blog::render('entry',array_merge([
+    Blog::render('page',array_merge([
         'title'=>'Предпросмотр — '.(string)$entry['title'],
         'description'=>(string)($entry['seo_description']?:Blog::excerpt($entry,300)),
         'entry'=>$entry,
         'comments'=>[],
-        'reactions'=>[],
         'studioPreview'=>true,
         'publicUrl'=>Blog::entryUrl($entry),
-    ],kovcheg_entry_preview_context($entry)));
+    ],kovcheg_page_preview_context($entry)));
 });
 
-/* Upload an image without leaving the classic editor. */
 $router->post('/studio/media/upload-inline', function () {
     Studio::require('media');
     Csrf::validate();

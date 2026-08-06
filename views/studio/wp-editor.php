@@ -4,9 +4,6 @@ use Kovcheg\Blog\ClassicEditor;
 
 $isNew=empty($entry['id']);
 $entryId=(int)($entry['id']??0);
-$type=(string)($entry['type']??'post')==='page'?'page':'post';
-$isPage=$type==='page';
-$section=$isPage?'pages':'posts';
 $status=(string)($entry['status']??'draft');
 $visibility=(string)($entry['visibility']??'public');
 $publishedLocal=!empty($entry['published_at'])?date('Y-m-d\TH:i',strtotime((string)$entry['published_at'])):'';
@@ -15,11 +12,12 @@ if(!empty($autosave['content_json']))$autosaveData=['title'=>(string)($autosave[
 $classicHtml=ClassicEditor::sanitize((string)($entry['content_html']??''));
 $publicUrl=!$isNew&&trim((string)($entry['slug']??''))!==''?Blog::entryUrl($entry):'';
 $isPublishedNow=!$isNew&&Blog::isPubliclyReadable($entry);
+$selectedCategories=array_map('intval',(array)($entry['category_ids']??[]));
 ?>
 <form method="post" enctype="multipart/form-data" action="<?=e(app_url('/studio/entry/save'))?>" data-entry-form data-autosave-url="<?=e(app_url('/studio/content/autosave'))?>" data-app-url="<?=e(rtrim(app_url('/'),'/'))?>">
 <?=csrf_field()?>
 <input type="hidden" name="id" value="<?=$entryId?>">
-<input type="hidden" name="type" value="<?=e($type)?>" data-entry-type>
+<input type="hidden" name="type" value="page" data-entry-type>
 <input type="hidden" name="editor_mode" value="classic" data-editor-mode>
 <input type="hidden" name="content_json" value="<?=e((string)($entry['content_json']??'[]'))?>" data-block-json>
 <input type="hidden" name="sort_order" value="0">
@@ -27,23 +25,23 @@ $isPublishedNow=!$isNew&&Blog::isPubliclyReadable($entry);
 <input type="hidden" name="reactions_enabled" value="0">
 <textarea hidden data-autosave-data><?=e(json_encode($autosaveData,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES))?></textarea>
 
-<div class="page-head">
- <div><h1><?=$isNew?($isPage?'Новая страница':'Новая запись'):($isPage?'Редактирование страницы':'Редактирование записи')?></h1><p><span class="autosave-state" data-autosave-state>Автосохранение включено</span></p></div>
- <div class="editor-actions"><a class="button" href="<?=e(app_url('/studio/'.$section))?>">Назад</a><?php if(!$isNew):?><?php if($isPublishedNow):?><a class="button" target="_blank" rel="noopener" data-entry-public-link href="<?=e($publicUrl)?>">Посмотреть</a><?php else:?><a class="button" target="_blank" rel="noopener" href="<?=e(app_url('/studio/content/'.$entryId.'/preview'))?>">Предпросмотр</a><?php endif;?><?php endif;?><button class="button primary" type="submit">Сохранить</button></div>
+<div class="page-head page-head--editor">
+ <div><h1><?=$isNew?'Новая страница':'Редактирование страницы'?></h1><p><span class="autosave-state" data-autosave-state>Автосохранение включено</span></p></div>
+ <div class="editor-actions"><a class="button" href="<?=e(app_url('/studio/pages'))?>">Назад</a><?php if(!$isNew):?><?php if($isPublishedNow):?><a class="button" target="_blank" rel="noopener" data-entry-public-link href="<?=e($publicUrl)?>">Открыть страницу</a><?php else:?><a class="button" target="_blank" rel="noopener" href="<?=e(app_url('/studio/content/'.$entryId.'/preview'))?>">Предпросмотр</a><?php endif;?><?php endif;?><button class="button primary" type="submit">Сохранить</button></div>
 </div>
 
 <?php if($autosaveData):?><div class="autosave-restore" data-autosave-restore><div><b>Найдена автокопия</b><span><?=e((string)$autosaveData['saved_at'])?></span></div><button type="button" class="button small primary" data-restore-autosave>Восстановить</button><button type="button" class="button small" data-dismiss-autosave>Закрыть</button></div><?php endif;?>
 
-<div class="editor-layout wp-editor-layout">
+<div class="editor-layout wp-editor-layout page-only-editor">
  <div class="editor-main">
   <section class="editor-card editor-card--basic">
-   <div class="field"><label>Заголовок</label><input class="title-input" data-entry-title name="title" maxlength="255" required value="<?=e((string)($entry['title']??''))?>" placeholder="<?=$isPage?'Название страницы':'Заголовок записи'?>"></div>
-   <?php if(!$isPage):?><div class="field"><label>Краткое описание</label><input name="excerpt" maxlength="500" value="<?=e((string)($entry['excerpt']??''))?>" placeholder="Короткий текст для ленты"></div><?php else:?><input type="hidden" name="excerpt" value=""><?php endif;?>
+   <div class="field"><label>Название страницы</label><input class="title-input" data-entry-title name="title" maxlength="255" required value="<?=e((string)($entry['title']??''))?>" placeholder="Например: Новости, О проекте, Контакты"></div>
+   <div class="field"><label>Краткое описание</label><textarea name="excerpt" rows="2" maxlength="2000" placeholder="Необязательно. Показывается в списках и рубриках."><?=e((string)($entry['excerpt']??''))?></textarea></div>
   </section>
 
   <section class="editor-card classic-editor-card" data-classic-editor-shell data-classic-id="classic-<?=($entryId?:'new')?>">
    <div class="classic-editor-panel" data-classic-panel>
-    <div class="classic-editor-intro"><h2>Текст</h2><button type="button" class="button small" data-action="preview">Предпросмотр</button></div>
+    <div class="classic-editor-intro"><h2>Содержимое страницы</h2><button type="button" class="button small" data-action="preview">Предпросмотр</button></div>
     <div class="classic-editor-shell">
      <div class="classic-editor-head"><button type="button" class="button small classic-editor-media-button" data-action="media">▧ Добавить изображение</button><div class="classic-editor-surface-tabs"><button type="button" class="active" data-classic-surface="visual">Визуально</button><button type="button" data-classic-surface="text">HTML</button></div></div>
      <div class="classic-editor-toolbar" data-classic-toolbar role="toolbar" aria-label="Форматирование">
@@ -66,13 +64,13 @@ $isPublishedNow=!$isNew&&Blog::isPubliclyReadable($entry);
  <aside class="editor-side">
   <section class="editor-card"><h3>Публикация</h3><div class="field"><label>Статус</label><select name="status"><option value="draft" <?=$status==='draft'?'selected':''?>>Черновик</option><option value="published" <?=$status==='published'?'selected':''?>>Опубликовано</option><option value="scheduled" <?=$status==='scheduled'?'selected':''?>>Запланировано</option><option value="private" <?=$status==='private'?'selected':''?>>Личное</option></select></div><div class="field"><label>Дата</label><input type="datetime-local" name="published_at" value="<?=e($publishedLocal)?>"></div><button class="button primary" type="submit">Сохранить</button></section>
 
-  <section class="editor-card editor-permalink-card"><h3>Постоянная ссылка</h3><div class="field"><div class="editor-permalink-line"><input type="text" readonly data-entry-public-url value="<?=e($publicUrl)?>" placeholder="Появится после сохранения"><button type="button" class="button small" data-copy-public-url <?=$publicUrl===''?'disabled':''?>>Копировать</button></div></div><div class="field"><label>Адрес</label><input data-entry-slug name="slug" maxlength="190" value="<?=e((string)($entry['slug']??''))?>" placeholder="adres-stranicy"></div><?php if(!$isNew&&$isPublishedNow):?><div class="editor-link-actions"><a class="button small" target="_blank" rel="noopener" data-entry-public-link href="<?=e($publicUrl)?>">Открыть</a><?php if($isPage):?><a class="button small" href="<?=e(app_url('/studio/menus?entry='.$entryId))?>">Добавить в меню</a><?php endif;?></div><?php endif;?></section>
+  <section class="editor-card editor-permalink-card"><h3>Адрес страницы</h3><div class="field"><div class="editor-permalink-line"><input type="text" readonly data-entry-public-url value="<?=e($publicUrl)?>" placeholder="Появится после сохранения"><button type="button" class="button small" data-copy-public-url <?=$publicUrl===''?'disabled':''?>>Копировать</button></div></div><div class="field"><label>Ярлык</label><input data-entry-slug name="slug" maxlength="190" value="<?=e((string)($entry['slug']??''))?>" placeholder="adres-stranicy"></div><?php if(!$isNew&&$isPublishedNow):?><div class="editor-link-actions"><a class="button small" target="_blank" rel="noopener" data-entry-public-link href="<?=e($publicUrl)?>">Открыть</a><a class="button small" href="<?=e(app_url('/studio/menus?entry='.$entryId))?>">Добавить в меню</a></div><?php endif;?></section>
 
-  <?php if(!$isPage):?><section class="editor-card"><div class="editor-card-title"><h3>Рубрики</h3><a href="<?=e(app_url('/studio/categories'))?>">Управление</a></div><div class="check-list"><?php foreach($categories as $category):?><label class="check-row"><input type="checkbox" name="category_ids[]" value="<?=(int)$category['id']?>" <?=in_array((int)$category['id'],array_map('intval',(array)($entry['category_ids']??[])),true)?'checked':''?>> <?=e($category['name'])?></label><?php endforeach;?><?php if(!$categories):?><small>Сначала создайте рубрику.</small><?php endif;?></div></section><?php endif;?>
+  <section class="editor-card"><div class="editor-card-title"><h3>Рубрики</h3><a href="<?=e(app_url('/studio/categories'))?>">Управление</a></div><p class="field-help">Рубрика — это раздел сайта. Её можно назвать «Новости», «Блог», «Документы» или как угодно.</p><div class="check-list"><?php foreach($categories as $category):?><label class="check-row"><input type="checkbox" name="category_ids[]" value="<?=(int)$category['id']?>" <?=in_array((int)$category['id'],$selectedCategories,true)?'checked':''?>> <?=e($category['name'])?></label><?php endforeach;?><?php if(!$categories):?><small>Рубрик пока нет. Страница может работать и без рубрики.</small><?php endif;?></div></section>
 
-  <section class="editor-card" data-upload-block><h3>Изображение</h3><input type="hidden" name="featured_image_path" data-feature-path value="<?=e((string)($entry['featured_image_path']??''))?>"><input type="hidden" name="featured_folder_id" value="0"><label class="upload-zone upload-zone--compact" data-upload-zone><input type="file" name="featured_image" accept="image/jpeg,image/png,image/webp"><span class="upload-zone__icon">▧</span><b>Выбрать файл</b><small>JPEG, PNG или WebP</small></label><div class="upload-selection" data-upload-selection></div><?php if($media):?><div class="media-picker media-picker--compact"><?php foreach(array_slice($media,0,12) as $item):?><button type="button" class="<?=($entry['featured_image_path']??'')===$item['stored_path']?'active':''?>" data-media-path="<?=e($item['stored_path'])?>" data-media-url="<?=e(app_url('/media/'.(int)$item['id']))?>"><img src="<?=e(app_url('/media/'.(int)$item['id']))?>" alt=""></button><?php endforeach;?></div><?php endif;?></section>
+  <section class="editor-card" data-upload-block><h3>Обложка</h3><input type="hidden" name="featured_image_path" data-feature-path value="<?=e((string)($entry['featured_image_path']??''))?>"><input type="hidden" name="featured_folder_id" value="0"><label class="upload-zone upload-zone--compact" data-upload-zone><input type="file" name="featured_image" accept="image/jpeg,image/png,image/webp"><span class="upload-zone__icon">▧</span><b>Выбрать файл</b><small>JPEG, PNG или WebP</small></label><div class="upload-selection" data-upload-selection></div><?php if($media):?><div class="media-picker media-picker--compact"><?php foreach(array_slice($media,0,12) as $item):?><button type="button" class="<?=($entry['featured_image_path']??'')===$item['stored_path']?'active':''?>" data-media-path="<?=e($item['stored_path'])?>" data-media-url="<?=e(app_url('/media/'.(int)$item['id']))?>"><img src="<?=e(app_url('/media/'.(int)$item['id']))?>" alt=""></button><?php endforeach;?></div><?php endif;?></section>
 
-  <details class="editor-card editor-details"><summary>Дополнительно</summary><div class="field"><label>Видимость</label><select name="visibility"><option value="public" <?=$visibility==='public'?'selected':''?>>Всем</option><option value="users" <?=$visibility==='users'?'selected':''?>>Только пользователям</option><option value="private" <?=$visibility==='private'?'selected':''?>>Только администрации</option></select></div><label class="check-row"><input type="checkbox" name="is_featured" value="1" <?=!empty($entry['is_featured'])?'checked':''?>> Закрепить</label><label class="check-row"><input type="checkbox" name="comments_enabled" value="1" <?=!empty($entry['comments_enabled'])?'checked':''?>> Разрешить комментарии</label><div class="field"><label>SEO-заголовок</label><input name="seo_title" maxlength="255" value="<?=e((string)($entry['seo_title']??''))?>"></div><div class="field"><label>SEO-описание</label><textarea name="seo_description" rows="2" maxlength="320"><?=e((string)($entry['seo_description']??''))?></textarea></div></details>
+  <details class="editor-card editor-details"><summary>Дополнительно</summary><div class="field"><label>Видимость</label><select name="visibility"><option value="public" <?=$visibility==='public'?'selected':''?>>Всем</option><option value="users" <?=$visibility==='users'?'selected':''?>>Только пользователям</option><option value="private" <?=$visibility==='private'?'selected':''?>>Только администрации</option></select></div><label class="check-row"><input type="checkbox" name="is_featured" value="1" <?=!empty($entry['is_featured'])?'checked':''?>> Показывать первой</label><label class="check-row"><input type="checkbox" name="comments_enabled" value="1" <?=!empty($entry['comments_enabled'])?'checked':''?>> Разрешить комментарии</label><div class="field"><label>SEO-заголовок</label><input name="seo_title" maxlength="255" value="<?=e((string)($entry['seo_title']??''))?>"></div><div class="field"><label>SEO-описание</label><textarea name="seo_description" rows="2" maxlength="320"><?=e((string)($entry['seo_description']??''))?></textarea></div></details>
  </aside>
 </div>
 </form>

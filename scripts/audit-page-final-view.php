@@ -7,46 +7,25 @@ $read=static function(string $path)use($root,&$errors):string{$data=@file_get_co
 $expect=static function(string $content,string $needle,string $message)use(&$errors):void{if(!str_contains($content,$needle))$errors[]=$message;};
 
 $bootstrap=$read('app/bootstrap.php');
-$studio32=$read('app/BlogStudio32.php');
-$entryRoutes=$read('routes/blog-entry-routing.php');
-$previewRoutes=$read('routes/blog-ux-fixes.php');
-$editor=$read('views/studio/wp-editor.php');
-$contentIndex=$read('views/studio/entries-index.php');
-$menus=$read('views/studio/menus.php');
+$routes=$read('routes/blog-entry-routing.php');
+$preview=$read('routes/blog-ux-fixes.php');
+$page=$read('themes/kovcheg-portal/page.php');
 $layout=$read('themes/kovcheg-portal/layout.php');
-$matrixCss=$read('themes/kovcheg-portal/assets/layout-matrix.css');
+$pageCss=$read('themes/kovcheg-portal/assets/page.css');
 $scrollCss=$read('themes/kovcheg-portal/assets/public-page-scroll.css');
-$editorCss=$read('assets/css/blog-classic-editor.css');
+$editor=$read('views/studio/wp-editor.php');
 $editorJs=$read('assets/js/blog-classic-editor.js');
 
-if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)!==1||version_compare((string)$match[1],'3.6.0','<'))$errors[]='Версия приложения должна быть 3.6.0 или новее.';
-$expect($bootstrap,"const ASSET_REVISION = '3.6.0-wordpress-simple-core';",'Не обновлена ревизия статических файлов 3.6.0.');
-$expect($studio32,"\$status==='published'&&(\$publishedAt===null||strtotime(\$publishedAt)>time())",'Опубликованный материал с будущей датой не переводится на текущую дату.');
-$expect($studio32,"\$status==='scheduled'&&(\$publishedAt===null||strtotime(\$publishedAt)<=time())",'Запланированная публикация не проверяет будущую дату.');
-
-$expect($entryRoutes,'function kovcheg_render_entry_record','Нет единого рендера итоговой страницы.');
-$expect($entryRoutes,'kovcheg_render_entry_record($stored, true);','Сохранённый материал не открывается по каноническому адресу редактору.');
-$expect($entryRoutes,"header('Location: '.Blog::entryUrl(\$storedOther), true, 302);",'Смена типа не переводит на правильный итоговый адрес.');
-$expect($previewRoutes,'if(Blog::canRead($entry))','Preview не определяет опубликованный материал.');
-$expect($previewRoutes,"header('Location: '.Blog::entryUrl(\$entry),true,302);",'Опубликованный материал не выходит из preview.');
-$expect($previewRoutes,"'studioPreview'=>true",'Черновик не помечается как полноэкранный preview.');
-
-foreach(['data-entry-public-url','data-copy-public-url','data-entry-public-link','/studio/menus?entry='] as $token)$expect($editor,$token,'В редакторе отсутствует постоянная ссылка: '.$token);
-$expect($editor,'Добавить в меню','В редакторе страницы нет добавления в меню.');
-$expect($contentIndex,'Посмотреть','В списке нет итогового просмотра.');
-$expect($contentIndex,'Blog::entryUrl($entry)','Список не использует канонический адрес.');
-$expect($menus,"\$_GET['entry']",'Страница не передаётся в меню.');
-$expect($menus,'selectedEntryId','Меню не выбирает переданную страницу.');
-
-$expect($layout,'blog-theme-preview','Тема не получает класс preview.');
-$expect($matrixCss,'html:has(body.blog-theme-preview)','Для preview не восстановлена прокрутка.');
-$expect($editorCss,'.classic-editor-preview{overflow:auto','Модальное окно preview не прокручивается.');
-$expect($editorJs,"frame.setAttribute('scrolling', 'yes')",'Iframe preview не включает прокрутку.');
-$expect($layout,"\$documentClass=\$pageType==='entry'?' blog-theme-document':'';",'Итоговая страница не получает класс документа.');
-$expect($layout,'public-page-scroll.css','CSS публичной прокрутки не подключён.');
-$expect($scrollCss,'html:has(body.blog-theme-document)','HTML не переведён на естественную прокрутку.');
-$expect($scrollCss,'overflow-y: auto !important','Вертикальная прокрутка итоговой страницы не включена.');
-$expect($scrollCss,'touch-action: pan-y','Сенсорная прокрутка не разрешена.');
-
-foreach([$matrixCss,$scrollCss,$editorCss] as $css)if(substr_count($css,'{')!==substr_count($css,'}'))$errors[]='В CSS нарушен баланс скобок.';
-if($errors){fwrite(STDERR,"Page final view audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}echo "Page final view audit OK\n";
+$expect($bootstrap,"const APP_VERSION = '3.7.0';",'Версия 3.7.0 не установлена.');
+$expect($bootstrap,"const ASSET_REVISION = '3.7.0-page-category-core';",'Неверная ревизия assets.');
+$expect($routes,"Blog::render('page'",'Итоговая страница не использует Page view.');
+$expect($preview,"Blog::render('page'",'Предпросмотр не использует Page view.');
+foreach(['site-page-breadcrumbs','site-page-title-row','site-page-content','site-page-rubrics','site-page-related','site-page-comments'] as $token)$expect($page,$token,'В Page view отсутствует '.$token);
+$expect($layout,'in_array($pageType,[\'entry\',\'page\'],true)','Page view не получает document mode.');
+$expect($layout,'$pageType===\'page\'?\' blog-theme-page\'','Page view не получает отдельный класс.');
+$expect($scrollCss,'html:has(body.blog-theme-document)','Для документа не включена естественная прокрутка.');
+foreach(['.site-page{','.site-page-content{','.site-page-cover{','.site-page-related,','@media(max-width:560px)'] as $token)$expect($pageCss,$token,'В CSS страницы отсутствует '.$token);
+foreach(['data-entry-public-url','data-copy-public-url','Добавить в меню'] as $token)$expect($editor,$token,'В редакторе отсутствует '.$token);
+$expect($editorJs,"frame.setAttribute('scrolling', 'yes')",'Iframe предпросмотра не прокручивается.');
+if(substr_count($pageCss,'{')!==substr_count($pageCss,'}'))$errors[]='В CSS страницы нарушен баланс скобок.';
+if($errors){foreach($errors as $error)echo '::error::'.$error.PHP_EOL;fwrite(STDERR,"Public Page view audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}echo "Public Page view audit OK\n";

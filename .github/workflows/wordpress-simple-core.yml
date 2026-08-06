@@ -1,8 +1,8 @@
-name: KOVCHEG WordPress Simple Core checks
+name: KOVCHEG Pages and Rubrics checks
 
 on:
   push:
-    branches: [main, feature/wordpress-simple-core-3.6.0]
+    branches: [main, feature/page-category-core-3.7.0]
   pull_request:
     branches: [main]
 
@@ -23,6 +23,7 @@ jobs:
       - name: PHP syntax
         run: |
           php -l app/bootstrap.php
+          php -l app/Blog.php
           php -l app/BlogStudio32.php
           php -l index.php
           php -l routes/blog-wordpress-mode.php
@@ -36,17 +37,23 @@ jobs:
           php -l views/studio/categories.php
           php -l views/studio/menus.php
           php -l themes/kovcheg-portal/home.php
-          php -l themes/kovcheg-editorial/entry.php
-          php -l scripts/audit-wordpress-simple-core.php
+          php -l themes/kovcheg-portal/archive.php
+          php -l themes/kovcheg-portal/page.php
+          php -l themes/kovcheg-portal/layout.php
+          php -l themes/kovcheg-editorial/home.php
+          php -l themes/kovcheg-editorial/archive.php
+          php -l themes/kovcheg-editorial/page.php
+          php -l themes/kovcheg-portfolio/page.php
+          php -l scripts/audit-page-category-core.php
       - name: JavaScript syntax
         run: node --check assets/js/blog-classic-editor.js
-      - name: WordPress simple core audit
-        run: php scripts/audit-wordpress-simple-core.php
-      - name: Simple blog UI audit
+      - name: Pages and Rubrics core audit
+        run: php scripts/audit-page-category-core.php
+      - name: Public UI audit
         run: php scripts/audit-simple-blog.php
-      - name: Entry routing audit
+      - name: Page routing audit
         run: php scripts/audit-entry-routing.php
-      - name: Final page view audit
+      - name: Public Page view audit
         run: php scripts/audit-page-final-view.php
       - name: Classic editor audit
         run: php scripts/audit-classic-editor.php
