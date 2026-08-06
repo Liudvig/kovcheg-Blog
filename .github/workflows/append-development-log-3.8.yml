@@ -15,15 +15,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: feature/posts-menus-widgets-3.8.0
-          fetch-depth: 0
-      - name: Append release entry
+          fetch-depth: 1
+      - name: Append release entry through GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TARGET_BRANCH: feature/posts-menus-widgets-3.8.0
         shell: bash
         run: |
-          set -euo pipefail
-          if grep -q '^## 2026-08-06 — Posts, Menus, Widgets and Branding$' docs/DEVELOPMENT_LOG.md; then
-            echo 'Development log entry already exists.'
-            exit 0
-          fi
+          set -Eeuo pipefail
           cat >> docs/DEVELOPMENT_LOG.md <<'LOG'
 
 ---
@@ -57,7 +57,7 @@ feature/posts-menus-widgets-3.8.0
 - любое меню можно дополнительно разместить через виджет в любой зоне;
 - пункты меню создаются из Страниц, Рубрик и произвольных ссылок;
 - меню и отдельные пункты можно включать, отключать, редактировать и удалять;
-- система виджетов оставлена визуальной, но очищена от обязательных демо-блоков;
+- система виджетов очищена от обязательных демонстрационных блоков;
 - каждый виджет можно создать, настроить, включить, отключить, копировать, удалить или убрать с сайта;
 - добавлены виджеты входа и регистрации, слайдера записей выбранной рубрики, фото, видео, аудио, медиаслайдера и календаря записей;
 - сохранены виджеты меню, логотипа, поиска, профиля, рубрик, последних записей, текста, подписки и социальных ссылок;
@@ -70,65 +70,22 @@ feature/posts-menus-widgets-3.8.0
 - старые адреса `/blog` и `/portfolio` сохранены для совместимости, но не добавляются в меню;
 - из runtime исключены устаревшие WordPress-mode, compatibility, demo и Builder routes.
 
-Основные файлы:
-- app/bootstrap.php
-- app/Blog.php
-- app/BlogStudio32.php
-- app/BlogLayoutRepair.php
-- app/BlogEssentialWidgets.php
-- app/BlogCmsWidgetOverrides.php
-- app/BlogThemeSupport.php
-- index.php
-- routes/blog-content-model.php
-- routes/blog-categories.php
-- routes/blog-menus.php
-- routes/blog-layout.php
-- routes/blog-branding.php
-- routes/blog-legacy-urls.php
-- views/studio/layout.php
-- views/studio/dashboard.php
-- views/studio/content-list.php
-- views/studio/content-editor.php
-- views/studio/categories.php
-- views/studio/menus.php
-- views/studio/widgets.php
-- views/login.php
-- views/register.php
-- themes/kovcheg-portal/layout.php
-- themes/kovcheg-portal/home.php
-- themes/kovcheg-portal/post.php
-- themes/kovcheg-portal/page.php
-- themes/kovcheg-editorial/layout.php
-- themes/kovcheg-editorial/home.php
-- themes/kovcheg-editorial/post.php
-- migrations/20260806_posts_menus_widgets.sql
-- scripts/audit-cms-core-3.8.php
-- docs/releases/KOVCHEG_CMS_3.8.0.md
-
 Миграция:
 `migrations/20260806_posts_menus_widgets.sql`
 
 Сохранность данных:
 - тексты, изображения, ревизии и медиаданные не удаляются;
 - `portfolio` переводится в `page`;
-- связи рубрик со Страницами удаляются, потому что рубрики относятся только к Записям;
+- связи рубрик со Страницами удаляются;
 - старые обязательные пункты «Блог» и «Портфолио» удаляются из демонстрационного меню;
 - принудительные боковые, поисковые, подписные и footer-виджеты снимаются с позиций и отключаются.
 
 Проверка:
 - полный PHP lint — success;
-- JavaScript syntax — success;
-- JSON validation — success;
-- CMS 3.8 Posts, Menus, Widgets and Branding audit — success;
-- Login and Branding audit — success;
-- Account actions audit — success;
-- Classic Editor audit — success;
-- Compact Studio audit — success;
-- Portal UI audit — success;
+- JavaScript syntax и JSON validation — success;
+- CMS 3.8, Login/Branding, Account, Classic Editor, Compact Studio и Portal UI audits — success;
 - миграции проверены на MariaDB 11 и MySQL 8.4;
-- runtime-проверка создала опубликованную Запись и Страницу;
-- `/`, `/blog`, `/portfolio`, `/post/test-post` и `/page/test-page` вернули HTTP 200;
-- маршруты Studio корректно переводят неавторизованного посетителя на вход;
+- runtime создал и открыл опубликованные Запись и Страницу;
 - 21 GitHub Actions run на commit `7356744be2077c2ecf6450188b42f67f426c177d` завершён успешно.
 
 Pull request:
@@ -140,8 +97,21 @@ Deploy:
 Статус:
 IMPLEMENTED — CI PASSED — READY TO MERGE
 LOG
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/DEVELOPMENT_LOG.md
-          git commit -m 'Document KOVCHEG CMS 3.8.0 [development-log-appended]'
-          git push origin HEAD:feature/posts-menus-widgets-3.8.0
+
+          file_sha=$(curl -fsSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            "https://api.github.com/repos/${REPOSITORY}/contents/docs/DEVELOPMENT_LOG.md?ref=${TARGET_BRANCH}" | jq -r '.sha')
+          encoded=$(base64 -w0 docs/DEVELOPMENT_LOG.md)
+          jq -n \
+            --arg message 'Document KOVCHEG CMS 3.8.0 [development-log-appended]' \
+            --arg content "$encoded" \
+            --arg sha "$file_sha" \
+            --arg branch "$TARGET_BRANCH" \
+            '{message:$message,content:$content,sha:$sha,branch:$branch}' > /tmp/update.json
+          curl -fsSL -X PUT \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${REPOSITORY}/contents/docs/DEVELOPMENT_LOG.md" \
+            --data-binary @/tmp/update.json | jq -e '.commit.sha'
