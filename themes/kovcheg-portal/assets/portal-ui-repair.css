@@ -1,0 +1,605 @@
+/* KOVCHEG Portal UI repair 3.5.5
+ * Author and copyright: Ланцет Семён Борисович
+ * License: proprietary / all rights reserved
+ *
+ * Loaded after the shared Widget Engine stylesheet. All rules are scoped to
+ * the Portal Layout Matrix and do not change the core widget renderers.
+ */
+
+/* Header: keep every widget inside the intended compact matrix cell. */
+.blog-theme-portal-matrix .portal-matrix-header {
+  background: rgba(255,255,255,.97);
+  backdrop-filter: blur(18px);
+}
+
+.blog-theme-portal-matrix .portal-matrix-header-grid {
+  min-height: 88px;
+  padding-block: 10px;
+  grid-template-columns: minmax(250px,1.35fr) minmax(90px,.55fr) minmax(320px,1.7fr) minmax(90px,.55fr) minmax(250px,1.2fr);
+  gap: 16px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header-cell {
+  min-height: 54px;
+  gap: 10px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header-cell--2,
+.blog-theme-portal-matrix .portal-matrix-header-cell--3,
+.blog-theme-portal-matrix .portal-matrix-header-cell--4 {
+  justify-content: center;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header-cell--5 {
+  justify-content: flex-end;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header-cell .site-widget {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header-cell--5 .site-widget {
+  width: auto;
+  max-width: 100%;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-brand,
+.blog-theme-portal-matrix .portal-brand-fallback {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-brand__logo,
+.blog-theme-portal-matrix .portal-brand-fallback img {
+  flex: 0 0 58px;
+  width: 58px;
+  height: 58px;
+  max-width: 58px;
+  max-height: 58px;
+  object-fit: contain;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(37,99,235,.14);
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-brand__text,
+.blog-theme-portal-matrix .portal-brand-fallback span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-brand__text b,
+.blog-theme-portal-matrix .portal-brand-fallback b {
+  overflow: hidden;
+  color: #101828;
+  font-size: clamp(16px,1.15vw,20px);
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-brand__text small,
+.blog-theme-portal-matrix .portal-brand-fallback small {
+  overflow: hidden;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid #e5eaf0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-navigation a {
+  padding: 9px 13px;
+  border-radius: 10px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-navigation a:hover,
+.blog-theme-portal-matrix .portal-matrix-header .site-navigation a:focus-visible {
+  background: #fff;
+  color: #175cd3;
+  box-shadow: 0 4px 14px rgba(15,23,42,.08);
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-account {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-account__profile {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-account__profile img,
+.blog-theme-portal-matrix .portal-matrix-header .avatar,
+.blog-theme-portal-matrix .portal-matrix-header .avatar-xs {
+  flex: 0 0 46px;
+  width: 46px !important;
+  height: 46px !important;
+  max-width: 46px !important;
+  max-height: 46px !important;
+  object-fit: cover;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(15,23,42,.13);
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-account__profile span {
+  overflow: hidden;
+  max-width: 145px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-account .button {
+  min-height: 38px;
+  padding: 8px 13px;
+  border-color: #d0d5dd;
+  background: #fff;
+  color: #101828;
+  white-space: nowrap;
+}
+
+.blog-theme-portal-matrix .portal-matrix-header .site-account .button:hover {
+  border-color: #84adff;
+  background: #eff4ff;
+  color: #175cd3;
+}
+
+/* Main shell: give content more room and prevent sidebar slots from clipping. */
+.blog-theme-portal-matrix .portal-matrix-viewport {
+  gap: 14px;
+  padding: 14px 18px 18px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-columns {
+  gap: 16px;
+}
+
+.blog-theme-portal-matrix .portal-matrix--three {
+  grid-template-columns: minmax(230px,270px) minmax(0,1fr) minmax(240px,280px);
+}
+
+.blog-theme-portal-matrix .portal-matrix--left {
+  grid-template-columns: minmax(230px,270px) minmax(0,1fr);
+}
+
+.blog-theme-portal-matrix .portal-matrix--right {
+  grid-template-columns: minmax(0,1fr) minmax(240px,280px);
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar {
+  padding: 12px;
+  border-radius: 20px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar-grid {
+  height: 100%;
+  display: grid;
+  grid-template-rows: none;
+  grid-auto-rows: max-content;
+  align-content: start;
+  gap: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.blog-theme-portal-matrix .portal-matrix-slot--sidebar {
+  min-height: 0;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .layout-zone {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-widget {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #e0e7ef;
+  border-radius: 15px;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 8px 24px rgba(15,23,42,.055);
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-widget h2 {
+  margin: 0 0 11px;
+  color: #101828;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-navigation,
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-navigation--auto,
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-navigation--vertical {
+  width: 100%;
+  display: grid;
+  justify-content: stretch;
+  gap: 5px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-navigation a {
+  display: block;
+  padding: 9px 10px;
+  border-radius: 9px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-navigation a:hover,
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-navigation a:focus-visible {
+  background: #eef4ff;
+  color: #175cd3;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .widget-list ul {
+  gap: 3px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .widget-list li {
+  min-width: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .widget-list li:last-child {
+  border-bottom: 0;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .widget-list li a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .widget-list li span,
+.blog-theme-portal-matrix .portal-matrix-sidebar .widget-list li small {
+  flex: 0 0 auto;
+  color: #667085;
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-search-widget {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  border-color: #d7dee7;
+  box-shadow: inset 0 1px 2px rgba(16,24,40,.03);
+}
+
+.blog-theme-portal-matrix .portal-matrix-sidebar .site-search-widget input {
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+/* Content: make the empty state look intentional instead of like a debug placeholder. */
+.blog-theme-portal-matrix .portal-matrix-content {
+  padding: 0;
+}
+
+.blog-theme-portal-matrix .portal-matrix-content-grid {
+  gap: 14px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-page-content {
+  min-height: 100%;
+}
+
+.blog-theme-portal-matrix .portal-empty {
+  min-height: clamp(300px,52vh,560px);
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: clamp(44px,7vw,88px) 28px;
+  border: 1px solid #d7e0ea;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 0,rgba(37,99,235,.10),transparent 44%),
+    linear-gradient(145deg,#fff 0%,#f8fbff 100%);
+  box-shadow: 0 18px 48px rgba(15,23,42,.065);
+}
+
+.blog-theme-portal-matrix .portal-empty::before {
+  content: "K";
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 17px;
+  border-radius: 17px;
+  background: linear-gradient(145deg,#2563eb,#175cd3);
+  color: #fff;
+  font-size: 29px;
+  font-weight: 900;
+  box-shadow: 0 12px 26px rgba(37,99,235,.24);
+}
+
+.blog-theme-portal-matrix .portal-empty h2 {
+  margin: 0 0 10px;
+  color: #101828;
+  font-size: clamp(30px,3.1vw,46px);
+  line-height: 1.05;
+  letter-spacing: -.035em;
+}
+
+.blog-theme-portal-matrix .portal-empty p {
+  margin: 0 auto 22px;
+  color: #667085;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.blog-theme-portal-matrix .portal-button {
+  min-height: 44px;
+  align-items: center;
+  padding: 11px 18px;
+  border-radius: 11px;
+  box-shadow: 0 9px 22px rgba(37,99,235,.20);
+}
+
+/* Footer: compact widgets, keep the 4×2 matrix and a clean copyright strip. */
+.blog-theme-portal-matrix .portal-matrix-footer {
+  max-height: none;
+  gap: 10px;
+  padding: 14px 18px 0;
+  overflow: visible;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer-grid {
+  grid-auto-rows: max-content;
+  gap: 12px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer .layout-zone {
+  display: grid;
+  gap: 10px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer .site-widget {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  box-shadow: none;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer .widget-list h2,
+.blog-theme-portal-matrix .portal-matrix-footer .widget-subscription label span {
+  color: #fff;
+  font-size: 13px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer .widget-subscription {
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer .widget-subscription label {
+  min-width: 0;
+  gap: 6px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer .widget-subscription input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 11px;
+  border-color: rgba(255,255,255,.18);
+  border-radius: 10px;
+  background: #fff;
+  color: #101828;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer .widget-subscription .button {
+  min-height: 40px;
+  padding-inline: 14px;
+  border-color: rgba(255,255,255,.18);
+  background: #0b1220;
+  color: #fff;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer .widget-social-links {
+  align-items: center;
+  gap: 8px 13px;
+}
+
+.blog-theme-portal-matrix .portal-matrix-footer .widget-social-links a {
+  color: #e6edf5;
+}
+
+.blog-theme-portal-matrix .portal-matrix-copyright {
+  min-height: 48px;
+  font-size: 11px;
+}
+
+/* Tablet: retain brand, mobile menu trigger and account without a giant header. */
+@media (max-width: 1180px) {
+  .blog-theme-portal-matrix .portal-matrix-header-grid {
+    grid-template-columns: minmax(220px,1.2fr) minmax(260px,1.6fr) minmax(210px,1fr);
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header-cell--2,
+  .blog-theme-portal-matrix .portal-matrix-header-cell--4 {
+    display: none;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header-cell--3 {
+    justify-content: center;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix--three {
+    grid-template-columns: 220px minmax(0,1fr) 240px;
+  }
+}
+
+@media (max-width: 900px) {
+  .blog-theme-portal-matrix .portal-matrix-header-grid {
+    width: calc(100% - 24px);
+    min-height: 68px;
+    padding-block: 8px;
+    grid-template-columns: minmax(0,1fr) auto;
+    gap: 8px 12px;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header-cell {
+    min-height: 0;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header-cell--1,
+  .blog-theme-portal-matrix .portal-matrix-header-cell--3,
+  .blog-theme-portal-matrix .portal-matrix-header-cell--5 {
+    display: flex;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header-cell--3 {
+    grid-column: 1 / -1;
+    order: 10;
+    justify-content: stretch;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header-cell--3 .site-widget {
+    width: 100%;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header .site-menu-button {
+    width: 100%;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header .site-navigation {
+    display: none;
+    width: 100%;
+    margin-top: 7px;
+    padding: 8px;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header .site-navigation.is-open {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header .site-navigation a {
+    text-align: center;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header .site-brand__logo,
+  .blog-theme-portal-matrix .portal-brand-fallback img {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+    max-width: 48px;
+    max-height: 48px;
+    border-radius: 13px;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-viewport {
+    padding: 12px;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-sidebar {
+    padding: 10px;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-sidebar-grid {
+    height: auto;
+    overflow: visible;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-content {
+    order: -1;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-footer-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .blog-theme-portal-matrix .portal-matrix-header .site-brand__text small,
+  .blog-theme-portal-matrix .portal-brand-fallback small,
+  .blog-theme-portal-matrix .portal-matrix-header .site-account__profile span,
+  .blog-theme-portal-matrix .portal-matrix-header .site-account .button {
+    display: none;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-header .site-account__profile img,
+  .blog-theme-portal-matrix .portal-matrix-header .avatar,
+  .blog-theme-portal-matrix .portal-matrix-header .avatar-xs {
+    flex-basis: 42px;
+    width: 42px !important;
+    height: 42px !important;
+    max-width: 42px !important;
+    max-height: 42px !important;
+    border-radius: 12px;
+  }
+
+  .blog-theme-portal-matrix .portal-empty {
+    min-height: 280px;
+    padding: 42px 18px;
+  }
+
+  .blog-theme-portal-matrix .portal-empty h2 {
+    font-size: 30px;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-footer {
+    padding-inline: 12px;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-footer .widget-subscription {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-copyright {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px 0;
+  }
+
+  .blog-theme-portal-matrix .portal-matrix-copyright span:first-child {
+    margin: 0;
+  }
+}
