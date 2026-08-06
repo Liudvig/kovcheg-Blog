@@ -19,57 +19,52 @@ final class Studio32
         $current=$entryId?Studio::entry($entryId):null;
         if($entryId&&!$current)abort(404,'Материал не найден.');
 
-        $type=in_array((string)($input['type']??''),['post','page','portfolio'],true)?(string)$input['type']:'post';
+        $type=(string)($input['type']??'')==='page'?'page':'post';
         $status=in_array((string)($input['status']??''),['draft','published','scheduled','private'],true)?(string)$input['status']:'draft';
         $visibility=in_array((string)($input['visibility']??''),['public','users','private'],true)?(string)$input['visibility']:'public';
         $title=trim((string)($input['title']??''));
         if(mb_strlen($title)<2||mb_strlen($title)>255)abort(422,'Заголовок должен содержать от 2 до 255 символов.');
         $slug=Studio::uniqueSlug(trim((string)($input['slug']??''))?:$title,$entryId);
-        $excerpt=mb_substr(trim((string)($input['excerpt']??'')),0,2000);
+        $excerpt=$type==='post'?mb_substr(trim((string)($input['excerpt']??'')),0,2000):'';
         $rawContent=(string)($input['content_json']??'[]');
-        if(ClassicEditor::isClassicPayload($rawContent)){
-            $contentJson=ClassicEditor::normalizePayload($rawContent);
-            $contentHtml=ClassicEditor::renderPayload($contentJson);
-            $editor='classic';
-        }else{
-            $contentJson=Builder::normalize($rawContent);
-            $contentHtml=Builder::render($contentJson);
-            $editor='builder';
+        if(!ClassicEditor::isClassicPayload($rawContent)){
+            $fallback=ClassicEditor::sanitize((string)($current['content_html']??''));
+            $rawContent=json_encode([[
+                'id'=>'classic-'.bin2hex(random_bytes(6)),
+                'type'=>'classic',
+                'data'=>['html'=>$fallback],
+            ]],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         }
+        $contentJson=ClassicEditor::normalizePayload($rawContent);
+        $contentHtml=ClassicEditor::renderPayload($contentJson);
         $featured=self::safeStoredPath((string)($input['featured_image_path']??''));
-        $template=preg_match('/^[a-z0-9_-]{0,80}$/',(string)($input['template']??''))?(string)($input['template']??''):'';
         $seoTitle=mb_substr(trim((string)($input['seo_title']??'')),0,255);
         $seoDescription=mb_substr(trim((string)($input['seo_description']??'')),0,320);
         $publishedAt=self::normalizeDateTime((string)($input['published_at']??''));
         if($status==='published'&&($publishedAt===null||strtotime($publishedAt)>time()))$publishedAt=date('Y-m-d H:i:s');
         if($status==='scheduled'&&($publishedAt===null||strtotime($publishedAt)<=time()))abort(422,'Для запланированной публикации укажите будущую дату.');
         $flag=static fn(string $key):int=>!empty($input[$key])?1:0;
-        $sort=max(-9999,min(9999,(int)($input['sort_order']??0)));
 
         DB::pdo()->beginTransaction();
         try{
             if($current){
                 DB::run('INSERT INTO content_revisions (entry_id,author_id,title,excerpt,content_json,content_html,created_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)',[$entryId,$authorId,(string)$current['title'],$current['excerpt'],$current['content_json'],$current['content_html']]);
-                DB::run('UPDATE content_entries SET author_id=?,type=?,status=?,title=?,slug=?,excerpt=?,content_json=?,content_html=?,featured_image_path=?,template=?,visibility=?,comments_enabled=?,reactions_enabled=?,is_featured=?,sort_order=?,seo_title=?,seo_description=?,published_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$template?:null,$visibility,$flag('comments_enabled'),$flag('reactions_enabled'),$flag('is_featured'),$sort,$seoTitle?:null,$seoDescription?:null,$publishedAt,$entryId]);
+                DB::run('UPDATE content_entries SET author_id=?,type=?,status=?,title=?,slug=?,excerpt=?,content_json=?,content_html=?,featured_image_path=?,template=NULL,visibility=?,comments_enabled=?,reactions_enabled=0,is_featured=?,sort_order=0,seo_title=?,seo_description=?,published_at=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$visibility,$flag('comments_enabled'),$flag('is_featured'),$seoTitle?:null,$seoDescription?:null,$publishedAt,$entryId]);
                 $id=$entryId;
             }else{
-                $id=DB::insert('INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_json,content_html,featured_image_path,template,visibility,comments_enabled,reactions_enabled,is_featured,sort_order,seo_title,seo_description,published_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$template?:null,$visibility,$flag('comments_enabled'),$flag('reactions_enabled'),$flag('is_featured'),$sort,$seoTitle?:null,$seoDescription?:null,$publishedAt]);
+                $id=DB::insert('INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_json,content_html,featured_image_path,template,visibility,comments_enabled,reactions_enabled,is_featured,sort_order,seo_title,seo_description,published_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,NULL,?,?,0,?,0,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$visibility,$flag('comments_enabled'),$flag('is_featured'),$seoTitle?:null,$seoDescription?:null,$publishedAt]);
             }
-            self::syncCategories($id,(array)($input['category_ids']??[]));
-            self::syncTags($id,(string)($input['tags']??''));
+            self::syncCategories($id,$type==='post'?(array)($input['category_ids']??[]):[]);
+            self::syncTags($id,'');
             self::syncMeta($id,[
-                'client'=>trim((string)($input['portfolio_client']??'')),
-                'year'=>trim((string)($input['portfolio_year']??'')),
-                'role'=>trim((string)($input['portfolio_role']??'')),
-                'project_url'=>self::safeUrl((string)($input['portfolio_url']??'')),
-                'layout_width'=>in_array((string)($input['layout_width']??''),['narrow','normal','wide','full'],true)?(string)$input['layout_width']:'normal',
-                'accent'=>preg_match('/^#[0-9a-fA-F]{6}$/',(string)($input['accent']??''))?(string)$input['accent']:'',
-                'editor_mode'=>$editor,
+                'layout_width'=>'normal',
+                'accent'=>'',
+                'editor_mode'=>'classic',
             ]);
             DB::run("DELETE FROM content_autosaves WHERE user_id=? AND (entry_id=? OR autosave_key='new')",[$authorId,$id]);
             DB::pdo()->commit();
         }catch(Throwable $e){if(DB::pdo()->inTransaction())DB::pdo()->rollBack();throw $e;}
-        audit($current?'blog.entry.update':'blog.entry.create','content_entry',$id,['type'=>$type,'status'=>$status,'editor'=>$editor]);
+        audit($current?'blog.entry.update':'blog.entry.create','content_entry',$id,['type'=>$type,'status'=>$status,'editor'=>'classic']);
         return $id;
     }
 
@@ -87,10 +82,15 @@ final class Studio32
     {
         Studio::require('content');
         $entryId=max(0,$entryId);
-        if($entryId&&!DB::one('SELECT id FROM content_entries WHERE id=? AND deleted_at IS NULL',[$entryId]))abort(404,'Материал не найден.');
-        $normalized=ClassicEditor::isClassicPayload($contentJson)
-            ? ClassicEditor::normalizePayload($contentJson)
-            : Builder::normalize($contentJson);
+        if($entryId&&!DB::one("SELECT id FROM content_entries WHERE id=? AND type IN ('post','page') AND deleted_at IS NULL",[$entryId]))abort(404,'Материал не найден.');
+        if(!ClassicEditor::isClassicPayload($contentJson)){
+            $contentJson=json_encode([[
+                'id'=>'classic-'.bin2hex(random_bytes(6)),
+                'type'=>'classic',
+                'data'=>['html'=>''],
+            ]],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        }
+        $normalized=ClassicEditor::normalizePayload($contentJson);
         $key=$entryId>0?'entry:'.$entryId:'new';
         DB::run('INSERT INTO content_autosaves (entry_id,user_id,autosave_key,title,excerpt,content_json,saved_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE entry_id=VALUES(entry_id),title=VALUES(title),excerpt=VALUES(excerpt),content_json=VALUES(content_json),saved_at=CURRENT_TIMESTAMP',[$entryId?:null,$userId,$key,mb_substr(trim($title),0,255),mb_substr(trim($excerpt),0,2000),$normalized]);
     }
@@ -114,7 +114,7 @@ final class Studio32
         foreach(self::presets() as $candidate)if((string)$candidate['slug']===$slug){$preset=$candidate;break;}
         if(!$preset)abort(404,'Профессиональный пресет не найден.');
         $settings=is_array($preset['settings']??null)?$preset['settings']:[];
-        $allowed=['blog_theme','site_name','blog_tagline','blog_description','portfolio_description','blog_footer_text','seo_description','search_indexing'];
+        $allowed=['blog_theme','site_name','blog_tagline','blog_description','blog_footer_text','seo_description','search_indexing'];
         $before=[];
         foreach($allowed as $key){if(!array_key_exists($key,$settings))continue;$before[$key]=(string)setting($key,'');Studio::setSetting($key,mb_substr((string)$settings[$key],0,1000));}
         DB::run('INSERT INTO site_preset_history (user_id,preset_slug,settings_json,created_at) VALUES (?,?,?,CURRENT_TIMESTAMP)',[$userId,$slug,json_encode($before,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)]);
@@ -147,6 +147,7 @@ final class Studio32
     private static function syncTags(int $entryId,string $tags):void
     {
         DB::run('DELETE FROM content_entry_tags WHERE entry_id=?',[$entryId]);
+        if(trim($tags)==='')return;
         $names=array_slice(array_unique(array_filter(array_map('trim',preg_split('/[,;]+/u',$tags)?:[]))),0,30);
         foreach($names as $name){$name=mb_substr($name,0,120);$slug=Studio::slugify($name);if($slug==='')continue;DB::run('INSERT INTO content_tags (name,slug,created_at,updated_at) VALUES (?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE name=VALUES(name),updated_at=CURRENT_TIMESTAMP',[$name,$slug]);$tag=DB::one('SELECT id FROM content_tags WHERE slug=?',[$slug]);if($tag)DB::run('INSERT IGNORE INTO content_entry_tags (entry_id,tag_id) VALUES (?,?)',[$entryId,(int)$tag['id']]);}
     }
@@ -164,10 +165,5 @@ final class Studio32
     private static function safeStoredPath(string $path):string
     {
         $path=trim(str_replace('\\','/',$path));if($path===''||str_contains($path,'..')||str_starts_with($path,'/'))return '';return preg_match('~^[a-zA-Z0-9_./-]{1,255}$~',$path)?$path:'';
-    }
-
-    private static function safeUrl(string $url):string
-    {
-        $url=trim($url);if($url==='')return '';if(str_starts_with($url,'/'))return $url;return filter_var($url,FILTER_VALIDATE_URL)&&preg_match('~^https?://~i',$url)?$url:'';
     }
 }
