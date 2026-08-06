@@ -22,7 +22,7 @@ $require(str_contains($layout,'blog-classic-editor.js'),'JavaScript редакт
 $require(str_contains($editor,'data-classic-visual'),'Нет визуальной области.');
 $require(str_contains($editor,'data-classic-source'),'Нет режима HTML.');
 $require(str_contains($editor,'name="type" value="<?=e($type)?>"'),'Редактор не фиксирует тип материала.');
-$require(str_contains($editor,"$isPost=$type==='post';"),'Редактор не различает Запись и Страницу.');
+$require(str_contains($editor,'$isPost=$type===\'post\';'),'Редактор не различает Запись и Страницу.');
 $require(str_contains($editor,'name="category_ids[]"'),'В Записи отсутствует выбор рубрик.');
 $require(str_contains($editor,'Добавить в меню'),'Страница не связана с меню.');
 $require(!str_contains($editor,'value="portfolio"'),'В редакторе осталось портфолио.');
