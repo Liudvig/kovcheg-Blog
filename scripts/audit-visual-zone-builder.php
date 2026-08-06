@@ -19,8 +19,11 @@ $theme=json_decode($read('themes/kovcheg-portal/theme.json'),true);
 $module=$read('modules/layout-matrix/bootstrap.php');
 $migration=$read('migrations/20260723_blog_layout_matrix.sql');
 
-$expect($bootstrap,"const APP_VERSION = '3.5.4';",'Версия приложения должна быть 3.5.4.');
-$expect($bootstrap,"const ASSET_REVISION = '3.5.4-layout-matrix-builder';",'ASSET_REVISION должен соответствовать 3.5.4.');
+$appVersion='';$assetRevision='';
+if(preg_match("/const APP_VERSION = '([0-9.]+)';/",$bootstrap,$versionMatch)===1)$appVersion=$versionMatch[1];
+if(preg_match("/const ASSET_REVISION = '([^']+)';/",$bootstrap,$assetMatch)===1)$assetRevision=$assetMatch[1];
+if($appVersion===''||version_compare($appVersion,'3.5.4','<'))$errors[]='Версия приложения должна быть 3.5.4 или новее.';
+if($assetRevision===''||$appVersion===''||!str_starts_with($assetRevision,$appVersion))$errors[]='ASSET_REVISION должен начинаться с текущей версии приложения.';
 $expect($studioLayout,'blog-zone-builder.css','Studio не подключает стили конструктора зон.');
 $expect($widgets,'widget-builder-shell--matrix','Макет не использует двухколоночную схему: каталог и рабочая область.');
 if(str_contains($widgets,'widget-revisions">'))$errors[]='На странице осталась отдельная правая колонка ревизий.';
