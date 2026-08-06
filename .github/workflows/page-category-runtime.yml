@@ -69,6 +69,15 @@ jobs:
             echo "Applying ${migration}"
             MYSQL_PWD=root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg < "$migration"
           done
+      - name: Runtime classes
+        run: |
+          php -r 'require "app/Core.php"; require "app/BlogBuilder.php"; require "app/BlogRenderer.php"; exit(class_exists("Kovcheg\\Blog\\Builder")&&class_exists("Kovcheg\\Blog\\Renderer")?0:1);'
+          php -r 'require "app/Core.php"; require "app/BlogLayout.php"; exit(class_exists("Kovcheg\\Blog\\Layout")&&class_exists("Kovcheg\\Blog\\WidgetRegistry")?0:1);'
+          php -r 'require "app/Core.php"; require "app/BlogModuleSdk.php"; exit(class_exists("Kovcheg\\Blog\\ModuleSdk")?0:1);'
+      - name: Migration runner
+        run: php bin/migrate.php
+      - name: Scheduled publishing
+        run: php bin/publish-scheduled.php
       - name: Activate Portal
         run: |
           php -r '
@@ -79,13 +88,27 @@ jobs:
             \Kovcheg\Blog\Studio::setSetting("search_indexing","0");
             \Kovcheg\DB::run("UPDATE themes SET is_active=(slug=?)",["kovcheg-portal"]);
           '
-      - name: Repair Portal layout
+      - name: Repair and render Portal layout
         run: |
           php -r '
             $_SERVER["SCRIPT_NAME"]="cli";
             require "app/bootstrap.php";
             require_once "app/BlogLayoutRepair.php";
             \Kovcheg\Blog\LayoutRepair::ensure();
+            \Kovcheg\Blog\LayoutRepair::repair(true);
+            $zones=\Kovcheg\Blog\Layout::zones();
+            if((string)($zones["matrix.header.3"]??"")==="")exit(1);
+            if((string)($zones["matrix.left.1"]??"")==="")exit(1);
+            if((string)($zones["matrix.right.1"]??"")==="")exit(1);
+            if((string)($zones["matrix.footer.8"]??"")==="")exit(1);
+            $header=\Kovcheg\Blog\Layout::renderZone("matrix.header.3",["page_type"=>"home"]);
+            $left=\Kovcheg\Blog\Layout::renderZone("matrix.left.1",["page_type"=>"home"]);
+            $right=\Kovcheg\Blog\Layout::renderZone("matrix.right.1",["page_type"=>"home"]);
+            $footer=\Kovcheg\Blog\Layout::renderZone("matrix.footer.8",["page_type"=>"home"]);
+            if(!str_contains($header,"data-layout-zone=\"matrix.header.3\""))exit(2);
+            if(!str_contains($left,"data-layout-zone=\"matrix.left.1\""))exit(3);
+            if(!str_contains($right,"data-layout-zone=\"matrix.right.1\""))exit(4);
+            if(!str_contains($footer,"data-layout-zone=\"matrix.footer.8\""))exit(5);
           '
       - name: Start PHP server
         run: |
@@ -98,15 +121,28 @@ jobs:
       - name: Home route
         run: |
           curl --fail-with-body -sS -D /tmp/home.headers http://127.0.0.1:8099/ -o /tmp/home.html
+          grep -qi '^Content-Type: text/html' /tmp/home.headers
           grep -q 'data-layout-zone="matrix.header.3"' /tmp/home.html
           grep -q 'portal-matrix-sidebar portal-matrix-sidebar--left' /tmp/home.html
           grep -q 'portal-matrix-sidebar portal-matrix-sidebar--right' /tmp/home.html
           grep -q 'portal-matrix-footer-grid' /tmp/home.html
           grep -q 'Ланцет Семён Борисович' /tmp/home.html
       - name: Legacy Blog alias
-        run: curl --fail-with-body -sS -D /tmp/blog.headers http://127.0.0.1:8099/blog -o /tmp/blog.html
+        run: |
+          curl --fail-with-body -sS -D /tmp/blog.headers 'http://127.0.0.1:8099/blog?__kovcheg_route=/blog' -o /tmp/blog.html
+          grep -qi '^Content-Type: text/html' /tmp/blog.headers
       - name: Legacy Portfolio alias
-        run: curl --fail-with-body -sS -D /tmp/portfolio.headers http://127.0.0.1:8099/portfolio -o /tmp/portfolio.html
+        run: |
+          curl --fail-with-body -sS -D /tmp/portfolio.headers 'http://127.0.0.1:8099/portfolio?__kovcheg_route=/portfolio' -o /tmp/portfolio.html
+          grep -qi '^Content-Type: text/html' /tmp/portfolio.headers
+      - name: XML and robots routes
+        run: |
+          curl --fail-with-body -sS -D /tmp/sitemap.headers 'http://127.0.0.1:8099/sitemap.xml?__kovcheg_route=/sitemap.xml' -o /tmp/sitemap.xml
+          grep -qi '^Content-Type: application/xml' /tmp/sitemap.headers
+          curl --fail-with-body -sS -D /tmp/feed.headers 'http://127.0.0.1:8099/feed.xml?__kovcheg_route=/feed.xml' -o /tmp/feed.xml
+          grep -qi '^Content-Type: application/rss+xml' /tmp/feed.headers
+          curl --fail-with-body -sS -D /tmp/robots.headers 'http://127.0.0.1:8099/robots.txt?__kovcheg_route=/robots.txt' -o /tmp/robots.txt
+          grep -qi '^Content-Type: text/plain' /tmp/robots.headers
       - name: Studio route
         run: curl --fail-with-body -sS -D /tmp/studio.headers http://127.0.0.1:8099/studio -o /tmp/studio.html
       - name: Runtime log
