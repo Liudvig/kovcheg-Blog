@@ -30,7 +30,8 @@ $wpPos=strpos($index,'routes/blog-wordpress-mode.php');$compatPos=strpos($index,
 if($wpPos===false||$compatPos===false||$legacyPos===false||$wpPos>$compatPos||$compatPos>$legacyPos)$errors[]='WordPress-маршруты должны регистрироваться раньше legacy Studio.';
 if(str_contains($index,'routes/blog-demo.php'))$errors[]='Демо-маршрут загружается в runtime.';
 
-foreach(['/studio/posts','/studio/pages','/studio/categories','/studio/entry/save'] as $route)$expect($wpRoutes,$route,'Нет маршрута '.$route);
+foreach(['/studio/posts','/studio/pages','/studio/entry/save'] as $route)$expect($wpRoutes,$route,'Нет маршрута '.$route);
+$expect($compat,'/studio/categories','Нет маршрута /studio/categories.');
 $expect($compat,'/studio/content/save','Старая форма сохранения не нормализуется.');
 $expect($wpRoutes,"target_kind']??''",'Меню не различает страницу, рубрику и ссылку.');
 $expect($wpRoutes,"type='page'",'Список источников меню не ограничен страницами.');
