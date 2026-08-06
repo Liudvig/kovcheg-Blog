@@ -300,3 +300,67 @@ Deploy:
 
 Статус:
 IMPLEMENTED — CI PENDING
+
+---
+
+## 2026-08-06 — Studio Compact UX Fixes
+
+Версия:
+3.5.7
+
+Ветка:
+feature/studio-compact-fixes-3.5.7
+
+Что исправлено:
+- убрана из интерфейса надпись «Обычный редактор в стиле классического WordPress: пишите и оформляйте текст как в документе»;
+- исправлена кнопка «Добавить медиафайл»: обработчик теперь работает для кнопок вне панели форматирования;
+- в окно медиатеки редактора добавлена прямая загрузка JPEG, PNG и WebP;
+- загруженный файл сразу появляется в медиатеке редактора и может быть вставлен в текст;
+- исправлена кнопка встроенного предпросмотра;
+- предпросмотр переведён в sandbox iframe, CSP дополнена локальным frame-src;
+- добавлен защищённый Studio Preview для черновиков, приватных материалов и будущих публикаций;
+- устранён тупиковый ответ «404 — Работа портфолио не найдена»: опубликованные работы открываются штатно, неопубликованные доступны редактору через Studio Preview, устаревшие ссылки возвращают посетителя в архив портфолио;
+- KOVCHEG Studio сделан компактнее во всех разделах;
+- боковая панель уменьшена до 224 пикселей;
+- верхняя панель уменьшена до 54 пикселей;
+- уменьшены карточки, поля, кнопки, таблицы, формы, списки, медиатека, темы, настройки, меню и Widget Studio;
+- высота классического редактора уменьшена примерно вдвое до 225 пикселей с внутренней прокруткой;
+- правая колонка редактора уменьшена до 278 пикселей;
+- нижняя панель уменьшена и скрывается на небольших мобильных экранах;
+- версия приложения повышена до 3.5.7 и изменена ревизия assets.
+
+Файлы:
+- app/bootstrap.php
+- assets/js/blog-classic-editor.js
+- assets/css/blog-studio-compact.css
+- views/studio/layout.php
+- routes/blog-ux-fixes.php
+- index.php
+- scripts/audit-classic-editor.php
+- scripts/audit-studio-compact.php
+- .github/workflows/studio-compact.yml
+- docs/releases/KOVCHEG_BLOG_3.5.7.md
+- docs/DEVELOPMENT_LOG.md
+
+База данных:
+Миграции не требуются.
+
+Проверка:
+- php -l app/bootstrap.php — успешно;
+- php -l routes/blog-ux-fixes.php — успешно;
+- php -l views/studio/layout.php — успешно;
+- php -l scripts/audit-classic-editor.php — успешно;
+- php -l scripts/audit-studio-compact.php — успешно;
+- node --check assets/js/blog-classic-editor.js — успешно;
+- php scripts/audit-classic-editor.php — Classic editor and demo audit OK;
+- php scripts/audit-studio-compact.php — Studio compact UX audit OK;
+- GitHub Actions KOVCHEG Studio compact UX checks — success.
+
+Основной commit разработки:
+d71dfcbf72687da7fe93e91db63affbb579a2338
+
+Deploy:
+Не выполнялся. Разрешён после повторного CI для документационного commit, pull request, слияния в main и резервной копии production.
+
+Статус:
+IMPLEMENTED — READY FOR PULL REQUEST

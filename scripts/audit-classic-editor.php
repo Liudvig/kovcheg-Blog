@@ -22,8 +22,18 @@ $demo=$read('app/BlogDemoSite.php');
 $routes=$read('routes/blog-demo.php');
 $index=$read('index.php');
 
-$require(str_contains($bootstrap,"const APP_VERSION = '3.5.6';"),'Версия приложения должна быть 3.5.6.');
-$require(str_contains($bootstrap,"const ASSET_REVISION = '3.5.6-classic-editor-demo';"),'Неверная ревизия assets.');
+$appVersion='';
+if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)){
+    $appVersion=(string)$match[1];
+    $require(version_compare($appVersion,'3.5.6','>='),'Версия приложения должна быть 3.5.6 или новее.');
+}else{
+    $require(false,'APP_VERSION не найден.');
+}
+if(preg_match("/const ASSET_REVISION = '([^']+)';/",$bootstrap,$match)){
+    $require($appVersion!==''&&str_starts_with((string)$match[1],$appVersion.'-'),'ASSET_REVISION должен начинаться с текущей версии.');
+}else{
+    $require(false,'ASSET_REVISION не найден.');
+}
 $require(str_contains($layout,'blog-classic-editor.css'),'CSS классического редактора не подключён.');
 $require(str_contains($layout,'blog-classic-editor.js'),'JavaScript классического редактора не подключён.');
 $require(str_contains($editor,'data-classic-visual'),'В шаблоне отсутствует визуальная область.');
