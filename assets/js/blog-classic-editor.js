@@ -11,11 +11,17 @@
   const classicPanel = document.querySelector('[data-classic-panel]');
   const blockEditor = document.querySelector('[data-block-editor]');
   const state = document.querySelector('[data-autosave-state]');
+  const mediaModal = document.querySelector('[data-classic-media-modal]');
+  const previewModal = document.querySelector('[data-classic-preview]');
   const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
   if (!shell || !form || !jsonField || !modeField || !visual || !source) return;
 
+  document.querySelector('.classic-editor-intro p')?.remove();
+
   const autosaveUrl = form.dataset.autosaveUrl || '';
+  const appBase = new URL(form.action, window.location.href).pathname.replace(/\/studio\/content\/save\/?$/, '');
+  const inlineUploadUrl = `${appBase}/studio/media/upload-inline`;
   let classicAutosaveTimer = 0;
   let classicDirty = false;
   let activeSurface = 'visual';
@@ -59,7 +65,7 @@
   const switchEditorMode = (mode) => {
     const classic = mode !== 'builder';
     modeField.value = classic ? 'classic' : 'builder';
-    classicPanel.hidden = !classic;
+    if (classicPanel) classicPanel.hidden = !classic;
     if (builderPanel) builderPanel.hidden = classic;
     document.querySelectorAll('[data-editor-tab]').forEach((button) => {
       const active = button.dataset.editorTab === (classic ? 'classic' : 'builder');
@@ -152,13 +158,135 @@
         body,
       });
       const data = await response.json();
-      if (!response.ok || !data.ok) throw new Error('autosave');
+      if (!response.ok || !data.ok) throw new Error(data.message || 'autosave');
       classicDirty = false;
       if (state) state.textContent = `Автокопия ${data.saved_at || 'сохранена'}`;
     } catch (_) {
       if (state) state.textContent = 'Автосохранение не выполнено';
     }
   }
+
+  const closeMediaModal = () => mediaModal?.setAttribute('hidden', '');
+  const closePreviewModal = () => previewModal?.setAttribute('hidden', '');
+
+  const ensureMediaGrid = () => {
+    if (!mediaModal) return null;
+    let grid = mediaModal.querySelector('.classic-editor-media-grid');
+    if (grid) return grid;
+    mediaModal.querySelector('.empty-state')?.remove();
+    grid = document.createElement('div');
+    grid.className = 'classic-editor-media-grid';
+    mediaModal.querySelector('.classic-editor-modal__dialog')?.append(grid);
+    return grid;
+  };
+
+  const addMediaButton = (item, first = true) => {
+    const grid = ensureMediaGrid();
+    if (!grid || !item?.url) return;
+    if (grid.querySelector(`[data-media-id="${String(item.id)}"]`)) return;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.classicMediaItem = '';
+    button.dataset.mediaId = String(item.id || '');
+    button.dataset.mediaUrl = String(item.url || '');
+    button.dataset.mediaTitle = String(item.title || '');
+    button.dataset.mediaAlt = String(item.alt || '');
+    button.dataset.mediaCaption = String(item.caption || '');
+
+    const image = document.createElement('img');
+    image.src = String(item.url || '');
+    image.alt = String(item.alt || '');
+    image.loading = 'lazy';
+
+    const label = document.createElement('span');
+    label.textContent = String(item.title || 'Изображение');
+    button.append(image, label);
+    if (first) grid.prepend(button); else grid.append(button);
+  };
+
+  const ensureInlineUploader = () => {
+    if (!mediaModal || mediaModal.querySelector('[data-inline-media-upload]')) return;
+    const dialog = mediaModal.querySelector('.classic-editor-modal__dialog');
+    const head = mediaModal.querySelector('.classic-editor-modal__head');
+    if (!dialog || !head) return;
+
+    const uploadForm = document.createElement('form');
+    uploadForm.className = 'classic-editor-inline-upload';
+    uploadForm.dataset.inlineMediaUpload = '';
+    uploadForm.enctype = 'multipart/form-data';
+
+    const file = document.createElement('input');
+    file.type = 'file';
+    file.name = 'media';
+    file.accept = 'image/jpeg,image/png,image/webp';
+    file.required = true;
+
+    const folderSource = form.querySelector('select[name="featured_folder_id"]');
+    const folder = document.createElement('select');
+    folder.name = 'folder_id';
+    if (folderSource) folder.innerHTML = folderSource.innerHTML;
+    else folder.innerHTML = '<option value="0">Без папки</option>';
+
+    const submit = document.createElement('button');
+    submit.type = 'submit';
+    submit.className = 'button primary small';
+    submit.textContent = 'Загрузить';
+
+    const message = document.createElement('span');
+    message.dataset.inlineUploadState = '';
+    message.textContent = 'JPEG, PNG или WebP';
+
+    uploadForm.append(file, folder, submit, message);
+    head.insertAdjacentElement('afterend', uploadForm);
+
+    uploadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const selected = file.files?.[0];
+      if (!selected) return;
+      submit.disabled = true;
+      message.textContent = 'Загрузка…';
+      const body = new FormData();
+      body.append('_csrf', csrf);
+      body.append('media', selected);
+      body.append('folder_id', folder.value || '0');
+
+      try {
+        const response = await fetch(inlineUploadUrl, {
+          method: 'POST',
+          headers: {'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},
+          body,
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok || !data.item) throw new Error(data.message || 'upload');
+        addMediaButton(data.item, true);
+        file.value = '';
+        message.textContent = 'Файл загружен. Нажмите на него ниже, чтобы вставить.';
+      } catch (error) {
+        message.textContent = error instanceof Error && error.message !== 'upload'
+          ? error.message
+          : 'Не удалось загрузить файл.';
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  };
+
+  const openMediaModal = () => {
+    if (!mediaModal) return;
+    ensureInlineUploader();
+    mediaModal.removeAttribute('hidden');
+    mediaModal.querySelector('input[type="file"]')?.focus();
+  };
+
+  const openPreview = () => {
+    syncPayload();
+    const frame = previewModal?.querySelector('iframe');
+    if (!previewModal || !frame) return;
+    frame.setAttribute('sandbox', '');
+    frame.srcdoc = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{max-width:860px;margin:0 auto;padding:30px 24px;font:16px/1.65 Georgia,serif;color:#202124}h2,h3,h4{font-family:Arial,sans-serif;line-height:1.25}img{max-width:100%;height:auto}blockquote{margin:20px 0;padding:12px 18px;border-left:4px solid #2271b1;background:#f6f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccd0d4;padding:7px}.text-align-center{text-align:center}.text-align-right{text-align:right}.text-align-justify{text-align:justify}</style></head><body>${visual.innerHTML}</body></html>`;
+    previewModal.removeAttribute('hidden');
+  };
 
   document.querySelectorAll('[data-editor-tab]').forEach((button) => {
     button.addEventListener('click', () => switchEditorMode(button.dataset.editorTab || 'classic'));
@@ -174,9 +302,9 @@
     event.target.value = '';
   });
 
-  document.querySelector('[data-classic-toolbar]')?.addEventListener('click', (event) => {
+  shell.addEventListener('click', (event) => {
     const button = event.target.closest('[data-command],[data-action]');
-    if (!button) return;
+    if (!button || !shell.contains(button)) return;
     event.preventDefault();
 
     if (button.dataset.command) {
@@ -191,18 +319,13 @@
     } else if (action === 'unlink') {
       runCommand('unlink');
     } else if (action === 'media') {
-      document.querySelector('[data-classic-media-modal]')?.removeAttribute('hidden');
+      openMediaModal();
     } else if (action === 'fullscreen') {
       shell.classList.toggle('is-fullscreen');
       document.body.classList.toggle('classic-editor-fullscreen', shell.classList.contains('is-fullscreen'));
       button.setAttribute('aria-pressed', shell.classList.contains('is-fullscreen') ? 'true' : 'false');
     } else if (action === 'preview') {
-      syncPayload();
-      const preview = document.querySelector('[data-classic-preview]');
-      const frame = preview?.querySelector('iframe');
-      if (!preview || !frame) return;
-      frame.srcdoc = `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{max-width:900px;margin:0 auto;padding:48px 28px;font:18px/1.7 Georgia,serif;color:#202124}h2,h3,h4{font-family:Arial,sans-serif;line-height:1.2}img{max-width:100%;height:auto}blockquote{margin:24px 0;padding:16px 24px;border-left:4px solid #2271b1;background:#f6f7f7}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccd0d4;padding:8px}.text-align-center{text-align:center}.text-align-right{text-align:right}.text-align-justify{text-align:justify}</style><body>${visual.innerHTML}</body></html>`;
-      preview.hidden = false;
+      openPreview();
     }
   });
 
@@ -235,30 +358,29 @@
     else if (key === 's') { event.preventDefault(); syncPayload(); form.requestSubmit(); }
   });
 
-  document.querySelectorAll('[data-classic-media-item]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const url = button.dataset.mediaUrl || '';
+  mediaModal?.addEventListener('click', (event) => {
+    const item = event.target.closest('[data-classic-media-item]');
+    if (item) {
+      const url = item.dataset.mediaUrl || '';
       if (!url) return;
-      const alt = button.dataset.mediaAlt || button.dataset.mediaTitle || '';
-      const caption = button.dataset.mediaCaption || '';
+      const alt = item.dataset.mediaAlt || item.dataset.mediaTitle || '';
+      const caption = item.dataset.mediaCaption || '';
       const image = `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" loading="lazy">`;
       insertHtml(caption ? `<figure>${image}<figcaption>${escapeHtml(caption)}</figcaption></figure><p><br></p>` : `<p>${image}</p><p><br></p>`);
-      document.querySelector('[data-classic-media-modal]')?.setAttribute('hidden', '');
-    });
+      closeMediaModal();
+      return;
+    }
+    if (event.target.closest('[data-close-classic-media]') || event.target === mediaModal) closeMediaModal();
   });
 
-  document.querySelectorAll('[data-close-classic-media]').forEach((button) => {
-    button.addEventListener('click', () => document.querySelector('[data-classic-media-modal]')?.setAttribute('hidden', ''));
-  });
-
-  document.querySelector('[data-close-classic-preview]')?.addEventListener('click', () => {
-    document.querySelector('[data-classic-preview]')?.setAttribute('hidden', '');
+  previewModal?.addEventListener('click', (event) => {
+    if (event.target.closest('[data-close-classic-preview]') || event.target === previewModal) closePreviewModal();
   });
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
-    document.querySelector('[data-classic-media-modal]')?.setAttribute('hidden', '');
-    document.querySelector('[data-classic-preview]')?.setAttribute('hidden', '');
+    closeMediaModal();
+    closePreviewModal();
     if (shell.classList.contains('is-fullscreen')) {
       shell.classList.remove('is-fullscreen');
       document.body.classList.remove('classic-editor-fullscreen');
