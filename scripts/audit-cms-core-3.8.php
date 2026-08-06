@@ -19,6 +19,7 @@ $blog=$read('app/Blog.php');
 $content=$read('routes/blog-content-model.php');
 $categories=$read('routes/blog-categories.php');
 $menus=$read('routes/blog-menus.php');
+$users=$read('routes/blog-users.php');
 $layoutRoutes=$read('routes/blog-layout.php');
 $essential=$read('app/BlogEssentialWidgets.php');
 $overrides=$read('app/BlogCmsWidgetOverrides.php');
@@ -39,14 +40,19 @@ $migration=$read('migrations/20260806_posts_menus_widgets.sql');
 $menuCss=$read('assets/css/blog-studio-menus.css');
 $registrationCss=$read('assets/css/blog-registration.css');
 
-$expect($bootstrap,"const APP_VERSION = '3.8.0';",'APP_VERSION должен быть 3.8.0.');
-$expect($bootstrap,"const ASSET_REVISION = '3.8.0-posts-menus-widgets-branding';",'Неверная ревизия assets 3.8.0.');
+$appVersion='';
+$assetRevision='';
+if(preg_match("/const APP_VERSION = '([^']+)';/",$bootstrap,$match)===1)$appVersion=(string)$match[1];
+if(preg_match("/const ASSET_REVISION = '([^']+)';/",$bootstrap,$match)===1)$assetRevision=(string)$match[1];
+if($appVersion===''||version_compare($appVersion,'3.8.0','<'))$errors[]='APP_VERSION должен быть 3.8.0 или новее.';
+if($assetRevision===''||$appVersion===''||!str_starts_with($assetRevision,$appVersion))$errors[]='ASSET_REVISION должен начинаться с APP_VERSION.';
 $expect($bootstrap,"require_once BASE_PATH.'/app/BlogThemeSupport.php';",'ThemeSupport не загружается в bootstrap.');
 
 foreach([
     'routes/blog-content-model.php',
     'routes/blog-categories.php',
     'routes/blog-menus.php',
+    'routes/blog-users.php',
     'routes/blog-layout.php',
     'routes/blog-branding.php',
 ] as $route)$expect($index,$route,'Runtime не подключает '.$route);
@@ -66,6 +72,10 @@ $expect($categories,"e.type='post'",'Счётчик рубрик включае�
 $expect($categories,'Записи сохранены без неё','Удаление рубрики должно сохранять записи.');
 $expect($editor,'$isPost','Редактор не различает Запись и Страницу.');
 $expect($editor,'name="category_ids[]"','В редакторе записи отсутствует выбор рубрик.');
+
+foreach(['/studio/users','/studio/users/{id}/role','/studio/users/{id}/status'] as $route)$expect($users,$route,'Нет маршрута пользователей '.$route);
+$expect($users,'kovcheg_active_owner_count','Не защищён последний владелец.');
+$expect($users,"Studio::require('site')",'Управление пользователями не защищено правом site.');
 
 foreach(['header','left','right','footer'] as $location)$expect($menus,"'{$location}'",'В меню отсутствует позиция '.$location);
 foreach(['/studio/menus/create','/studio/menus/{id}/update','/studio/menus/{id}/delete','/studio/menus/item/{id}/update'] as $route)$expect($menus,$route,'Нет маршрута меню '.$route);
@@ -116,5 +126,5 @@ if(($hit['type']??'')!=='post'||($hit['slug']??'')!=='test-news')$errors[]='Rout
 $router->dispatch('GET','/page/test-page');
 if(($hit['type']??'')!=='page'||($hit['slug']??'')!=='test-page')$errors[]='Router не разобрал публичную Страницу.';
 
-if($errors){fwrite(STDERR,"CMS 3.8 audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}
-echo "KOVCHEG CMS 3.8 Posts Menus Widgets Branding audit OK\n";
+if($errors){fwrite(STDERR,"CMS 3.8+ audit failed:\n- ".implode("\n- ",$errors)."\n");exit(1);}
+echo "KOVCHEG CMS 3.8+ core audit OK\n";
