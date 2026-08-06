@@ -495,7 +495,7 @@ feature/simple-blog-ui-3.5.8
 Основные commits:
 - 2568aef7e3a8cba15ae3c65cfa42309f2654370b — единая логика видимости и доступности;
 - ca9b98fe4ea7d821e2a6aef0821da83254e7002b — единые публичные маршруты;
-- a76c9550e381e2e6c073a3c7f3855d6fa8eb47 — регистрация маршрутов до legacy handlers;
+- a76c9550e381e5ff188fec9346e111b5b8fa7567 — регистрация маршрутов до legacy handlers;
 - b6fcf65c9e2ef406b880709fb3ef2aab0574fc5f — удаление portfolio-only workaround;
 - 771478ab994022f847ee20cfc67f69d1117caa3d — безопасные кнопки просмотра в Studio;
 - c4bb26ab2234ac7d9107e4b7a553314f9ed311f2 — CI маршрутов;
