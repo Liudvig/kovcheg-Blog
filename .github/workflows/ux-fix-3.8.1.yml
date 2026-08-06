@@ -98,15 +98,22 @@ jobs:
             $_SERVER["SCRIPT_NAME"]="cli";
             require "app/bootstrap.php";
             $uid=\Kovcheg\DB::insert("INSERT INTO users (email,username,display_name,password_hash,role,is_active,approval_status,approved_at,created_at,updated_at) VALUES (\"owner381@example.test\",\"owner381\",\"Owner 381\",?,\"owner\",1,\"approved\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[password_hash("Kovcheg-381-Password",PASSWORD_DEFAULT)]);
-            \Kovcheg\DB::run("INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_html,visibility,published_at,created_at,updated_at) VALUES (?,\"page\",\"published\",\"Очень большой заголовок страницы\",\"compact-page\",\"Краткое описание\",\"<p>Основной текст страницы</p>\",\"public\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[$uid]);
+            \Kovcheg\DB::run("INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_json,content_html,visibility,published_at,created_at,updated_at) VALUES (?,\"page\",\"published\",\"Очень большой заголовок страницы\",\"compact-page\",\"Краткое описание\",\"[]\",\"<p>Основной текст страницы</p>\",\"public\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[$uid]);
             \Kovcheg\Blog\Studio::setSetting("blog_theme","kovcheg-portal");
+            $entry=\Kovcheg\Blog\Blog::entry("compact-page","page");
+            if(!$entry){
+              $stored=\Kovcheg\DB::one("SELECT id,type,status,slug,visibility,published_at,deleted_at FROM content_entries WHERE slug=\"compact-page\"");
+              fwrite(STDERR,"Page lookup failed: ".json_encode($stored,JSON_UNESCAPED_UNICODE)."\n");
+              exit(2);
+            }
+            echo "Page lookup OK: ".$entry["id"]."\n";
           '
 
       - name: HTTP smoke
         shell: bash
         run: |
           set -euo pipefail
-          php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-381.log 2>&1 &
+          php -S 127.0.0.1:8099 -t . index.php >/tmp/kovcheg-381.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/kovcheg-381.log || true' EXIT
           for attempt in $(seq 1 30); do
@@ -114,10 +121,15 @@ jobs:
             sleep 1
           done
 
-          page=$(curl -fsS http://127.0.0.1:8099/page/compact-page)
-          printf '%s' "$page" | grep -q 'site-page-title-sr'
-          printf '%s' "$page" | grep -q 'Основной текст страницы'
-          printf '%s' "$page" | grep -q 'document-compact-3.8.1.css'
+          page_code=$(curl -sS -o /tmp/page.html -w '%{http_code}' http://127.0.0.1:8099/page/compact-page)
+          echo "/page/compact-page -> ${page_code}"
+          if [ "$page_code" != "200" ]; then
+            cat /tmp/page.html
+            exit 1
+          fi
+          grep -q 'site-page-title-sr' /tmp/page.html
+          grep -q 'Основной текст страницы' /tmp/page.html
+          grep -q 'document-compact-3.8.1.css' /tmp/page.html
 
           css=$(curl -fsS http://127.0.0.1:8099/themes/kovcheg-portal/assets/public-page-scroll.css)
           printf '%s' "$css" | grep -q 'portal-matrix-content'
