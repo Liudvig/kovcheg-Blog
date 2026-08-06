@@ -1,0 +1,148 @@
+name: KOVCHEG CMS 3.8.1 UX checks
+
+on:
+  push:
+    branches: [main, feature/ux-fix-3.8.1]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: kovcheg_381_root
+          MARIADB_DATABASE: kovcheg_381
+        ports: [3306:3306]
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: mbstring, fileinfo, openssl, pdo_mysql, dom
+
+      - name: PHP syntax
+        run: |
+          php -l app/bootstrap.php
+          php -l index.php
+          php -l routes/blog-users.php
+          php -l views/studio/layout.php
+          php -l views/studio/users.php
+          php -l views/studio/widgets.php
+          php -l views/studio/appearance.php
+          php -l themes/kovcheg-portal/page.php
+          php -l scripts/audit-cms-core-3.8.php
+          php -l scripts/audit-ux-fix-3.8.1.php
+
+      - name: Product audits
+        run: |
+          php scripts/audit-cms-core-3.8.php
+          php scripts/audit-ux-fix-3.8.1.php
+          php scripts/audit-classic-editor.php
+          php scripts/audit-studio-compact.php
+          php scripts/audit-login-routing.php
+          php scripts/audit-account-actions.php
+          php scripts/audit-portal-ui.php
+
+      - name: Initialize database
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -r '$schema=require "database/schema.php"; if(!is_string($schema)||trim($schema)==="") exit(1); file_put_contents("/tmp/schema.sql",$schema);'
+          MYSQL_PWD=kovcheg_381_root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg_381 < /tmp/schema.sql
+          for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+            MYSQL_PWD=kovcheg_381_root mysql --protocol=tcp -h 127.0.0.1 -P 3306 -u root kovcheg_381 < "$migration"
+          done
+
+      - name: Runtime configuration and sample Page
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p config storage/cache storage/logs storage/uploads storage/backups storage/builds
+          cat > config/config.php <<'PHP'
+          <?php
+          return [
+              'app'=>[
+                  'name'=>'KOVCHEG CMS 3.8.1 CI',
+                  'url'=>'http://127.0.0.1:8099',
+                  'timezone'=>'UTC',
+                  'debug'=>true,
+                  'key'=>'base64:'.base64_encode(str_repeat('U',32)),
+              ],
+              'database'=>[
+                  'driver'=>'mysql',
+                  'host'=>'127.0.0.1',
+                  'port'=>3306,
+                  'name'=>'kovcheg_381',
+                  'user'=>'root',
+                  'password'=>'kovcheg_381_root',
+                  'charset'=>'utf8mb4',
+              ],
+          ];
+          PHP
+          php -r '
+            $_SERVER["SCRIPT_NAME"]="cli";
+            require "app/bootstrap.php";
+            $uid=\Kovcheg\DB::insert("INSERT INTO users (email,username,display_name,password_hash,role,is_active,approval_status,approved_at,created_at,updated_at) VALUES (\"owner381@example.test\",\"owner381\",\"Owner 381\",?,\"owner\",1,\"approved\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[password_hash("Kovcheg-381-Password",PASSWORD_DEFAULT)]);
+            \Kovcheg\DB::run("INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_json,content_html,visibility,published_at,created_at,updated_at) VALUES (?,\"page\",\"published\",\"Очень большой заголовок страницы\",\"compact-page\",\"Краткое описание\",\"[]\",\"<p>Основной текст страницы</p>\",\"public\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[$uid]);
+            \Kovcheg\Blog\Studio::setSetting("blog_theme","kovcheg-portal");
+            $entry=\Kovcheg\Blog\Blog::entry("compact-page","page");
+            if(!$entry){
+              $stored=\Kovcheg\DB::one("SELECT id,type,status,slug,visibility,published_at,deleted_at FROM content_entries WHERE slug=\"compact-page\"");
+              fwrite(STDERR,"Page lookup failed: ".json_encode($stored,JSON_UNESCAPED_UNICODE)."\n");
+              exit(2);
+            }
+            echo "Page lookup OK: ".$entry["id"]."\n";
+          '
+
+      - name: HTTP smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -S 127.0.0.1:8099 -t . index.php >/tmp/kovcheg-381.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/kovcheg-381.log || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi
+            sleep 1
+          done
+
+          page_code=$(curl -sS -o /tmp/page.html -w '%{http_code}' http://127.0.0.1:8099/page/compact-page)
+          echo "/page/compact-page -> ${page_code}"
+          if [ "$page_code" != "200" ]; then
+            cat /tmp/page.html
+            exit 1
+          fi
+          grep -q 'site-page-title-sr' /tmp/page.html
+          grep -q 'Основной текст страницы' /tmp/page.html
+          grep -q 'document-compact-3.8.1.css' /tmp/page.html
+
+          for path in /studio/users /studio/widgets /studio/appearance; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:8099${path}")
+            echo "$path -> $code"
+            test "$code" = "302"
+          done
+
+          grep -q 'portal-matrix-content' themes/kovcheg-portal/assets/public-page-scroll.css
+          grep -q 'overflow-y: auto' themes/kovcheg-portal/assets/public-page-scroll.css
+          grep -q 'widget-builder-shell--matrix' assets/css/blog-zone-builder.css
+          grep -q 'data-studio-section="widgets"' assets/css/blog-studio-ux-3.8.1.css
+
+          kill "$server_pid"
+          wait "$server_pid" 2>/dev/null || true
+          trap - EXIT
+          rm -f config/config.php

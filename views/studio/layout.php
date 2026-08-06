@@ -37,6 +37,8 @@ $copyright='© '.date('Y').' Ланцет Семён Борисович';
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-pages.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-branding.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-menus.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-zone-builder.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-ux-3.8.1.css?v='.rawurlencode(ASSET_REVISION)))?>">
 </head>
 <body class="studio-body studio-body--simple studio-body--wordpress studio-body--pages" data-studio-section="<?=e($studioSection)?>">
 <div class="studio-shell">

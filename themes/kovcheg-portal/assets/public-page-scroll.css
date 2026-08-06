@@ -1,61 +1,76 @@
-/* KOVCHEG Blog 3.5.10 — public material page scrolling
+/* KOVCHEG CMS 3.8.1 — fixed document shell
  * Author and copyright: Ланцет Семён Борисович
  * License: proprietary / all rights reserved
  */
 
 /*
- * Archives may use the desktop application-style inner scroller. A complete
- * publication, page or portfolio item is a document and must use the browser's
- * normal vertical scroll. These rules are loaded last so legacy fixed-shell
- * overflow locks cannot trap the reader inside a non-scrolling viewport.
+ * Desktop behaves like a calm site application: header, side columns and footer
+ * stay inside the viewport. Only the central document column scrolls.
  */
 html:has(body.blog-theme-document) {
-  height: auto !important;
-  min-height: 100%;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  scroll-behavior: smooth;
+  height: 100% !important;
+  overflow: hidden !important;
 }
 
 body.blog-theme-document {
-  height: auto !important;
-  min-height: 100vh;
-  display: block !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  overscroll-behavior-y: auto;
-  touch-action: pan-y;
+  height: 100vh !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  overflow: hidden !important;
+  overscroll-behavior: none;
 }
 
 body.blog-theme-document .portal-matrix-header {
-  position: sticky;
-  top: 0;
+  position: relative;
+  inset: auto;
+  z-index: 40;
 }
 
 body.blog-theme-document .portal-matrix-viewport {
-  height: auto !important;
-  min-height: 0;
-  display: block;
-  overflow: visible !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  overflow: hidden !important;
 }
 
 body.blog-theme-document .portal-matrix-columns {
-  height: auto !important;
-  min-height: 0;
-  align-items: start;
+  height: 100% !important;
+  min-height: 0 !important;
+  align-items: stretch !important;
+  overflow: hidden;
 }
 
-body.blog-theme-document .portal-matrix-content,
 body.blog-theme-document .portal-matrix-sidebar {
-  height: auto !important;
-  min-height: 0;
-  overflow: visible !important;
+  position: relative;
+  top: auto;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+body.blog-theme-document .portal-matrix-sidebar-grid {
+  height: 100% !important;
+  min-height: 0 !important;
+  grid-template-rows: none;
+  grid-auto-rows: max-content;
+  align-content: start;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 body.blog-theme-document .portal-matrix-content {
-  padding-bottom: 32px;
-  overscroll-behavior: auto;
+  height: 100% !important;
+  min-height: 0 !important;
+  padding-bottom: 24px;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
   touch-action: pan-y;
+  scrollbar-width: thin;
 }
 
 body.blog-theme-document .portal-matrix-content-grid,
@@ -63,21 +78,53 @@ body.blog-theme-document .portal-matrix-page-content {
   min-height: 0;
 }
 
-body.blog-theme-document .portal-matrix-sidebar-grid {
-  height: auto !important;
-  grid-template-rows: none;
-  grid-auto-rows: max-content;
-  overflow: visible !important;
-}
-
 body.blog-theme-document .portal-matrix-footer {
-  max-height: none;
-  overflow: visible;
+  position: relative;
+  max-height: 30vh;
+  overflow: auto;
 }
 
+/* Phones and narrow tablets use familiar whole-page scrolling. */
 @media (max-width: 900px) {
+  html:has(body.blog-theme-document) {
+    height: auto !important;
+    min-height: 100%;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  body.blog-theme-document {
+    height: auto !important;
+    min-height: 100vh !important;
+    display: block !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto;
+  }
+
   body.blog-theme-document .portal-matrix-header {
     position: sticky;
     top: 0;
+  }
+
+  body.blog-theme-document .portal-matrix-viewport,
+  body.blog-theme-document .portal-matrix-columns {
+    height: auto !important;
+    min-height: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  body.blog-theme-document .portal-matrix-content,
+  body.blog-theme-document .portal-matrix-sidebar,
+  body.blog-theme-document .portal-matrix-sidebar-grid {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.blog-theme-document .portal-matrix-footer {
+    max-height: none;
+    overflow: visible;
   }
 }

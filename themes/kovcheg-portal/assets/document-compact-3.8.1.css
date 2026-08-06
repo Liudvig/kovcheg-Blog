@@ -1,0 +1,210 @@
+/* KOVCHEG CMS 3.8.1 — compact public document
+ * Author and copyright: Ланцет Семён Борисович
+ * License: proprietary / all rights reserved
+ */
+
+.blog-theme-page .portal-matrix-page-content {
+  padding: 0;
+}
+
+.blog-theme-page .site-page {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 14px 18px 24px;
+  border: 1px solid #dce4ec;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+}
+
+.site-page-title-sr {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.blog-theme-page .site-page-preview {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.blog-theme-page .site-page-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  color: #7a8797;
+  font-size: 11px;
+}
+
+.blog-theme-page .site-page-breadcrumbs a {
+  color: #4a6380;
+  text-decoration: none;
+}
+
+.blog-theme-page .site-page-header {
+  margin: 0 0 12px;
+  padding: 0 0 10px;
+  border-bottom: 1px solid #e4eaf0;
+}
+
+.blog-theme-page .site-page-utility {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 30px;
+}
+
+.blog-theme-page .site-page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  color: #768496;
+  font-size: 11px;
+}
+
+.blog-theme-page .site-page-edit {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid #cbd7e4;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #29415e;
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.blog-theme-page .site-page-cover {
+  display: grid;
+  place-items: center;
+  margin: 0 0 16px;
+  overflow: hidden;
+  border: 1px solid #e0e7ee;
+  border-radius: 10px;
+  background: #f4f7fa;
+}
+
+.blog-theme-page .site-page-cover img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  max-height: 380px;
+  object-fit: contain;
+}
+
+.blog-theme-page .site-page-lead {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--brand-accent, #2563eb);
+  border-radius: 0 8px 8px 0;
+  background: #f7f9fc;
+  color: #46566a;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.blog-theme-page .site-page-content {
+  color: #222d3b;
+  font-size: 15px;
+  line-height: 1.68;
+}
+
+.blog-theme-page .site-page-content > :first-child {
+  margin-top: 0;
+}
+
+.blog-theme-page .site-page-content > :last-child {
+  margin-bottom: 0;
+}
+
+.blog-theme-page .site-page-content h2 {
+  margin: 1.5em 0 .55em;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.blog-theme-page .site-page-content h3 {
+  margin: 1.35em 0 .5em;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.blog-theme-page .site-page-content figure,
+.blog-theme-page .site-page-content img,
+.blog-theme-page .site-page-content video,
+.blog-theme-page .site-page-content audio {
+  max-width: 100%;
+}
+
+.blog-theme-page .site-page-content figure {
+  margin: 18px 0;
+}
+
+.blog-theme-page .site-page-content figure img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 520px;
+  margin: 0 auto;
+  object-fit: contain;
+  border-radius: 9px;
+}
+
+.blog-theme-page .site-page-comments {
+  width: min(100%, 900px);
+  margin: 12px auto 0;
+  padding: 16px 18px;
+  border: 1px solid #dce4ec;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.blog-theme-page .site-page-comments > header h2 {
+  margin: 2px 0 10px;
+  font-size: 20px;
+}
+
+@media (max-width: 900px) {
+  .blog-theme-page .site-page,
+  .blog-theme-page .site-page-comments {
+    width: 100%;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .blog-theme-page .site-page {
+    padding: 11px 12px 18px;
+  }
+
+  .blog-theme-page .site-page-cover img {
+    max-height: 260px;
+  }
+
+  .blog-theme-page .site-page-content {
+    font-size: 14px;
+  }
+
+  .blog-theme-page .site-page-content h2 {
+    font-size: 21px;
+  }
+
+  .blog-theme-page .site-page-content h3 {
+    font-size: 18px;
+  }
+
+  .blog-theme-page .site-page-utility {
+    align-items: flex-start;
+  }
+}

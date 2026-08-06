@@ -49,6 +49,7 @@ require __DIR__.'/routes/blog-legacy-urls.php';
 require __DIR__.'/routes/blog-content-model.php';
 require __DIR__.'/routes/blog-categories.php';
 require __DIR__.'/routes/blog-menus.php';
+require __DIR__.'/routes/blog-users.php';
 require __DIR__.'/routes/blog-growth.php';
 require __DIR__.'/routes/blog-layout.php';
 require __DIR__.'/routes/blog-ux-fixes.php';
