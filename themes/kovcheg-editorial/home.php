@@ -14,6 +14,8 @@ $coverUrl=static function(array $entry):string{
     return $id>0?app_url('/media/'.$id):'';
 };
 ?>
+<?=FarmShowcase::homeShowcaseHtml()?>
+
 <section class="hero">
   <div class="hero__content">
     <span class="eyebrow"><?=e(setting('blog_tagline','KOVCHEG CMS'))?></span>
@@ -30,8 +32,6 @@ $coverUrl=static function(array $entry):string{
     <p>Главная страница показывает только то, что действительно опубликовано и отмечено для рекламы в KOVCHEG Studio.</p>
   </aside>
 </section>
-
-<?=FarmShowcase::homeShowcaseHtml()?>
 
 <section class="content-section">
   <header class="section-heading">
