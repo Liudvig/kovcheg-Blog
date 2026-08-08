@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Kovcheg\Auth;
 use Kovcheg\DB;
 use Kovcheg\Blog\Blog;
+use Kovcheg\Blog\FarmShowcase;
 
 $posts=array_values($posts??[]);
 $pages=array_values($pages??[]);
@@ -24,8 +25,10 @@ $coverUrl=static function(array $entry):string{
   <h1><?=e(setting('site_name','KOVCHEG'))?></h1>
   <p><?=e(setting('blog_description','Информация и материалы сайта.'))?></p>
  </div>
- <?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/posts/new'))?>">+ Добавить запись</a><?php endif;?>
+ <div class="site-home-hero__actions"><a href="<?=e(app_url('/catalog'))?>">Смотреть продукцию</a><?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/catalog/new'))?>">+ Добавить товар</a><?php endif;?></div>
 </section>
+
+<?=FarmShowcase::homeShowcaseHtml()?>
 
 <section class="site-home-section">
  <header><div><span>Материалы</span><h2>Последние записи</h2></div><?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/posts'))?>">Управление записями</a><?php endif;?></header>
