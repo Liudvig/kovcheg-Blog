@@ -19,6 +19,8 @@ $coverUrl=static function(array $entry):string{
 ?>
 <link rel="stylesheet" href="<?=e($themeAsset('site-home.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 
+<?=FarmShowcase::homeShowcaseHtml()?>
+
 <section class="site-home-hero">
  <div>
   <span><?=e(setting('blog_tagline','KOVCHEG CMS'))?></span>
@@ -27,8 +29,6 @@ $coverUrl=static function(array $entry):string{
  </div>
  <div class="site-home-hero__actions"><a href="<?=e(app_url('/catalog'))?>">Смотреть продукцию</a><?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/catalog/new'))?>">+ Добавить товар</a><?php endif;?></div>
 </section>
-
-<?=FarmShowcase::homeShowcaseHtml()?>
 
 <section class="site-home-section">
  <header><div><span>Материалы</span><h2>Последние записи</h2></div><?php if(Auth::isAdmin()):?><a href="<?=e(app_url('/studio/posts'))?>">Управление записями</a><?php endif;?></header>
