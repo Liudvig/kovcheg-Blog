@@ -58,6 +58,7 @@ $documentClass=in_array($pageType,['entry','post','page'],true)?' blog-theme-doc
 <link rel="stylesheet" href="<?=e($themeAsset('content.css').'?v='.rawurlencode(ASSET_REVISION))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-widgets.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-copyright.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/farm-showcase.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <?=\Kovcheg\Hooks::fire('blog.layout.head','')?>
 </head>
 <body class="blog-theme blog-theme-editorial<?=e($documentClass)?>" style="--brand-accent:<?=e((string)setting('brand_accent','#2563eb'))?>">
@@ -97,6 +98,7 @@ $documentClass=in_array($pageType,['entry','post','page'],true)?' blog-theme-doc
  <div class="site-footer__copyright"><span><?=e($copyright)?></span><span>Автор и правообладатель · KOVCHEG CMS <?=e(APP_VERSION)?> · Все права защищены</span><?php if(setting('seo_rss_enabled','1')==='1'):?><a href="<?=e(app_url('/feed.xml'))?>">RSS</a><?php endif;?></div>
 </footer>
 <script src="<?=e(app_url('/assets/js/blog-widgets.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
+<script src="<?=e(app_url('/assets/js/farm-showcase.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
 <?=\Kovcheg\Hooks::fire('blog.layout.scripts','')?>
 </body>
 </html>
