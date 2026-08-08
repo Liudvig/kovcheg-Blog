@@ -2,6 +2,7 @@
 use Kovcheg\Auth;
 use Kovcheg\DB;
 use Kovcheg\Blog\Blog;
+use Kovcheg\Blog\FarmShowcase;
 
 $posts=array_values($posts??[]);
 $heroTitle=(string)setting('blog_home_title',setting('site_name','KOVCHEG'));
@@ -15,19 +16,22 @@ $coverUrl=static function(array $entry):string{
 ?>
 <section class="hero">
   <div class="hero__content">
-    <span class="eyebrow">KOVCHEG CMS</span>
+    <span class="eyebrow"><?=e(setting('blog_tagline','KOVCHEG CMS'))?></span>
     <h1><?=e($heroTitle)?></h1>
     <p><?=e($heroText)?></p>
     <div class="hero__actions">
-      <?php if(Auth::isAdmin()):?><a class="button button--accent" href="<?=e(app_url('/studio/posts/new'))?>">Добавить запись</a><a class="button button--light" href="<?=e(app_url('/studio/pages/new'))?>">Добавить страницу</a><?php endif;?>
+      <a class="button button--accent" href="<?=e(app_url('/catalog'))?>">Смотреть продукцию</a>
+      <?php if(Auth::isAdmin()):?><a class="button button--light" href="<?=e(app_url('/studio/catalog/new'))?>">Добавить товар</a><?php endif;?>
     </div>
   </div>
   <aside class="hero__panel">
-    <span>Структура сайта</span>
-    <b>Записи, рубрики и страницы</b>
-    <p>Рубрику можно назвать «Новости», «Блог», «Документы», «Проекты» или как угодно. Отдельный обязательный раздел «Блог» не создаётся.</p>
+    <span>Живое хозяйство</span>
+    <b>Продукты, поголовье и реальные проекты</b>
+    <p>Главная страница показывает только то, что действительно опубликовано и отмечено для рекламы в KOVCHEG Studio.</p>
   </aside>
 </section>
+
+<?=FarmShowcase::homeShowcaseHtml()?>
 
 <section class="content-section">
   <header class="section-heading">
@@ -54,6 +58,6 @@ $coverUrl=static function(array $entry):string{
 
 <section class="statement">
   <span class="eyebrow">О СИСТЕМЕ</span>
-  <blockquote>Записи формируют ленту и рубрики. Страницы создают постоянные разделы сайта.</blockquote>
-  <p>Меню, рубрики и виджеты появляются только там, где владелец сайта сам их разместил.</p>
+  <blockquote>Каталог, поголовье и проекты теперь живут как реальные материалы сайта, а не демонстрационные карточки.</blockquote>
+  <p>Рекламные слайдеры заполняются автоматически из опубликованных материалов, отмеченных в Studio.</p>
 </section>
