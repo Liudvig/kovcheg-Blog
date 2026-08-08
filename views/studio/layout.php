@@ -8,6 +8,9 @@ $nav=[
  'posts'=>['Записи','/studio/posts','✎','content'],
  'categories'=>['Рубрики','/studio/categories','≡','content'],
  'pages'=>['Страницы','/studio/pages','▤','content'],
+ 'catalog'=>['Товары','/studio/catalog','▣','content'],
+ 'livestock'=>['Поголовье','/studio/livestock','♞','content'],
+ 'projects'=>['Проекты','/studio/projects','⌂','content'],
  'comments'=>['Комментарии','/studio/comments','◌','comments'],
  'media'=>['Медиафайлы','/studio/media','▧','media'],
  'menus'=>['Меню','/studio/menus','☷','menus'],
@@ -39,6 +42,7 @@ $copyright='© '.date('Y').' Ланцет Семён Борисович';
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-menus.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-zone-builder.css?v='.rawurlencode(ASSET_REVISION)))?>">
 <link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-ux-3.8.1.css?v='.rawurlencode(ASSET_REVISION)))?>">
+<link rel="stylesheet" href="<?=e(app_url('/assets/css/blog-studio-showcase.css?v='.rawurlencode(ASSET_REVISION)))?>">
 </head>
 <body class="studio-body studio-body--simple studio-body--wordpress studio-body--pages" data-studio-section="<?=e($studioSection)?>">
 <div class="studio-shell">
@@ -59,13 +63,13 @@ $copyright='© '.date('Y').' Ланцет Семён Борисович';
    <div class="studio-top-actions">
     <a class="button studio-site-action" href="<?=e(app_url('/'))?>" target="_blank" rel="noopener"><span class="studio-action-icon">↗</span><span class="studio-action-label">Сайт</span></a>
     <a class="button studio-account-action" href="<?=e(app_url('/account'))?>"><span class="studio-action-icon">◉</span><span class="studio-action-label">Профиль</span></a>
-    <?php if(\Kovcheg\Blog\Studio::can('content')):?><a class="button primary" href="<?=e(app_url('/studio/posts/new'))?>"><span class="studio-action-icon">＋</span><span class="studio-action-label">Добавить запись</span></a><a class="button" href="<?=e(app_url('/studio/pages/new'))?>"><span class="studio-action-icon">＋</span><span class="studio-action-label">Страница</span></a><?php endif;?>
+    <?php if(\Kovcheg\Blog\Studio::can('content')):?><a class="button primary" href="<?=e(app_url('/studio/posts/new'))?>"><span class="studio-action-icon">＋</span><span class="studio-action-label">Запись</span></a><a class="button" href="<?=e(app_url('/studio/catalog/new'))?>"><span class="studio-action-icon">＋</span><span class="studio-action-label">Товар</span></a><?php endif;?>
     <form method="post" action="<?=e(app_url('/logout'))?>"><?=csrf_field()?><button class="button studio-logout-action" type="submit"><span class="studio-action-icon">↪</span><span class="studio-action-label">Выйти</span></button></form>
    </div>
   </header>
   <?php if($flash):?><div class="studio-flashes"><?php foreach($flash as $message):?><div class="studio-flash <?=$message['type']==='error'?'error':'success'?>"><?=e($message['text'])?></div><?php endforeach;?></div><?php endif;?>
   <section class="studio-content"><?=$content?></section>
-  <footer class="studio-footer"><div><b>KOVCHEG CMS</b><span>Записи для рубрик, отдельные страницы, меню и управляемые виджеты.</span></div><div><span><?=e($copyright)?></span><span>Все права защищены</span></div></footer>
+  <footer class="studio-footer"><div><b>KOVCHEG CMS</b><span>Контент, товары, поголовье, проекты, меню и управляемые виджеты.</span></div><div><span><?=e($copyright)?></span><span>Все права защищены</span></div></footer>
  </main>
 </div>
 <script src="<?=e(app_url('/assets/js/blog-studio.js?v='.rawurlencode(ASSET_REVISION)))?>" defer></script>
