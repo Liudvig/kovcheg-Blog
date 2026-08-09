@@ -61,9 +61,11 @@ $obsoleteRuntime=[
  'views/studio/entries-index.php',
  'views/studio/patterns.php',
  'views/studio/presets.php',
+ 'views/templates/vk',
+ 'views/templates/x',
  'assets/css/blog-builder.css',
 ];
-foreach($obsoleteRuntime as $relative)$expect(!file_exists($root.'/'.$relative),'В дереве остался устаревший файл: '.$relative);
+foreach($obsoleteRuntime as $relative)$expect(!file_exists($root.'/'.$relative),'В дереве остался устаревший путь: '.$relative);
 
 $expect(!str_contains($layout,'chat_unread_count'),'Общая оболочка всё ещё зависит от чата.');
 $expect(!str_contains($layout,'user_notifications'),'Общая оболочка всё ещё зависит от социальной системы уведомлений.');
