@@ -47,18 +47,16 @@ require __DIR__.'/routes/blog-preflight.php';
 require __DIR__.'/routes/blog-branding.php';
 require __DIR__.'/routes/blog-legacy-urls.php';
 require __DIR__.'/routes/blog-content-model.php';
+require __DIR__.'/routes/blog-interactions.php';
 require __DIR__.'/routes/blog-categories.php';
 require __DIR__.'/routes/blog-menus.php';
 require __DIR__.'/routes/blog-users.php';
+require __DIR__.'/routes/blog-admin.php';
 require __DIR__.'/routes/blog-growth.php';
 require __DIR__.'/routes/blog-layout.php';
 require __DIR__.'/routes/blog-ux-fixes.php';
-require __DIR__.'/routes/blog.php';
-require __DIR__.'/routes/blog-studio.php';
 require __DIR__.'/routes/account.php';
 require __DIR__.'/routes/blog-auth.php';
-require __DIR__.'/routes/template-features.php';
-require __DIR__.'/routes/web.php';
 \Kovcheg\Hooks::fire('routes', $router);
 
 $path = request_path();
@@ -74,8 +72,10 @@ if (!in_array($path, ['/robots.txt','/sitemap.xml','/feed.xml'], true)) {
 
 try {
     $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $path);
-} catch (Throwable $e) {
-    log_error($e);
-    if (cfg('app.debug', false)) render_system_error(500, 'Внутренняя ошибка', $e->getMessage());
+} catch (Throwable $error) {
+    log_error($error);
+    if (cfg('app.debug', false)) {
+        render_system_error(500, 'Внутренняя ошибка', $error->getMessage());
+    }
     render_system_error(500, 'Внутренняя ошибка', 'Подробности записаны в журнал системы.');
 }
