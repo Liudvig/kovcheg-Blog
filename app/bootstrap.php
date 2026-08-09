@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 const BASE_PATH = __DIR__.'/..';
-const APP_VERSION = '3.8.1';
-const ASSET_REVISION = '3.8.1-compact-fixed-shell';
+const APP_VERSION = '3.9.0';
+const ASSET_REVISION = '3.9.0-core-cleanup';
 
 if (!is_file(BASE_PATH.'/config/config.php')) {
     if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php') { header('Location: install.php'); exit; }
@@ -45,7 +45,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 session_name('KOVCHEGSESSID');
-$sessionLifetime=315360000;
+$sessionLifetime=2592000;
 @ini_set('session.use_strict_mode','1');
 @ini_set('session.use_only_cookies','1');
 @ini_set('session.cookie_httponly','1');
