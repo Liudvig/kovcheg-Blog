@@ -8,6 +8,57 @@ License: proprietary / all rights reserved
 
 ---
 
+## 2026-08-09 — KOVCHEG Blog 3.9.0 Social View Layer Cleanup Completed
+
+Версия:
+KOVCHEG Blog 3.9.0 Core Cleanup
+
+Ветка:
+feature/core-cleanup-3.9.0
+
+Что выполнено:
+- построена карта активного runtime через `index.php`, текущие routes, `app/Blog.php`, hooks и modules;
+- подтверждено, что старые VK/X и root social views больше не вызываются текущей CMS;
+- удалены `views/templates/vk` и `views/templates/x`;
+- удалён первый пакет из 21 старого root social view: feed, messenger, profile, channel, wall, avatar/reaction и conversation presentation layers;
+- после отдельной проверки содержимого удалены `views/people.php`, `views/settings.php`, `views/mobile-navigation.php`, `views/search.php`, `views/site-sidebar.php`, `views/weather-widget.php`, `views/weather.php`;
+- `scripts/audit-core-cleanup-3.9.php` расширен regression guards для всех удалённых social views;
+- после cleanup корень `views/` содержит только `account-shell.php`, `layout.php`, `login.php`, `register.php` и `studio/`;
+- выполнен dependency-аудит CSS/JS: массовое удаление исторически названных assets отложено, потому что часть из них реально подключается актуальными account/Studio layouts.
+
+Commits этапа:
+- `877f6472` — Remove dead social root views;
+- `5b1e4752` — Guard removed social root views;
+- `a4fc7528` — Remove remaining legacy social views;
+- `7292daca` — Guard remaining legacy social views;
+- `bcfc5c93` — Update 3.9 cleanup README state;
+- `564ff6fe` — Update 3.9 cleanup project memory;
+- `5e47ddc7` — Update 3.9 module cleanup log;
+- `1e5f21d3` — Update 3.9 core cleanup changelog.
+
+CI:
+- run #412 — SUCCESS после первого пакета root social view cleanup;
+- run #414 — SUCCESS после полной очистки оставшихся root social views;
+- подтверждены PHP syntax, JavaScript syntax, JSON validation, Core Cleanup audit, MariaDB 11, MySQL 8.4, HTTP smoke и security/runtime-data checks.
+
+Что осталось:
+- `app/functions.php` всё ещё содержит старые chat/profile/channel/colleague/push helpers; удалять их можно только после call-map активных routes/themes/modules/cron/bin;
+- `database/schema.php` всё ещё содержит social baseline; baseline новой установки нужно очищать отдельно от production migration;
+- destructive DROP production social tables запрещён до backup и анализа фактических данных;
+- часть CSS имеет исторические имена, но реально используется текущими layouts, поэтому требует отдельного visual/dependency cleanup;
+- production 3.9.0 не деплоился и не проверялся изнутри сервера.
+
+Следующий этап:
+1. Call-map social helpers в `app/functions.php`.
+2. Малые commits по удалению только доказанно неиспользуемых helpers.
+3. Отдельный audit schema/migrations и безопасный cleanup baseline новой установки.
+4. После зелёного CI — controlled production deploy GitHub -> server -> FastPanel с backup, migrations, cache clear и HTTP verification.
+
+Статус:
+SOCIAL VIEW LAYER CLEANUP COMPLETE — CI GREEN — HELPERS/DB CLEANUP PENDING — PRODUCTION DEPLOY PENDING
+
+---
+
 ## 2026-08-09 — KOVCHEG Blog 3.9.0 Core Cleanup Audit and Repair
 
 Версия:
@@ -597,7 +648,7 @@ feature/page-final-view-3.5.9
 - preview-маршрут опубликованного материала переводит на итоговый канонический URL;
 - публикации, страницы и портфолио открываются по итоговым адресам `/blog/{slug}`, `/page/{slug}` и `/portfolio/{slug}`;
 - сохранённый черновик можно проверить редактору на его будущем каноническом URL, но посетитель доступа к нему не получает;
-- для редакторского просмотра закрытого или неопубликованного материала отправляется `X-Robots-Tag: noindex, nofollow, noarchive`;
+- для редакторского просмотра закрытого или неопубликованного материала отправляется `X-Robots-Tag: noindex, nofollow,noarchive`;
 - в редактор добавлен постоянный блок «Адрес страницы» с полным URL, slug, кнопкой копирования и кнопкой открытия итоговой страницы;
 - URL автоматически обновляется при смене типа материала или slug;
 - из редактора опубликованного публичного материала можно перейти в меню с уже выбранной страницей и заполненным названием;
