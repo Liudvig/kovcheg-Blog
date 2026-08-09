@@ -63,7 +63,7 @@ $hasBackground=trim((string)setting('login_background_path',''))!=='';
         <label class="blog-login-field"><span>Фамилия</span><input name="last_name" required maxlength="80" autocomplete="family-name"></label>
        </div>
        <label class="blog-login-field"><span>Email</span><input type="email" name="email" autocomplete="email" required></label>
-       <label class="blog-login-field"><span>Уникальный ник</span><input name="username" pattern="[a-z0-9_]{3,40}" required maxlength="40" placeholder="my_nik"><small>Адрес профиля: @my_nik</small></label>
+       <label class="blog-login-field"><span>Уникальный ник</span><input name="username" pattern="[a-z0-9_]{3,40}" required maxlength="40" placeholder="my_nik"><small>Используется для учётной записи и авторства материалов.</small></label>
        <div class="blog-register-grid">
         <label class="blog-login-field"><span>Пароль от 10 символов</span><input type="password" name="password" minlength="10" autocomplete="new-password" required></label>
         <label class="blog-login-field"><span>Повторите пароль</span><input type="password" name="password_confirmation" minlength="10" autocomplete="new-password" required></label>
