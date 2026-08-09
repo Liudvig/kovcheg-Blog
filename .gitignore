@@ -1,0 +1,35 @@
+# KOVCHEG CMS runtime secrets
+/config/config.php
+/.env
+/.env.*
+!/.env.example
+
+# Runtime data
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+/storage/backups/*
+!/storage/backups/.gitkeep
+/storage/builds/*
+!/storage/builds/.gitkeep
+/storage/*.sqlite
+
+# Local tooling and OS files
+/.idea/
+/.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local archives, dumps and temporary files
+*.sql
+*.sql.gz
+*.tar
+*.tar.gz
+*.zip.tmp
+*.log
+*.tmp
