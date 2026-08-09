@@ -8,6 +8,67 @@ License: proprietary / all rights reserved
 
 ---
 
+## 2026-08-09 — KOVCHEG Blog 3.9.0 Core Cleanup Audit and Repair
+
+Версия:
+KOVCHEG Blog 3.9.0 Core Cleanup
+
+Ветка:
+feature/core-cleanup-3.9.0
+
+Что проверено:
+- фактический HEAD рабочей ветки, история commits и отличие от `main`;
+- наличие заявленных удалений и новых файлов Core Cleanup;
+- `README.md`, `SECURITY.md`, `CHANGELOG.md`, `PROJECT_MEMORY.md`, `docs/DEVELOPMENT_LOG.md`, `docs/MODULE-IMPLEMENTATION-LOG.md`;
+- единый runtime через `index.php` и активные route-файлы;
+- GitHub Actions, PHP/JS/JSON syntax, MariaDB/MySQL migrations, HTTP smoke и security checks;
+- оставшиеся VK/X/social views, social helpers и legacy database schema;
+- безопасность порядка и повторного применения SQL migrations;
+- состояние production-документации и возможность проверки GitHub -> server -> FastPanel.
+
+Что обнаружено и исправлено:
+- `app/modern-ui.php` подключал уже удалённые `vk-structural-fix.css/js`; ссылки удалены;
+- `20260806_z_page_category_core.sql` на чистой установке преобразовывал Posts в Pages; миграция исправлена и теперь преобразует только старый `portfolio` в Page;
+- cleanup audit был недостаточно точным: усилены проверки migration safety и stale assets, при этом историческая документация не переписывается ради терминологического lint;
+- Studio и CI использовали `registration_mode=manual`, а auth runtime воспринимал его как закрытую регистрацию; добавлена совместимость `manual` и старого `email_approval` alias;
+- HTTP smoke ошибочно падал из-за `set -o pipefail` и `curl | grep -q`; проверка переведена на временные файлы;
+- удалены полностью недостижимые legacy каталоги `views/templates/vk` и `views/templates/x`;
+- cleanup audit теперь запрещает возврат этих VK/X presentation templates.
+
+Commits текущего аудита и ремонта:
+- `f08ea2a4` — Fix 3.9 cleanup runtime assets;
+- `292a8b31` — Preserve posts in legacy migration;
+- `09c49896` — Harden 3.9 cleanup audit;
+- `597dc00b` — Document KOVCHEG Blog 3.9 cleanup state;
+- `7050ba89` — Fix manual registration mode;
+- `bb944842` — Fix CI smoke pipe handling;
+- `33b50bc2` — Remove dead VK and X view templates;
+- `9ec885a4` — Guard against legacy social templates.
+
+CI:
+GitHub Actions run #406 завершён SUCCESS после исправления registration/runtime/CI проблем. Run #408 после удаления VK/X view templates и усиления audit также завершён SUCCESS. Успешно прошли PHP syntax, JavaScript syntax, JSON validation, Core Cleanup audit, MariaDB 11, MySQL 8.4, HTTP smoke и проверка секретов/runtime data.
+
+Оставшийся legacy:
+- корневые `feed`, `messenger`, `profile`, `channel`, `wall` и reaction views ещё требуют отдельной проверки ссылок перед удалением;
+- `app/functions.php` всё ещё содержит старые chat/profile/channel/colleague/push helpers;
+- `database/schema.php` для чистой установки всё ещё содержит часть social-таблиц (`chats`, `messages`, follows/colleagues и связанные структуры);
+- production-таблицы нельзя удалять вслепую: перед destructive migration нужен backup и проверка наличия старых пользовательских данных;
+- исторические audit/release документы сохраняются как история разработки и не считаются активным runtime.
+
+Production:
+KOVCHEG Blog 3.9.0 в рамках этого этапа НЕ деплоился и изнутри сервера не проверялся. В доступном GitHub-коннекторе нет SSH/FastPanel shell, поэтому права файлов, production PHP-FPM, production DB, фактические migrations, cache и production HTTP нельзя считать подтверждёнными. Исторический успешный deploy 3.5.5 не является подтверждением 3.9.0.
+
+Следующий этап:
+1. Построить карту использования оставшихся root social views и helpers.
+2. Отдельными небольшими commits удалить только доказанно неиспользуемый runtime legacy.
+3. Разделить cleanup baseline новой установки и безопасную migration-стратегию для существующей production БД.
+4. После полностью зелёного CI выполнить controlled deploy GitHub -> server -> FastPanel с backup, migrations, cache clear и HTTP smoke.
+
+Статус:
+CORE CLEANUP AUDIT PASSED — CI GREEN — DEEP SOCIAL/DB CLEANUP AND PRODUCTION DEPLOY PENDING
+
+---
+
 ## 2026-08-06
 
 Версия:
@@ -570,8 +631,8 @@ feature/page-final-view-3.5.9
 - PHP syntax — success;
 - JavaScript syntax — success;
 - Page final view audit — success;
-- Public entry routing audit — success;
-- Simple blog UI audit — success;
+- Public Entry Routing audit — success;
+- Simple Blog UI audit — success;
 - Classic editor audit — success;
 - Studio compact UX audit — success;
 - Portal UI audit — success;
