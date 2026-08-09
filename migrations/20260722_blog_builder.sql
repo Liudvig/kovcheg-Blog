@@ -1,17 +1,6 @@
-CREATE TABLE IF NOT EXISTS content_patterns (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    owner_id BIGINT UNSIGNED NULL,
-    name VARCHAR(150) NOT NULL,
-    slug VARCHAR(150) NOT NULL UNIQUE,
-    description VARCHAR(500) NULL,
-    blocks_json LONGTEXT NOT NULL,
-    scope VARCHAR(30) NOT NULL DEFAULT 'site',
-    is_system TINYINT(1) NOT NULL DEFAULT 0,
-    created_at DATETIME NULL,
-    updated_at DATETIME NULL,
-    INDEX idx_content_pattern_owner(owner_id,id),
-    CONSTRAINT fk_content_pattern_owner FOREIGN KEY(owner_id) REFERENCES users(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- KOVCHEG CMS compatibility migration.
+-- Historical filename is preserved because applied migrations are tracked by name.
+-- Builder/preset tables retired in 3.9.0 are intentionally not created for new installs.
 
 CREATE TABLE IF NOT EXISTS media_folders (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -77,16 +66,6 @@ CREATE TABLE IF NOT EXISTS content_autosaves (
     CONSTRAINT fk_content_autosave_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS site_preset_history (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT UNSIGNED NULL,
-    preset_slug VARCHAR(100) NOT NULL,
-    settings_json LONGTEXT NOT NULL,
-    created_at DATETIME NOT NULL,
-    INDEX idx_site_preset_history(preset_slug,id),
-    CONSTRAINT fk_site_preset_user FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS module_migrations (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     module_slug VARCHAR(80) NOT NULL,
@@ -136,5 +115,4 @@ DEALLOCATE PREPARE kovcheg_stmt;
 
 INSERT IGNORE INTO media_folders (name,slug,sort_order,created_at,updated_at) VALUES
 ('Общее','general',0,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
-('Обложки','covers',10,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
-('Портфолио','portfolio',20,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+('Обложки','covers',10,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
