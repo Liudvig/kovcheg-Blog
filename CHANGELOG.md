@@ -91,6 +91,17 @@ KOVCHEG Blog / KOVCHEG CMS очищается от наследия старой
 Автор и правообладатель: Ланцет Семён Борисович.  
 Лицензия: proprietary / all rights reserved.
 
+### Завершение social helper cleanup
+
+<!-- KOVCHEG_3_9_SOCIAL_HELPER_CLEANUP_FINAL -->
+- построен token-based call graph `app/functions.php`;
+- подтверждено отсутствие reachable social helpers;
+- недостижимые chat/channel/message/wall/profile/follow/colleague/story/push helpers физически удалены;
+- добавлен постоянный CI fail-guard против возврата social helper definitions;
+- активные routes/themes/modules/views/cron/app отдельно проверяются на отсутствие social DB dependencies;
+- старые production social tables не дропаются автоматически и остаются предметом отдельного data audit.
+
+
 ## 3.4.1 — постоянный вход и обновлённая админка
 
 Исправлен случайный возврат владельца на страницу входа и обновлена рабочая оболочка админки.

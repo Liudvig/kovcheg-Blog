@@ -144,3 +144,17 @@ Run #444 на commit `19bc41aeb58d08abf4a04f656aabbefec9fde121` завершён
 Production legacy tables не удаляются автоматически. Перед любым destructive SQL нужны backup, row-count, анализ данных и решение о сохранении/экспорте.
 
 Production deploy 3.9.0 пока не подтверждён и не должен считаться выполненным только по зелёному CI.
+
+
+## Social Helper Runtime Cleanup
+
+<!-- KOVCHEG_3_9_SOCIAL_HELPER_CLEANUP_FINAL -->
+| Слой | Статус | Проверка |
+|---|---|---|
+| Active social views | REMOVED | Core Cleanup audit |
+| Fresh social DB baseline | REMOVED | MariaDB/MySQL assertions |
+| Active social DB dependencies | REMOVED | `audit-active-runtime-social-free.php` |
+| Social helpers in `app/functions.php` | REMOVED | token call graph + `report-function-usage-3.9.php` |
+| Production legacy data | PRESERVED | удалить только после backup/data audit |
+
+Portal Media Widgets также очищен от VK Video и retired `portfolio` content type; bundled metadata обновлена до 1.0.1 / min core 3.9.0.

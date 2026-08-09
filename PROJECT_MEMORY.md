@@ -153,3 +153,16 @@ Production legacy-таблицы нельзя удалять автоматич�
 - темы и публичные canonical URL;
 - историю уже применённых migration filenames;
 - production-данные старых social/VK/Builder/tag таблиц до backup и анализа.
+
+
+## Завершение Social Helper Cleanup — 2026-08-09
+
+<!-- KOVCHEG_3_9_SOCIAL_HELPER_CLEANUP_FINAL -->
+- построен token-based call graph для `app/functions.php`;
+- до prune было 164 глобальные функции: 52 reachable, 112 unreachable; social-pattern анализ подтвердил 0 reachable social candidates;
+- exact-name и затем общий unreachable-social prune выполнялись только после проверки достижимости и `php -l`;
+- удалён недостижимый social helper cluster из `app/functions.php`;
+- постоянный `scripts/report-function-usage-3.9.php` теперь является fail-guard: наличие social helper definitions приводит к ошибке CI;
+- `scripts/audit-active-runtime-social-free.php` отдельно запрещает активным routes/themes/modules/views/cron/app обращаться к chats/messages/wall/follows/stories/push и retired social URL helpers;
+- удалены временные prune/report workflows и одноразовые инструменты;
+- production legacy tables не удалялись и требуют отдельного backup/data audit перед destructive migration.

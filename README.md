@@ -225,3 +225,14 @@ Production 3.9.0 пока не считается проверенным: пер
 Продукт: **KOVCHEG Blog / KOVCHEG CMS**.  
 Автор и правообладатель: **Ланцет Семён Борисович**.  
 Лицензия: **proprietary / all rights reserved**.
+
+
+### Завершение очистки social helpers
+
+<!-- KOVCHEG_3_9_SOCIAL_HELPER_CLEANUP_FINAL -->
+- `app/functions.php` проверен токенизированным call-graph аудитом;
+- недостижимые chat/channel/message/wall/profile/follow/colleague/story/push helpers удалены;
+- активный runtime не обращается к retired social tables и social URL helpers;
+- `scripts/report-function-usage-3.9.php` теперь валит CI, если social helper определения появляются снова;
+- одноразовые prune workflows после выполнения удалены;
+- destructive удаление старых production-таблиц по-прежнему не выполняется автоматически.

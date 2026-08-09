@@ -8,6 +8,38 @@ License: proprietary / all rights reserved
 
 ---
 
+## 2026-08-09 — KOVCHEG Blog 3.9.0 Deep Social Helper Cleanup
+
+<!-- KOVCHEG_3_9_SOCIAL_HELPER_CLEANUP_FINAL -->
+Версия: KOVCHEG Blog 3.9.0 Core Cleanup
+Ветка: feature/core-cleanup-3.9.0
+
+Что выполнено:
+- после удаления social presentation-layer и fresh social DB baseline построен call graph глобальных helpers;
+- анализ `app/functions.php` подтвердил отсутствие reachable social candidates;
+- недостижимый social helper cluster удалён автоматическим token-based prune, который abort'ится при любой reachable цели;
+- после prune выполнены PHP lint и повторный reachability audit;
+- постоянный function-usage guard теперь запрещает возвращение social helper definitions;
+- Active Runtime Social-Free audit запрещает обращения текущих routes/themes/modules/views/cron/app к retired social DB и URL helpers;
+- удалены бесхозные legacy assets и orphan Essential Widgets component;
+- исправлен stale require удалённого Essential Widgets в `routes/blog-layout.php`, найденный диагностическим HTTP smoke;
+- Portal Media Widgets очищен от VK Video/portfolio и обновлён до 1.0.1;
+- production legacy tables не удалялись.
+
+Проверка перед записью журнала:
+- `php -l app/functions.php`;
+- `php scripts/audit-core-cleanup-3.9.php`;
+- `php scripts/audit-active-runtime-social-free.php`;
+- `php scripts/report-function-usage-3.9.php`.
+
+Production:
+3.9.0 пока не деплоился; server/FastPanel/production DB verification остаётся следующим отдельным этапом.
+
+Статус:
+SOCIAL RUNTIME CLEANUP COMPLETE — PRODUCTION DEPLOY PENDING
+
+---
+
 ## 2026-08-09 — KOVCHEG Blog 3.9.0 Social View Layer Cleanup Completed
 
 Версия:
