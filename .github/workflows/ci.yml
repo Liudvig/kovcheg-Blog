@@ -72,6 +72,9 @@ jobs:
       - name: KOVCHEG core cleanliness audit
         run: php scripts/audit-core-cleanup-3.9.php
 
+      - name: Active runtime social dependency audit
+        run: php scripts/audit-active-runtime-social-free.php
+
       - name: Validate schema and migrations on MariaDB and MySQL
         shell: bash
         run: |
@@ -91,6 +94,7 @@ jobs:
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM content_categories;" | grep -qx '0'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM navigation_items WHERE url IN ('/blog','/portfolio');" | grep -qx '0'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM settings WHERE \`key\`='portfolio_description';" | grep -qx '0'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM settings WHERE \`key\`='portal_visual_zone_builder';" | grep -qx '0'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='content_entries';" | grep -qx '1'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='user_remember_tokens';" | grep -qx '1'
             for legacy_table in chats messages profile_posts user_follows colleague_requests stories push_subscriptions vk_media_items vk_media_albums content_patterns site_preset_history content_tags content_entry_tags; do
