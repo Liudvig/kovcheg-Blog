@@ -1,0 +1,37 @@
+name: KOVCHEG 3.9 Temporary Cleanup
+
+on:
+  push:
+    branches: [feature/core-cleanup-3.9.0]
+    paths:
+      - '.github/workflows/cleanup-temp-core-cleanup-3.9.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Remove one-shot tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -f --ignore-unmatch \
+            .github/workflows/function-report-3.9.yml \
+            .github/workflows/function-report-commit-3.9.yml \
+            .github/workflows/function-prune-remaining-3.9.yml \
+            .github/workflows/cleanup-temp-core-cleanup-3.9.yml \
+            scripts/prune-remaining-social-functions-3.9.php \
+            docs/audits/TEMP_FUNCTION_USAGE_3.9.txt
+          if git diff --cached --quiet; then
+            echo 'No temporary cleanup changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Remove temporary 3.9 cleanup tooling'
+          git push origin HEAD:feature/core-cleanup-3.9.0
