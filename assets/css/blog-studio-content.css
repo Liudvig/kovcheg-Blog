@@ -1,0 +1,68 @@
+/* KOVCHEG CMS 3.9.0 — content management layout
+ * Author and copyright: Ланцет Семён Борисович
+ * License: proprietary / all rights reserved
+ */
+
+.studio-body--content .studio-sidebar{flex-basis:210px;width:210px}
+.studio-body--content .studio-content{width:min(100%,1240px);margin:0 auto;padding:16px}
+.studio-body--content .page-head{margin-bottom:12px}
+.studio-body--content .page-head h1{font-size:24px}
+.studio-body--content .page-head p{margin-top:3px;font-size:13px}
+.studio-body--content .panel,
+.studio-body--content .editor-card{border-radius:8px;box-shadow:0 1px 3px rgba(15,23,42,.07)}
+.studio-body--content .field{gap:4px}
+.studio-body--content .field label{font-size:12px;font-weight:700}
+.studio-body--content input,
+.studio-body--content select,
+.studio-body--content textarea{min-height:36px;padding:7px 9px;border-radius:5px}
+.studio-body--content .button{min-height:34px;padding:7px 11px;border-radius:5px}
+
+.studio-body--content .cms-stats-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.studio-body--content .cms-stats-grid .stat-card{text-decoration:none}
+.studio-body--content .cms-stats-grid .stat-card strong{font-size:25px}
+
+.studio-body--content .cms-entry-table th,
+.studio-body--content .cms-entry-table td{padding:9px 10px}
+.studio-body--content .cms-entry-table th:nth-child(2){width:150px}
+.studio-body--content .cms-entry-table th:nth-child(3){width:130px}
+.studio-body--content .cms-entry-table th:nth-child(4){width:165px}
+.studio-body--content .cms-entry-table th:last-child{width:310px}
+.studio-body--content .cms-entry-table td:first-child b{font-size:14px}
+.studio-body--content .cms-entry-table td:first-child small{display:block;margin-top:2px;color:#667085}
+.studio-body--content .cms-entry-table .table-actions{justify-content:flex-end;gap:5px}
+
+.studio-body--content .cms-editor-layout{grid-template-columns:minmax(0,1fr) 270px;gap:12px}
+.studio-body--content .cms-editor-layout .editor-main,
+.studio-body--content .cms-editor-layout .editor-side{gap:10px}
+.studio-body--content .cms-editor-layout .editor-card{padding:12px}
+.studio-body--content .cms-editor-layout .title-input{font-size:21px;min-height:44px}
+.studio-body--content .cms-editor-layout .classic-editor-visual{min-height:300px;max-height:none}
+.studio-body--content .editor-card-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.studio-body--content .editor-card-title h3{margin:0}
+.studio-body--content .editor-card-title a{font-size:12px}
+
+.studio-body--content .cms-menu-layout{grid-template-columns:230px minmax(0,1fr);gap:12px}
+.studio-body--content .cms-menu-sources{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.studio-body--content .cms-menu-sources details{margin:0;padding:10px}
+.studio-body--content .cms-menu-sources summary{cursor:pointer;font-weight:800}
+.studio-body--content .cms-menu-sources form{display:grid;gap:8px;margin-top:10px}
+
+@media(max-width:1100px){
+ .studio-body--content .cms-stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .studio-body--content .cms-menu-sources{grid-template-columns:1fr}
+}
+@media(max-width:820px){
+ .studio-body--content .studio-content{padding:10px}
+ .studio-body--content .cms-editor-layout,
+ .studio-body--content .cms-menu-layout{grid-template-columns:1fr}
+ .studio-body--content .cms-entry-table th:nth-child(2),
+ .studio-body--content .cms-entry-table td:nth-child(2),
+ .studio-body--content .cms-entry-table th:nth-child(4),
+ .studio-body--content .cms-entry-table td:nth-child(4){display:none}
+}
+@media(max-width:560px){
+ .studio-body--content .cms-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .studio-body--content .cms-entry-table th:nth-child(3),
+ .studio-body--content .cms-entry-table td:nth-child(3){display:none}
+ .studio-body--content .cms-entry-table .table-actions{justify-content:flex-start}
+}
