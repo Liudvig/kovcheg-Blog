@@ -9,7 +9,7 @@
 
 KOVCHEG Blog предназначен для обычного информационного сайта, новостного проекта, авторского блога, сайта организации или профессионального портала.
 
-Базовая модель содержимого intentionally проста:
+Базовая модель содержимого намеренно проста:
 
 - **Записи** — новости, статьи и публикации;
 - **Рубрики** — тематические разделы Записей;
@@ -22,6 +22,8 @@ KOVCHEG Blog предназначен для обычного информаци
 - **Настройки** — параметры публикации, регистрации и сайта.
 
 Отдельный обязательный раздел с названием «Блог» не создаётся. Владелец сам определяет структуру сайта через рубрики, страницы и меню.
+
+Свежая установка 3.9.0 также не создаёт демонстрационные рубрики, портфолио, теги, социальные профили, сообщения, стены или VK/X-структуры.
 
 ## KOVCHEG Studio
 
@@ -118,6 +120,8 @@ Layout & Widget Engine поддерживает:
 - аудит административных действий;
 - автоматические CI-проверки секретов и runtime-данных.
 
+Legacy VK/VK Video больше не разрешены в CSP 3.9.0.
+
 Подробности: [`SECURITY.md`](SECURITY.md).
 
 ## Требования
@@ -134,6 +138,10 @@ Layout & Widget Engine поддерживает:
 ## Установка и обновление
 
 Runtime-конфигурация хранится в `config/config.php` и **не должна попадать в Git**.
+
+`install.php` устанавливает KOVCHEG CMS 3.9.0, создаёт минимальный CMS/system baseline и применяет текущую цепочку SQL-миграций до создания рабочей установки.
+
+Свежая установка не создаёт старые social/VK/Builder/tag таблицы. Исторические имена миграций сохраняются для совместимости с уже существующей таблицей `migrations`.
 
 Обновление базы:
 
@@ -155,6 +163,8 @@ git fetch origin main
 git merge --ff-only origin/main
 php bin/migrate.php
 ```
+
+Удаление старых production social/VK/Builder/tag таблиц **не выполняется автоматически**. Для этого требуется отдельный backup, проверка фактических данных и отдельная migration strategy.
 
 ## Разработка
 
@@ -184,21 +194,28 @@ feature branch
 - старый социальный runtime исключён из основного KOVCHEG Blog routing;
 - удалены устаревшие демонстрационные и визуальные конструкторы;
 - удалены legacy VK/X CSS/JS, `views/templates/vk`, `views/templates/x` и весь недостижимый root social presentation-layer;
-- корень `views/` теперь содержит только актуальные `layout`, `account`, `login`, `register` и каталог `studio`;
-- Studio переведена на собственные KOVCHEG-названия и стили;
+- удалён глобальный legacy `modern-ui` repair-layer и его wall/VK/X assets;
+- корень `views/` содержит только актуальные `layout`, `account`, `login`, `register` и каталог `studio`;
+- Studio переведена на собственные KOVCHEG-названия и текущие редакторы;
 - исправлена migration safety: Posts больше не превращаются в Pages старой совместимой миграцией;
+- свежий installer переведён на 3.9.0 и применяет migration-chain;
+- fresh database baseline очищен от chats/messages/wall/follows/stories/push и других social-таблиц;
+- историческая VK media migration сохранена по имени, но превращена в безопасный compatibility marker без создания VK-таблиц;
+- fresh install больше не создаёт `content_patterns`, `site_preset_history`, tags и tag-relations;
+- fresh install больше не создаёт демонстрационные рубрики, обязательные пункты «Блог»/«Портфолио» и portfolio settings;
+- добавлен отсутствовавший baseline `user_remember_tokens` для постоянного входа;
 - исправлен штатный режим регистрации `manual`;
-- сокращена поверхность атаки;
 - runtime-сессия ограничена 30 днями;
-- добавлен `.gitignore` для секретов и пользовательских данных;
 - документация приведена к фактической архитектуре KOVCHEG Blog;
-- CI проходит PHP, JS, JSON, Core Cleanup audit, MariaDB 11, MySQL 8.4, HTTP smoke и security checks.
+- CI проверяет PHP, JS, JSON, Core Cleanup audit, MariaDB 11, MySQL 8.4, HTTP smoke, отсутствие legacy-таблиц и security/runtime data.
 
 ### Текущее состояние Core Cleanup
 
-GitHub-ветка `feature/core-cleanup-3.9.0` прошла полный CI после полной очистки старых root social views; итоговый run #414 завершён SUCCESS.
+GitHub-ветка `feature/core-cleanup-3.9.0` подтверждена полным CI run #444 на commit `19bc41ae`: SUCCESS.
 
-Остаточный social legacy больше не находится в `views/`, но ещё присутствует в части старых helper-функций `app/functions.php` и baseline database schema. Эти слои должны очищаться отдельными безопасными пакетами после карты вызовов и анализа production-данных.
+На свежей базе после всей migration-chain CI отдельно подтверждает наличие текущих CMS/auth таблиц и отсутствие social/VK/Builder/tag таблиц, demo-рубрик, обязательных `/blog`/`/portfolio` menu items и `portfolio_description`.
+
+Остаточный social legacy больше не находится в `views/` и fresh database baseline. Основной оставшийся крупный слой — старые helper-функции в `app/functions.php`; их можно удалять только после call-map из активных routes/themes/modules/cron/bin.
 
 Часть CSS-файлов имеет исторические имена, но реально используется текущими account/Studio layouts. Их нельзя удалять по названию без отдельного визуального и dependency-аудита.
 
