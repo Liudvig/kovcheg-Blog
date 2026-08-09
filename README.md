@@ -181,13 +181,23 @@ feature branch
 Релиз 3.9.0 — генеральная очистка ядра:
 
 - удалены дублирующие старые route-bundles;
-- старый социальный runtime исключён из KOVCHEG Blog;
+- старый социальный runtime исключён из основного KOVCHEG Blog routing;
 - удалены устаревшие демонстрационные и визуальные конструкторы;
+- удалены legacy VK/X CSS/JS и недостижимые `views/templates/vk` / `views/templates/x`;
 - Studio переведена на собственные KOVCHEG-названия и стили;
+- исправлена migration safety: Posts больше не превращаются в Pages старой совместимой миграцией;
+- исправлен штатный режим регистрации `manual`;
 - сокращена поверхность атаки;
 - runtime-сессия ограничена 30 днями;
 - добавлен `.gitignore` для секретов и пользовательских данных;
-- документация приведена к фактической архитектуре KOVCHEG Blog.
+- документация приведена к фактической архитектуре KOVCHEG Blog;
+- CI после текущего Core Cleanup проходит PHP, JS, JSON, Core Cleanup audit, MariaDB 11, MySQL 8.4, HTTP smoke и security checks.
+
+### Текущее состояние Core Cleanup
+
+GitHub-ветка `feature/core-cleanup-3.9.0` прошла полный CI после удаления VK/X template-layer. Остаточный social legacy ещё присутствует в части старых root views, helpers и baseline database schema и должен удаляться отдельными безопасными пакетами после анализа зависимостей и данных.
+
+Production 3.9.0 пока не считается проверенным: перед deploy обязательны backup, fast-forward обновление, `php bin/migrate.php`, cache clear, проверка прав storage, PHP/DB и реальных HTTP-маршрутов на сервере.
 
 Версия: **3.9.0**.  
 Продукт: **KOVCHEG Blog / KOVCHEG CMS**.  

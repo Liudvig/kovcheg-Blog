@@ -13,41 +13,50 @@ KOVCHEG Blog / KOVCHEG CMS очищается от наследия старой
 - удалены `BlogBuilder` и `BlogDemoSite` и связанные старые Studio views;
 - общий `views/layout.php` заменён на чистую CMS shell-оболочку;
 - удалены старые VK/X CSS/JS assets и social helpers;
-- после аудита из `app/modern-ui.php` удалены ссылки на уже удалённые `vk-structural-fix.css/js`.
+- после аудита из `app/modern-ui.php` удалены ссылки на уже удалённые `vk-structural-fix.css/js`;
+- удалены недостижимые legacy-каталоги `views/templates/vk` и `views/templates/x`;
+- cleanup audit запрещает возврат VK/X template-layer в активное дерево.
 
 ### Studio, PWA и cron
 
 - Studio переведён на собственные названия и текущий content editor;
 - добавлен `assets/css/blog-studio-content.css`;
 - обновлены `manifest.webmanifest` и `service-worker.js`;
-- cron очищен от старых социальных задач, сохранены scheduled publishing, cleanup, webhook и system jobs.
+- cron очищен от старых социальных задач, сохранены scheduled publishing, cleanup, webhook и system jobs;
+- исправлен режим регистрации `manual`, старое значение `email_approval` сохранено как совместимый alias.
 
 ### База данных
 
 - старая content-model миграция заменена на `20260809_content_model_cleanup.sql`;
 - legacy `portfolio` преобразуется в Page, категории сохраняются только у Posts;
 - исправлена `20260806_z_page_category_core.sql`: она больше не преобразует все Posts в Pages;
-- историческое имя migration-файла сохранено, потому что `bin/migrate.php` учитывает применённые миграции по имени файла.
+- историческое имя migration-файла сохранено, потому что `bin/migrate.php` учитывает применённые миграции по имени файла;
+- отдельно обнаружен остаточный social baseline в `database/schema.php`; destructive cleanup production БД отложен до backup и проверки фактических данных.
 
 ### CI и безопасность
 
 - дублирующие GitHub Actions workflows объединены в `.github/workflows/ci.yml`;
 - CI проверяет PHP, JavaScript, JSON, MariaDB, MySQL, HTTP smoke и отсутствие секретов/runtime data;
 - добавлен `scripts/audit-core-cleanup-3.9.php`;
-- cleanup audit усилен проверкой stale assets и безопасностью content migrations;
-- исторические release/development журналы не переписываются ради терминологического lint и отделены от проверки активного runtime.
+- cleanup audit усилен проверкой stale assets, VK/X templates и безопасностью content migrations;
+- исторические release/development журналы не переписываются ради терминологического lint и отделены от проверки активного runtime;
+- исправлен ложный HTTP smoke failure из-за `set -o pipefail` и `curl | grep -q`;
+- GitHub Actions run #406 завершён SUCCESS;
+- GitHub Actions run #408 после удаления VK/X view templates также завершён SUCCESS.
 
 ### Документация
 
 - обновлены README и SECURITY под KOVCHEG Blog / KOVCHEG CMS 3.9;
-- создан `PROJECT_MEMORY.md`;
-- создан `docs/MODULE-IMPLEMENTATION-LOG.md`;
+- создан и актуализирован `PROJECT_MEMORY.md`;
+- создан и актуализирован `docs/MODULE-IMPLEMENTATION-LOG.md`;
+- обновлён `docs/DEVELOPMENT_LOG.md`;
 - добавлен аудит `docs/audits/KOVCHEG_CMS_3.9.0_CORE_CLEANUP_AUDIT.md`.
 
 ### Осталось до завершения 3.9.0
 
-- проверить и удалить доказанно неиспользуемые social views (`views/templates/vk`, `views/templates/x`, feed/messenger/profile/channel/wall layers);
-- получить полностью зелёный CI после cleanup;
+- проверить и удалить доказанно неиспользуемые root social views: feed/messenger/profile/channel/wall/reaction layers;
+- отделить старые social helpers в `app/functions.php` от реально нужных CMS/system helpers;
+- очистить baseline schema новой установки от social-таблиц без опасного удаления production-данных;
 - проверить production deploy через GitHub -> server -> FastPanel;
 - проверить production PHP, DB migrations, storage permissions, cache и HTTP routes.
 
