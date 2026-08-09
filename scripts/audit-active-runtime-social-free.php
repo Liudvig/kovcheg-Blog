@@ -72,3 +72,4 @@ if($errors){
 }
 
 echo "KOVCHEG active runtime social-free audit OK (".count($activeFiles)." files checked)\n";
+require __DIR__.'/audit-asset-usage-3.9.php';
