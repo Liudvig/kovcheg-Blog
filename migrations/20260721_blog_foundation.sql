@@ -74,23 +74,6 @@ CREATE TABLE IF NOT EXISTS content_entry_categories (
     CONSTRAINT fk_content_entry_category_category FOREIGN KEY(category_id) REFERENCES content_categories(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS content_tags (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(120) NOT NULL,
-    slug VARCHAR(120) NOT NULL UNIQUE,
-    created_at DATETIME NULL,
-    updated_at DATETIME NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS content_entry_tags (
-    entry_id BIGINT UNSIGNED NOT NULL,
-    tag_id BIGINT UNSIGNED NOT NULL,
-    PRIMARY KEY(entry_id,tag_id),
-    INDEX idx_content_entry_tag(tag_id,entry_id),
-    CONSTRAINT fk_content_entry_tag_entry FOREIGN KEY(entry_id) REFERENCES content_entries(id) ON DELETE CASCADE,
-    CONSTRAINT fk_content_entry_tag_tag FOREIGN KEY(tag_id) REFERENCES content_tags(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS content_comments (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     entry_id BIGINT UNSIGNED NOT NULL,
