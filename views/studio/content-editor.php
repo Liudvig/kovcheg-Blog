@@ -17,7 +17,6 @@ $isPublishedNow=!$isNew&&Blog::isPubliclyReadable($entry);
 $selectedCategories=array_map('intval',(array)($entry['category_ids']??[]));
 $section=$isPost?'posts':'pages';
 $entityName=$isPost?'запись':'страница';
-$entityNameTitle=$isPost?'Запись':'Страница';
 ?>
 <form method="post" enctype="multipart/form-data" action="<?=e(app_url('/studio/entry/save'))?>" data-entry-form data-autosave-url="<?=e(app_url('/studio/content/autosave'))?>" data-app-url="<?=e(rtrim(app_url('/'),'/'))?>">
 <?=csrf_field()?>
@@ -37,7 +36,7 @@ $entityNameTitle=$isPost?'Запись':'Страница';
 
 <?php if($autosaveData):?><div class="autosave-restore" data-autosave-restore><div><b>Найдена автокопия</b><span><?=e((string)$autosaveData['saved_at'])?></span></div><button type="button" class="button small primary" data-restore-autosave>Восстановить</button><button type="button" class="button small" data-dismiss-autosave>Закрыть</button></div><?php endif;?>
 
-<div class="editor-layout wp-editor-layout page-only-editor">
+<div class="editor-layout cms-editor-layout page-only-editor">
  <div class="editor-main">
   <section class="editor-card editor-card--basic">
    <div class="field"><label>Заголовок</label><input class="title-input" data-entry-title name="title" maxlength="255" required value="<?=e((string)($entry['title']??''))?>" placeholder="Введите заголовок"></div>
@@ -71,7 +70,7 @@ $entityNameTitle=$isPost?'Запись':'Страница';
 
   <section class="editor-card editor-permalink-card"><h3>Адрес</h3><div class="field"><div class="editor-permalink-line"><input type="text" readonly data-entry-public-url value="<?=e($publicUrl)?>" placeholder="Появится после сохранения"><button type="button" class="button small" data-copy-public-url <?=$publicUrl===''?'disabled':''?>>Копировать</button></div></div><div class="field"><label>Ярлык</label><input data-entry-slug name="slug" maxlength="190" value="<?=e((string)($entry['slug']??''))?>" placeholder="adres-materiala"></div><?php if(!$isNew&&$isPublishedNow):?><div class="editor-link-actions"><a class="button small" target="_blank" rel="noopener" data-entry-public-link href="<?=e($publicUrl)?>">Открыть</a><?php if(!$isPost):?><a class="button small" href="<?=e(app_url('/studio/menus?entry='.$entryId))?>">Добавить в меню</a><?php endif;?></div><?php endif;?></section>
 
-  <?php if($isPost):?><section class="editor-card"><div class="editor-card-title"><h3>Рубрики</h3><a href="<?=e(app_url('/studio/categories'))?>">Управление</a></div><p class="field-help">Рубрика создаёт раздел: «Новости», «Блог», «Отчёты» или любой другой.</p><div class="check-list"><?php foreach($categories as $category):?><label class="check-row"><input type="checkbox" name="category_ids[]" value="<?=(int)$category['id']?>" <?=in_array((int)$category['id'],$selectedCategories,true)?'checked':''?>> <?=e($category['name'])?></label><?php endforeach;?><?php if(!$categories):?><small>Сначала создайте рубрику.</small><?php endif;?></div></section><?php endif;?>
+  <?php if($isPost):?><section class="editor-card"><div class="editor-card-title"><h3>Рубрики</h3><a href="<?=e(app_url('/studio/categories'))?>">Управление</a></div><p class="field-help">Рубрика создаёт самостоятельный раздел сайта с выбранными записями.</p><div class="check-list"><?php foreach($categories as $category):?><label class="check-row"><input type="checkbox" name="category_ids[]" value="<?=(int)$category['id']?>" <?=in_array((int)$category['id'],$selectedCategories,true)?'checked':''?>> <?=e($category['name'])?></label><?php endforeach;?><?php if(!$categories):?><small>Сначала создайте рубрику.</small><?php endif;?></div></section><?php endif;?>
 
   <section class="editor-card" data-upload-block><h3>Обложка</h3><input type="hidden" name="featured_image_path" data-feature-path value="<?=e((string)($entry['featured_image_path']??''))?>"><input type="hidden" name="featured_folder_id" value="0"><label class="upload-zone upload-zone--compact" data-upload-zone><input type="file" name="featured_image" accept="image/jpeg,image/png,image/webp"><span class="upload-zone__icon">▧</span><b>Выбрать файл</b><small>JPEG, PNG или WebP</small></label><div class="upload-selection" data-upload-selection></div><?php if($media):?><div class="media-picker media-picker--compact"><?php foreach(array_slice($media,0,12) as $item):?><button type="button" class="<?=($entry['featured_image_path']??'')===$item['stored_path']?'active':''?>" data-media-path="<?=e($item['stored_path'])?>" data-media-url="<?=e(app_url('/media/'.(int)$item['id']))?>"><img src="<?=e(app_url('/media/'.(int)$item['id']))?>" alt=""></button><?php endforeach;?></div><?php endif;?></section>
 
