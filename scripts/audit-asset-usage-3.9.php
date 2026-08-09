@@ -54,6 +54,7 @@ $retired=[
     'assets/css/blog-admin-shell.css',
     'assets/css/blog-essential-widgets.css',
     'assets/css/kovcheg-core.css',
+    'assets/css/templates/default.css',
     'assets/js/blog-admin-shell.js',
     'assets/js/blog-essential-widgets.js',
 ];
