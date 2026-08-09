@@ -1,5 +1,59 @@
 # История изменений KOVCHEG Blog
 
+## 3.9.0 — Core Cleanup
+
+Дата: 2026-08-09
+
+KOVCHEG Blog / KOVCHEG CMS очищается от наследия старой социальной версии и переводится на самостоятельную CMS-модель без переписывания архитектуры и без удаления пользовательского контента.
+
+### Ядро и runtime
+
+- единым front controller оставлен `index.php`;
+- удалены старые дублирующие route bundles;
+- удалены `BlogBuilder` и `BlogDemoSite` и связанные старые Studio views;
+- общий `views/layout.php` заменён на чистую CMS shell-оболочку;
+- удалены старые VK/X CSS/JS assets и social helpers;
+- после аудита из `app/modern-ui.php` удалены ссылки на уже удалённые `vk-structural-fix.css/js`.
+
+### Studio, PWA и cron
+
+- Studio переведён на собственные названия и текущий content editor;
+- добавлен `assets/css/blog-studio-content.css`;
+- обновлены `manifest.webmanifest` и `service-worker.js`;
+- cron очищен от старых социальных задач, сохранены scheduled publishing, cleanup, webhook и system jobs.
+
+### База данных
+
+- старая content-model миграция заменена на `20260809_content_model_cleanup.sql`;
+- legacy `portfolio` преобразуется в Page, категории сохраняются только у Posts;
+- исправлена `20260806_z_page_category_core.sql`: она больше не преобразует все Posts в Pages;
+- историческое имя migration-файла сохранено, потому что `bin/migrate.php` учитывает применённые миграции по имени файла.
+
+### CI и безопасность
+
+- дублирующие GitHub Actions workflows объединены в `.github/workflows/ci.yml`;
+- CI проверяет PHP, JavaScript, JSON, MariaDB, MySQL, HTTP smoke и отсутствие секретов/runtime data;
+- добавлен `scripts/audit-core-cleanup-3.9.php`;
+- cleanup audit усилен проверкой stale assets и безопасностью content migrations;
+- исторические release/development журналы не переписываются ради терминологического lint и отделены от проверки активного runtime.
+
+### Документация
+
+- обновлены README и SECURITY под KOVCHEG Blog / KOVCHEG CMS 3.9;
+- создан `PROJECT_MEMORY.md`;
+- создан `docs/MODULE-IMPLEMENTATION-LOG.md`;
+- добавлен аудит `docs/audits/KOVCHEG_CMS_3.9.0_CORE_CLEANUP_AUDIT.md`.
+
+### Осталось до завершения 3.9.0
+
+- проверить и удалить доказанно неиспользуемые social views (`views/templates/vk`, `views/templates/x`, feed/messenger/profile/channel/wall layers);
+- получить полностью зелёный CI после cleanup;
+- проверить production deploy через GitHub -> server -> FastPanel;
+- проверить production PHP, DB migrations, storage permissions, cache и HTTP routes.
+
+Автор и правообладатель: Ланцет Семён Борисович.  
+Лицензия: proprietary / all rights reserved.
+
 ## 3.4.1 — постоянный вход и обновлённая админка
 
 Исправлен случайный возврат владельца на страницу входа и обновлена рабочая оболочка админки.
