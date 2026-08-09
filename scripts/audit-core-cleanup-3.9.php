@@ -26,6 +26,9 @@ $readme=$read('README.md');
 $security=$read('SECURITY.md');
 $growth=$read('routes/blog-growth.php');
 $gitignore=$read('.gitignore');
+$portalMediaModule=$read('modules/portal-media-widgets/bootstrap.php');
+$portalMediaManifest=$read('modules/portal-media-widgets/manifest.json');
+$portalMediaMetadataMigration=$read('migrations/20260809_portal_media_widgets_1_0_1.sql');
 $vkMediaMigration=$read('migrations/20260719_vk_media_library.sql');
 $foundationMigration=$read('migrations/20260721_blog_foundation.sql');
 $studioMigration=$read('migrations/20260721_blog_studio.sql');
@@ -65,6 +68,16 @@ $expect(str_contains($visualZoneMigration,'kovcheg_legacy_visual_zone_builder_re
 $expect(!str_contains($visualZoneMigration,'portal_visual_zone_builder'),'Visual Zone migration не должна создавать retired setting.');
 $expect(!str_contains($visualZoneMigration,'UPDATE themes'),'Visual Zone compatibility migration не должна переписывать текущую тему.');
 
+$portalManifest=json_decode($portalMediaManifest,true);
+$expect(is_array($portalManifest),'Portal Media Widgets manifest должен быть корректным JSON.');
+$expect((string)($portalManifest['version']??'')==='1.0.1','Portal Media Widgets manifest должен быть версии 1.0.1.');
+$expect((string)($portalManifest['min_core']??'')==='3.9.0','Portal Media Widgets должен требовать KOVCHEG CMS 3.9.0.');
+$expect(!str_contains($portalMediaModule,'vk.com')&&!str_contains($portalMediaModule,'vkvideo.ru'),'Portal Media Widgets не должен содержать VK Video runtime.');
+$expect(!str_contains($portalMediaModule,"'portfolio'"),'Portal Media Widgets не должен предлагать retired portfolio content type.');
+$expect(str_contains($portalMediaModule,"['post','page','all']"),'Portal Media Widgets должен ограничивать content slider Posts/Pages/All.');
+$expect(str_contains($portalMediaMetadataMigration,"version='1.0.1'"),'Production metadata migration должна обновлять Portal Media Widgets до 1.0.1.');
+$expect(str_contains($portalMediaMetadataMigration,"slug='portal-media-widgets'"),'Production metadata migration должна обновлять правильный module slug.');
+
 $requiredRoutes=[
  'routes/blog-content-model.php',
  'routes/blog-interactions.php',
@@ -90,6 +103,7 @@ $obsoleteRuntime=[
  'routes/blog-simple-mode.php',
  'app/BlogBuilder.php',
  'app/BlogDemoSite.php',
+ 'app/BlogEssentialWidgets.php',
  'app/modern-ui.php',
  'views/studio/content-index.php',
  'views/studio/editor.php',
