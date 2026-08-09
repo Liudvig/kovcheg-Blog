@@ -6,17 +6,14 @@ use Kovcheg\Auth;
 use Kovcheg\Csrf;
 use Kovcheg\DB;
 use Kovcheg\Blog\CmsWidgetOverrides;
-use Kovcheg\Blog\EssentialWidgets;
 use Kovcheg\Blog\Layout;
 use Kovcheg\Blog\LayoutRepair;
 use Kovcheg\Blog\Studio;
 
 require_once BASE_PATH.'/app/BlogLayout.php';
 require_once BASE_PATH.'/app/BlogLayoutRepair.php';
-require_once BASE_PATH.'/app/BlogEssentialWidgets.php';
 require_once BASE_PATH.'/app/BlogCmsWidgetOverrides.php';
 
-EssentialWidgets::boot();
 CmsWidgetOverrides::boot();
 
 $router->get('/studio/widgets', function () {
