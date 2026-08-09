@@ -30,8 +30,9 @@ KOVCHEG Blog / KOVCHEG CMS — самостоятельный блоговый �
 
 - удалены старые дублирующие route bundles и оставлен единый runtime через `index.php`;
 - удалены `BlogBuilder` и `BlogDemoSite`, старые Studio views и builder assets;
-- удалены старые VK/X CSS/JS assets и социальные runtime helpers;
-- удалены недостижимые legacy-каталоги `views/templates/vk` и `views/templates/x`;
+- удалены старые VK/X CSS/JS assets и social JavaScript layers;
+- удалены `views/templates/vk`, `views/templates/x` и весь доказанно недостижимый root social presentation-layer;
+- корень `views/` теперь содержит только `account-shell.php`, `layout.php`, `login.php`, `register.php` и каталог `studio`;
 - общий `views/layout.php` заменён на CMS shell;
 - Studio переведён на собственные названия и текущие редакторы;
 - обновлены PWA manifest и service worker;
@@ -51,16 +52,27 @@ KOVCHEG Blog / KOVCHEG CMS — самостоятельный блоговый �
 - commit `7050ba89`: исправлен штатный режим регистрации `manual`, старое `email_approval` сохранено как alias;
 - commit `bb944842`: устранён ложный HTTP smoke failure из-за `pipefail` и `curl | grep -q`;
 - commit `33b50bc2`: удалены полностью недостижимые VK/X view templates;
-- commit `9ec885a4`: Core Cleanup audit теперь запрещает возврат `views/templates/vk` и `views/templates/x`;
-- commit `95c8559f`: `docs/DEVELOPMENT_LOG.md` дополнен полным аудитом и состоянием 3.9.0.
+- commit `9ec885a4`: Core Cleanup audit запрещает возврат `views/templates/vk` и `views/templates/x`;
+- commit `95c8559f`: `docs/DEVELOPMENT_LOG.md` дополнен полным аудитом и состоянием 3.9.0;
+- commit `c991d7d0`: синхронизированы README, CHANGELOG, PROJECT_MEMORY и module log;
+- commit `877f6472`: удалены 21 доказанно мёртвый root social view;
+- commit `5b1e4752`: audit закрепил запрет на возврат первого пакета root social views;
+- commit `a4fc7528`: удалены оставшиеся legacy social views `people/settings/mobile-navigation/search/site-sidebar/weather*` после проверки их содержимого и недостижимости;
+- commit `7292daca`: audit закрепил запрет на возврат второго пакета legacy social views.
 
 ## Проверенное состояние CI
 
-GitHub Actions run #406 завершён SUCCESS после исправления migration/auth/runtime/CI проблем.
+GitHub Actions run #406 — SUCCESS после исправления migration/auth/runtime/CI проблем.
 
-GitHub Actions run #408 завершён SUCCESS после удаления VK/X template-layer и усиления cleanup audit.
+GitHub Actions run #408 — SUCCESS после удаления VK/X template-layer.
 
-В обоих итоговых прогонах подтверждены:
+GitHub Actions run #410 — SUCCESS на синхронизированном docs-HEAD.
+
+GitHub Actions run #412 — SUCCESS после первого пакета удаления root social views.
+
+GitHub Actions run #414 — SUCCESS после полной очистки оставшихся root social views и усиления audit.
+
+Подтверждены:
 
 - PHP syntax;
 - JavaScript syntax;
@@ -81,21 +93,22 @@ Production social-таблицы нельзя удалять автоматич�
 
 ## Что ещё не завершено
 
-- корневые старые social views (`feed`, `messenger`, `profile`, `channel`, `wall`, reaction layers) ещё находятся в дереве и требуют отдельной проверки ссылок;
-- `app/functions.php` всё ещё содержит старые chat/profile/channel/colleague/push helpers; удалять их нужно только после карты реальных вызовов;
+- `app/functions.php` всё ещё содержит старые chat/profile/channel/colleague/push helpers; их нельзя удалять блоком, пока не построена карта вызовов из активных routes/themes/modules/cron/bin;
 - `database/schema.php` для чистой установки всё ещё содержит social baseline (`chats`, `messages`, follows/colleagues и связанные таблицы); baseline нужно очистить отдельно от production migration;
+- часть CSS-файлов имеет исторические имена, но реально подключается актуальными account/Studio layouts; их нельзя удалять по имени без dependency- и визуального аудита;
 - исторические audit-скрипты и документация прошлых этапов сохраняются как история и не являются активным runtime;
-- production 3.9.0 ещё не подтверждён через SSH/FastPanel: нужны backup, `git pull`/fast-forward, `php bin/migrate.php`, cache clear, права storage, PHP/DB и реальные HTTP checks.
+- production 3.9.0 ещё не подтверждён через SSH/FastPanel: нужны backup, fast-forward update, `php bin/migrate.php`, cache clear, права storage, PHP/DB и реальные HTTP checks.
 
 ## Обязательный порядок дальнейшей работы
 
 1. Проверить HEAD и CI перед каждым новым пакетом.
-2. Построить карту использования оставшихся root social views/helpers.
-3. Удалять доказанно неиспользуемый legacy небольшими пакетами с отдельными commits.
+2. Построить карту использования старых social helpers в `app/functions.php`.
+3. Удалять только доказанно неиспользуемые helpers небольшими пакетами с отдельными commits.
 4. Очистить schema baseline новой установки без destructive production migration.
-5. После каждого пакета запускать CI и обновлять журналы.
-6. После полностью зелёного CI выполнить controlled production deploy через GitHub -> server -> FastPanel, без ручного копирования файлов.
-7. После deploy проверить migrations, права, cache, public routes и Studio.
+5. Отдельно проверить активные CSS/JS зависимости и только после этого переименовывать или объединять исторические слои.
+6. После каждого пакета запускать CI и обновлять журналы.
+7. После полностью зелёного CI выполнить controlled production deploy через GitHub -> server -> FastPanel, без ручного копирования файлов.
+8. После deploy проверить migrations, права, cache, public routes и Studio.
 
 ## Нельзя ломать
 
