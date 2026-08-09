@@ -1,0 +1,25 @@
+/* KOVCHEG CMS 3.9.0 — shared application shell
+ * Author and copyright: Ланцет Семён Борисович
+ * License: proprietary / all rights reserved
+ */
+:root{font-family:Inter,Arial,sans-serif;color:#182230;background:#f4f6f8;font-synthesis:none}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{min-height:100vh;background:#f4f6f8;color:#182230}
+a{color:inherit}
+.kov-shell-header{height:62px;background:#fff;border-bottom:1px solid #dce3eb;position:sticky;top:0;z-index:50}
+.kov-shell-header__inner{width:min(1180px,calc(100% - 32px));height:100%;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.kov-shell-brand{display:flex;align-items:center;gap:10px;text-decoration:none;min-width:0}
+.kov-shell-brand img{width:38px;height:38px;object-fit:contain;flex:none}
+.kov-shell-brand span{display:grid;min-width:0}
+.kov-shell-brand b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kov-shell-brand small{font-size:11px;color:#667085}
+.kov-shell-nav{display:flex;align-items:center;gap:8px}
+.kov-shell-nav a,.kov-shell-nav button{border:1px solid #d8e0e8;border-radius:7px;background:#fff;padding:8px 12px;font:inherit;font-size:12px;text-decoration:none;cursor:pointer;color:#344054}
+.kov-shell-nav .primary{background:#172a3a;color:#fff;border-color:#172a3a}
+.kov-shell-main{min-height:calc(100vh - 120px)}
+.kov-shell-flash{width:min(760px,calc(100% - 32px));margin:14px auto 0;padding:10px 12px;border-radius:7px;font-size:13px}
+.kov-shell-flash--error{background:#fff1f2;border:1px solid #fecdd3;color:#9f1239}
+.kov-shell-flash--success{background:#ecfdf3;border:1px solid #bbf7d0;color:#166534}
+.kov-shell-footer{display:flex;justify-content:space-between;gap:18px;width:min(1180px,calc(100% - 32px));margin:24px auto 0;padding:18px 0;color:#667085;font-size:11px;border-top:1px solid #dce3eb}
+@media(max-width:640px){.kov-shell-header__inner{width:calc(100% - 20px)}.kov-shell-brand small{display:none}.kov-shell-nav a{padding:7px 9px}.kov-shell-footer{width:calc(100% - 20px);display:grid}}
