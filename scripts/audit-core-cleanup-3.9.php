@@ -30,6 +30,7 @@ $vkMediaMigration=$read('migrations/20260719_vk_media_library.sql');
 $foundationMigration=$read('migrations/20260721_blog_foundation.sql');
 $studioMigration=$read('migrations/20260721_blog_studio.sql');
 $builderMigration=$read('migrations/20260722_blog_builder.sql');
+$visualZoneMigration=$read('migrations/20260722_blog_visual_zone_builder.sql');
 $legacyPageMigration=$read('migrations/20260806_z_page_category_core.sql');
 $contentCleanupMigration=$read('migrations/20260809_content_model_cleanup.sql');
 
@@ -60,6 +61,9 @@ $expect(!str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS content_patt
 $expect(!str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS site_preset_history'),'Builder migration не должна создавать retired site_preset_history.');
 $expect(str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS content_autosaves'),'Builder compatibility migration должна сохранять autosave schema.');
 $expect(str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS module_migrations'),'Builder compatibility migration должна сохранять module migration registry.');
+$expect(str_contains($visualZoneMigration,'kovcheg_legacy_visual_zone_builder_retired'),'Visual Zone migration должна оставаться retired compatibility marker.');
+$expect(!str_contains($visualZoneMigration,'portal_visual_zone_builder'),'Visual Zone migration не должна создавать retired setting.');
+$expect(!str_contains($visualZoneMigration,'UPDATE themes'),'Visual Zone compatibility migration не должна переписывать текущую тему.');
 
 $requiredRoutes=[
  'routes/blog-content-model.php',
