@@ -95,6 +95,7 @@ jobs:
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM navigation_items WHERE url IN ('/blog','/portfolio');" | grep -qx '0'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM settings WHERE \`key\`='portfolio_description';" | grep -qx '0'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM settings WHERE \`key\`='portal_visual_zone_builder';" | grep -qx '0'
+            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT version FROM modules WHERE slug='portal-media-widgets' LIMIT 1;" | grep -qx '1.0.1'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='content_entries';" | grep -qx '1'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='user_remember_tokens';" | grep -qx '1'
             for legacy_table in chats messages profile_posts user_follows colleague_requests stories push_subscriptions vk_media_items vk_media_albums content_patterns site_preset_history content_tags content_entry_tags; do
@@ -149,11 +150,17 @@ jobs:
 
           php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-http.log 2>&1 &
           server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/kovcheg-http.log || true' EXIT
+          trap 'kill "$server_pid" 2>/dev/null || true; echo "=== PHP server log ==="; cat /tmp/kovcheg-http.log || true; echo "=== Last HTTP body ==="; cat /tmp/body 2>/dev/null || true' EXIT
+          ready=0
           for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' http://127.0.0.1:8099/ || true)
+            if [ "$code" = "200" ]; then ready=1; break; fi
             sleep 1
           done
+          if [ "$ready" != "1" ]; then
+            echo 'KOVCHEG HTTP server did not become ready.' >&2
+            exit 1
+          fi
 
           check_200() {
             local path="$1"
@@ -163,7 +170,7 @@ jobs:
           }
           check_redirect() {
             local path="$1"
-            code=$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:8099${path}")
+            code=$(curl -sS -o /tmp/body -w '%{http_code}' "http://127.0.0.1:8099${path}")
             echo "$path -> $code"
             case "$code" in 301|302|303|307|308) ;; *) exit 1 ;; esac
           }
@@ -197,6 +204,20 @@ jobs:
           wait "$server_pid" 2>/dev/null || true
           trap - EXIT
           rm -f config/config.php
+
+      - name: Upload HTTP smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kovcheg-http-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            /tmp/kovcheg-http.log
+            /tmp/body
+            /tmp/ci-post.html
+            /tmp/ci-page.html
+            /tmp/ci-feed.xml
+          if-no-files-found: ignore
+          retention-days: 1
 
       - name: Reject secrets and runtime data
         shell: bash
