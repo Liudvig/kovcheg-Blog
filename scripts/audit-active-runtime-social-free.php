@@ -64,10 +64,9 @@ foreach($activeFiles as $relative){
     }
 }
 
-// app/functions.php intentionally remains outside this scan for now: it contains
-// both required CMS/system helpers and isolated historical helper definitions.
-// The purpose of this audit is to prove that the active runtime no longer calls
-// or queries the retired social subsystem before those definitions are removed.
+// app/functions.php intentionally remains outside this direct dependency scan:
+// it contains both required CMS/system helpers and isolated historical helper
+// definitions. report-function-usage-3.9.php builds the call graph separately.
 
 if($errors){
     fwrite(STDERR,"KOVCHEG active runtime social-free audit failed:\n- ".implode("\n- ",array_values(array_unique($errors)))."\n");
@@ -76,3 +75,4 @@ if($errors){
 
 echo "KOVCHEG active runtime social-free audit OK (".count($activeFiles)." files checked)\n";
 require __DIR__.'/audit-asset-usage-3.9.php';
+require __DIR__.'/report-function-usage-3.9.php';
