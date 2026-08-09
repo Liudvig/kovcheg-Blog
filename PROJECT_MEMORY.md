@@ -166,3 +166,22 @@ Production legacy-таблицы нельзя удалять автоматич�
 - `scripts/audit-active-runtime-social-free.php` отдельно запрещает активным routes/themes/modules/views/cron/app обращаться к chats/messages/wall/follows/stories/push и retired social URL helpers;
 - удалены временные prune/report workflows и одноразовые инструменты;
 - production legacy tables не удалялись и требуют отдельного backup/data audit перед destructive migration.
+
+## Production 3.9.0 verified — 2026-08-09
+
+<!-- KOVCHEG_3_9_PRODUCTION_DEPLOYED_2026_08_09 -->
+- production domain: `https://kovchegcms.ru`;
+- production commit: `d461a1b5dd66ebb658446cc0f95b0a7764101f90` (`Fix 3.9 audit for production config`);
+- pre-deploy production commit: `8984755a9afe5d0869563f4f83c57d301bd30a3a`;
+- backup: `/root/kovcheg-blog-backup-3.9.0-20260809-130820`;
+- DB backup created successfully with MariaDB root socket authentication;
+- migrations applied: `20260809_content_model_cleanup.sql`, `20260809_portal_media_widgets_1_0_1.sql`;
+- repeat migration run: `DONE Database is up to date.`;
+- HTTP verification: `/` 200, `/blog` 200, `/portfolio` 200, `/studio` 302;
+- `assets/css/kovcheg-shell.css` -> 200; retired `assets/css/kovcheg-core.css` -> 404;
+- service worker no longer contains legacy `kovcheg-assets-3.0-r1`;
+- production `config/config.php` exists locally and is not tracked by Git;
+- old production social/VK/Builder/tag tables were not destructively dropped.
+
+Status: **KOVCHEG CMS 3.9.0 PRODUCTION DEPLOYED AND VERIFIED**.
+
