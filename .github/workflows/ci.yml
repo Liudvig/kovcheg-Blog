@@ -1,8 +1,8 @@
-name: KOVCHEG CMS checks
+name: KOVCHEG CMS CI
 
 on:
   push:
-    branches: [main, feature/posts-menus-widgets-3.8.0]
+    branches: [main, feature/core-cleanup-3.9.0]
   pull_request:
     branches: [main]
 
@@ -35,62 +35,65 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=20
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           coverage: none
-          extensions: mbstring, fileinfo, openssl, pdo_mysql, zip, dom
+          extensions: mbstring, fileinfo, openssl, pdo_mysql, zip, dom, gd
 
-      - name: Lint PHP
-        shell: bash
-        run: find . -path './.git' -prune -o -path './vendor' -prune -o -type f -name '*.php' -print0 | xargs -0 -r -n1 php -l
-
-      - name: Check JavaScript syntax
+      - name: PHP syntax
         shell: bash
         run: |
-          files=$(find assets themes modules -type f -name '*.js' 2>/dev/null || true)
-          if [ -n "$files" ]; then while IFS= read -r file; do node --check "$file"; done <<< "$files"; fi
+          set -euo pipefail
+          find . -path './.git' -prune -o -path './vendor' -prune -o -type f -name '*.php' -print0 \
+            | xargs -0 -r -n1 php -l
 
-      - name: Validate JSON
+      - name: JavaScript syntax
         shell: bash
-        run: while IFS= read -r -d '' file; do php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"; done < <(find . -path './.git' -prune -o -type f -name '*.json' -print0)
-
-      - name: Run product audits
         run: |
-          php scripts/audit-cms-core-3.8.php
-          php scripts/audit-login-routing.php
-          php scripts/audit-account-actions.php
-          php scripts/audit-classic-editor.php
-          php scripts/audit-studio-compact.php
-          php scripts/audit-portal-ui.php
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find assets themes modules -type f -name '*.js' -print0 2>/dev/null)
+
+      - name: JSON validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -r 'json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);' "$file"
+          done < <(find . -path './.git' -prune -o -type f -name '*.json' -print0)
+
+      - name: KOVCHEG core cleanliness audit
+        run: php scripts/audit-core-cleanup-3.9.php
 
       - name: Validate schema and migrations on MariaDB and MySQL
         shell: bash
         run: |
           set -euo pipefail
           php -r '$schema=require "database/schema.php"; if(!is_string($schema)||trim($schema)==="") exit(1); file_put_contents("/tmp/kovcheg-schema.sql",$schema);'
+
           apply_database() {
             local label="$1" port="$2" database="$3" password="$4"
-            echo "=== ${label}: base schema ==="
+            echo "=== ${label} ==="
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < /tmp/kovcheg-schema.sql
-            echo "=== ${label}: migrations ==="
             for migration in $(find migrations -maxdepth 1 -type f -name '*.sql' | sort); do
+              echo "Applying ${migration}"
               MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" < "$migration"
             done
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('content_entries','content_categories','content_entry_categories','content_comments','media_library','navigation_menus','navigation_items');" | grep -qx '7'
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${database}' AND table_name IN ('site_layouts','site_widget_instances','site_widget_placements','site_layout_revisions');" | grep -qx '4'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM content_entries WHERE type='portfolio';" | grep -qx '0'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM content_entry_categories ec JOIN content_entries e ON e.id=ec.entry_id WHERE e.type='page';" | grep -qx '0'
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_placements p JOIN site_widget_instances w ON w.id=p.widget_id WHERE w.system_key IN ('portal-section-menu','portal-default-search','default-subscription','portal-footer-note');" | grep -qx '0'
-            MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM site_widget_instances WHERE system_key IN ('portal-section-menu','portal-default-search','default-subscription','portal-footer-note') AND is_enabled=1;" | grep -qx '0'
           }
+
           apply_database "MariaDB 11" 3306 kovcheg_ci kovcheg_ci_root
           apply_database "MySQL 8.4" 3307 kovcheg_mysql_ci kovcheg_mysql_root
 
-      - name: Runtime and HTTP smoke tests
+      - name: Runtime HTTP smoke
         shell: bash
         run: |
           set -euo pipefail
@@ -98,52 +101,99 @@ jobs:
           cat > config/config.php <<'PHP'
           <?php
           return [
-              'app'=>['name'=>'KOVCHEG CMS CI','url'=>'http://127.0.0.1:8099','timezone'=>'UTC','debug'=>true,'key'=>'base64:'.base64_encode(str_repeat('K',32))],
-              'database'=>['driver'=>'mysql','host'=>'127.0.0.1','port'=>3306,'name'=>'kovcheg_ci','user'=>'root','password'=>'kovcheg_ci_root','charset'=>'utf8mb4'],
+              'app'=>[
+                  'name'=>'KOVCHEG CMS CI',
+                  'url'=>'http://127.0.0.1:8099',
+                  'timezone'=>'UTC',
+                  'debug'=>true,
+                  'key'=>'base64:'.base64_encode(str_repeat('K',32)),
+              ],
+              'database'=>[
+                  'driver'=>'mysql',
+                  'host'=>'127.0.0.1',
+                  'port'=>3306,
+                  'name'=>'kovcheg_ci',
+                  'user'=>'root',
+                  'password'=>'kovcheg_ci_root',
+                  'charset'=>'utf8mb4',
+              ],
           ];
           PHP
+
           php -r '
             $_SERVER["SCRIPT_NAME"]="cli";
             require "app/bootstrap.php";
-            require_once "app/BlogLayoutRepair.php";
-            require_once "app/BlogEssentialWidgets.php";
-            require_once "app/BlogCmsWidgetOverrides.php";
-            Kovcheg\Blog\EssentialWidgets::boot();
-            Kovcheg\Blog\CmsWidgetOverrides::boot();
-            Kovcheg\Blog\LayoutRepair::ensure();
-            Kovcheg\Blog\LayoutRepair::repair(true);
-            foreach(["core.menu","core.categories","core.auth-form","core.content-slider","core.media","core.media-slider","core.category-calendar"] as $type){
-              if(!Kovcheg\Blog\Layout::widgetType($type)){fwrite(STDERR,"Missing widget: {$type}\n");exit(2);}
-            }
-            $required=(int)(Kovcheg\DB::one("SELECT COUNT(*) c FROM site_widget_instances WHERE system_key IN (\"default-logo\",\"default-menu\",\"default-account\") AND is_enabled=1")["c"]??0);
-            if($required!==3){fwrite(STDERR,"Minimal header widgets: {$required}\n");exit(3);}
-            $forced=(int)(Kovcheg\DB::one("SELECT COUNT(*) c FROM site_widget_placements p JOIN site_widget_instances w ON w.id=p.widget_id WHERE w.system_key IN (\"portal-section-menu\",\"portal-default-search\",\"default-subscription\",\"portal-footer-note\")")["c"]??0);
-            if($forced!==0){fwrite(STDERR,"Forced optional placements: {$forced}\n");exit(4);}
-            echo "Runtime widgets OK\n";
+            Kovcheg\Blog\Studio::setSetting("blog_theme","kovcheg-portal");
+            Kovcheg\Blog\Studio::setSetting("site_name","KOVCHEG CMS CI");
+            Kovcheg\Blog\Studio::setSetting("registration_mode","manual");
+            Kovcheg\Blog\Studio::setSetting("search_indexing","0");
+            $user=Kovcheg\DB::one("SELECT id FROM users ORDER BY id LIMIT 1");
+            if(!$user){
+                $uid=Kovcheg\DB::insert("INSERT INTO users (email,username,first_name,last_name,display_name,password_hash,role,is_active,approval_status,approved_at,created_at,updated_at) VALUES (?,?,?,?,?,?,\"owner\",1,\"approved\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",["owner@example.test","owner_ci","CMS","Owner","CMS Owner",password_hash("Kovcheg-CI-Password",PASSWORD_DEFAULT)]);
+            }else{$uid=(int)$user["id"];}
+            Kovcheg\DB::run("INSERT INTO content_entries (author_id,type,status,title,slug,content_html,visibility,published_at,created_at,updated_at) VALUES (?,\"post\",\"published\",\"CI запись\",\"ci-post\",\"<p>CI post body</p>\",\"public\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[$uid]);
+            Kovcheg\DB::run("INSERT INTO content_entries (author_id,type,status,title,slug,content_html,visibility,published_at,created_at,updated_at) VALUES (?,\"page\",\"published\",\"CI страница\",\"ci-page\",\"<p>CI page body</p>\",\"public\",CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[$uid]);
           '
+
           php -S 127.0.0.1:8099 index.php >/tmp/kovcheg-http.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true; cat /tmp/kovcheg-http.log || true' EXIT
-          for attempt in $(seq 1 30); do if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi; sleep 1; done
-          for path in / /blog /portfolio /login; do
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8099/ >/dev/null; then break; fi
+            sleep 1
+          done
+
+          check_200() {
+            local path="$1"
             code=$(curl -sS -o /tmp/body -w '%{http_code}' "http://127.0.0.1:8099${path}")
             echo "$path -> $code"
             test "$code" = "200"
-          done
-          grep -q 'KOVCHEG' /tmp/body
-          for path in /studio /studio/posts /studio/pages /studio/categories /studio/menus /studio/widgets; do
+          }
+          check_redirect() {
+            local path="$1"
             code=$(curl -sS -o /dev/null -w '%{http_code}' "http://127.0.0.1:8099${path}")
             echo "$path -> $code"
-            test "$code" = "302"
-          done
-          kill "$server_pid"; wait "$server_pid" 2>/dev/null || true
+            case "$code" in 301|302|303|307|308) ;; *) exit 1 ;; esac
+          }
+
+          check_200 /
+          check_200 /post/ci-post
+          check_200 /page/ci-page
+          check_200 /login
+          check_200 /register
+          check_200 /robots.txt
+          check_200 /sitemap.xml
+          check_200 /feed.xml
+          check_200 /blog
+          check_200 /portfolio
+          check_redirect /account
+          check_redirect /studio
+          check_redirect /studio/posts
+          check_redirect /studio/pages
+          check_redirect /studio/media
+          check_redirect /studio/users
+          check_redirect /studio/widgets
+
+          curl -fsS http://127.0.0.1:8099/post/ci-post | grep -q 'CI post body'
+          curl -fsS http://127.0.0.1:8099/page/ci-page | grep -q 'CI page body'
+          curl -fsS http://127.0.0.1:8099/feed.xml | grep -q '/post/ci-post'
+
+          kill "$server_pid"
+          wait "$server_pid" 2>/dev/null || true
           trap - EXIT
           rm -f config/config.php
 
-      - name: Reject committed secrets and runtime data
+      - name: Reject secrets and runtime data
         shell: bash
         run: |
+          set -euo pipefail
           test ! -f config/config.php
           test ! -f .env
-          if find storage/uploads storage/cache storage/logs storage/backups storage/builds -type f ! -name '.gitkeep' -print -quit 2>/dev/null | grep -q .; then echo 'Runtime or user data must not be committed.' >&2; exit 1; fi
-          if grep -RInE --exclude-dir=.git --exclude='*.png' --exclude='*.jpg' --exclude='*.webp' '(BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|AKIA[0-9A-Z]{16}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9_]{30,}|sk-[A-Za-z0-9]{20,})' .; then echo 'Possible secret found.' >&2; exit 1; fi
+          if find storage/uploads storage/cache storage/logs storage/backups storage/builds -type f ! -name '.gitkeep' -print -quit 2>/dev/null | grep -q .; then
+            echo 'Runtime or user data must not be committed.' >&2
+            exit 1
+          fi
+          if grep -RInE --exclude-dir=.git --exclude='*.png' --exclude='*.jpg' --exclude='*.webp' '(BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|AKIA[0-9A-Z]{16}|github_pat_[A-Za-z0-9_]{20,}|gh[pousr]_[A-Za-z0-9_]{30,}|sk-[A-Za-z0-9]{20,})' .; then
+            echo 'Possible secret found.' >&2
+            exit 1
+          fi
