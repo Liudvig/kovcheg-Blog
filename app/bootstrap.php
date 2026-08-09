@@ -39,7 +39,7 @@ if (PHP_SAPI !== 'cli') {
     header('Cross-Origin-Resource-Policy: same-site');
     header('X-Permitted-Cross-Domain-Policies: none');
     header("Permissions-Policy: geolocation=(), camera=(self), microphone=(self), payment=(), usb=()");
-    $csp="default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com 'nonce-".$GLOBALS['CSP_NONCE']."'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; font-src 'self' data:; connect-src 'self' https:; frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://player.vimeo.com https://rutube.ru https://vk.com https://vkvideo.ru; worker-src 'self' blob:; manifest-src 'self'";
+    $csp="default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com 'nonce-".$GLOBALS['CSP_NONCE']."'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; font-src 'self' data:; connect-src 'self' https:; frame-src 'self' https://challenges.cloudflare.com https://www.youtube-nocookie.com https://player.vimeo.com https://rutube.ru; worker-src 'self' blob:; manifest-src 'self'";
     header('Content-Security-Policy: '.$csp);
     if ($secure) header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
 }
