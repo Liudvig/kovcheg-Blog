@@ -55,7 +55,6 @@ final class Studio32
                 $id=DB::insert('INSERT INTO content_entries (author_id,type,status,title,slug,excerpt,content_json,content_html,featured_image_path,template,visibility,comments_enabled,reactions_enabled,is_featured,sort_order,seo_title,seo_description,published_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,NULL,?,?,0,?,0,?,?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)',[$authorId,$type,$status,$title,$slug,$excerpt?:null,$contentJson,$contentHtml,$featured?:null,$visibility,$flag('comments_enabled'),$flag('is_featured'),$seoTitle?:null,$seoDescription?:null,$publishedAt]);
             }
             self::syncCategories($id,$type==='post'?(array)($input['category_ids']??[]):[]);
-            self::syncTags($id,'');
             self::syncMeta($id,[
                 'layout_width'=>'normal',
                 'accent'=>'',
@@ -116,14 +115,6 @@ final class Studio32
     {
         DB::run('DELETE FROM content_entry_categories WHERE entry_id=?',[$entryId]);
         foreach(array_unique(array_map('intval',$ids)) as $id)if($id>0&&DB::one('SELECT id FROM content_categories WHERE id=?',[$id]))DB::run('INSERT IGNORE INTO content_entry_categories (entry_id,category_id) VALUES (?,?)',[$entryId,$id]);
-    }
-
-    private static function syncTags(int $entryId,string $tags):void
-    {
-        DB::run('DELETE FROM content_entry_tags WHERE entry_id=?',[$entryId]);
-        if(trim($tags)==='')return;
-        $names=array_slice(array_unique(array_filter(array_map('trim',preg_split('/[,;]+/u',$tags)?:[]))),0,30);
-        foreach($names as $name){$name=mb_substr($name,0,120);$slug=Studio::slugify($name);if($slug==='')continue;DB::run('INSERT INTO content_tags (name,slug,created_at,updated_at) VALUES (?,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE name=VALUES(name),updated_at=CURRENT_TIMESTAMP',[$name,$slug]);$tag=DB::one('SELECT id FROM content_tags WHERE slug=?',[$slug]);if($tag)DB::run('INSERT IGNORE INTO content_entry_tags (entry_id,tag_id) VALUES (?,?)',[$entryId,(int)$tag['id']]);}
     }
 
     private static function syncMeta(int $entryId,array $meta):void
