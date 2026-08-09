@@ -244,7 +244,6 @@ function save_wall_post_documents(array $files,int $postId,int $userId,int $star
 function delete_uploaded_relatives(array $paths): void { foreach($paths as $path)if(is_string($path)&&$path!==''&&!str_contains($path,'..'))@unlink(BASE_PATH.'/storage/uploads/'.$path); }
 
 
-
 function avatar_url(int $userId,?string $avatarPath=null): string {
     if($avatarPath===null){try{$avatarPath=(string)(DB::one('SELECT avatar_path FROM users WHERE id=?',[$userId])['avatar_path']??'');}catch(Throwable){$avatarPath='';}}
     $url=app_url('/avatar/'.$userId);return $avatarPath!==''?$url.'?v='.substr(hash('sha256',$avatarPath),0,12):$url;
@@ -252,20 +251,7 @@ function avatar_url(int $userId,?string $avatarPath=null): string {
 function media_url(int $attachmentId): string { return app_url('/media/'.$attachmentId); }
 function user_public_url(string $username): string { return app_url('/@'.rawurlencode(ltrim($username,'@'))); }
 function wall_post_public_url(string $username,int $postId): string { return app_url('/wall/@'.rawurlencode(ltrim($username,'@')).'/'.$postId); }
-function message_public_url(int|array $message,?int $viewerId=null): string {
-    $viewerId=$viewerId??(Auth::check()?Auth::id():0);
-    $row=is_array($message)?$message:DB::one('SELECT m.id,m.chat_id,c.type,c.username FROM messages m JOIN chats c ON c.id=m.chat_id WHERE m.id=? LIMIT 1',[(int)$message]);
-    if(!$row)return app_url('/messages');
-    $messageId=(int)($row['id']??0);$chatId=(int)($row['chat_id']??0);$type=(string)($row['chat_type']??$row['type']??'direct');
-    if($type==='channel'){
-        $username=(string)($row['chat_username']??$row['username']??'');
-        if($username==='')$username=(string)(DB::one('SELECT username FROM chats WHERE id=?',[$chatId])['username']??'');
-        return $username!==''?app_url('/c/'.rawurlencode($username).'/m/'.$messageId):app_url('/messages/chat-'.$chatId.'/'.$messageId);
-    }
-    $other=DB::one('SELECT u.username FROM chat_members cm JOIN users u ON u.id=cm.user_id WHERE cm.chat_id=? AND cm.user_id<>? LIMIT 1',[$chatId,$viewerId]);
-    $username=(string)($other['username']??'');
-    return $username!==''?app_url('/messages/@'.rawurlencode($username).'/'.$messageId):app_url('/messages/chat-'.$chatId.'/'.$messageId);
-}
+
 function verified_badge(array $user,string $class='verified-badge'): string { return !empty($user['is_verified'])?'<span class="'.e($class).'" title="'.e((string)($user['verification_label']?:'Подтверждённый профиль')).'" aria-label="Подтверждённый профиль">✓</span>':''; }
 function normalize_username(string $value): string { return strtolower(trim(ltrim($value,'@'))); }
 function valid_username(string $value): bool { return preg_match('/^[a-z0-9_]{3,40}$/',$value)===1; }
@@ -278,51 +264,7 @@ function avatar_html(array $user,string $class='avatar',string $alt=''): string 
     return '<span class="'.e($class).' avatar-photo"><img src="'.e($src).'" alt="'.e($alt).'" loading="lazy" decoding="async"></span>';
 }
 
-function chat_member(int $chatId,int $userId=0): ?array { $userId=$userId?:Auth::id();return DB::one("SELECT cm.* FROM chat_members cm JOIN chats c ON c.id=cm.chat_id WHERE cm.chat_id=? AND cm.user_id=? AND c.type='direct' AND c.deleted_at IS NULL",[$chatId,$userId]); }
-function require_chat_member(int $chatId): array { $member=chat_member($chatId);if(!$member||!empty($member['is_hidden']))abort(403,'Нет доступа к переписке.');return $member; }
-function require_chat_admin(int $chatId): array { $member=chat_member($chatId);if(!$member||(!in_array($member['role']??'',['owner','admin'],true)&&empty($member['can_manage_settings'])&&!Auth::isAdmin()))abort(403,'Нужны права администратора канала.');return $member; }
-function chat_title(array $chat,int $userId): string { if(($chat['type']??'')!=='direct')return $chat['title']?:'Канал';$other=DB::one('SELECT u.display_name FROM chat_members cm JOIN users u ON u.id=cm.user_id WHERE cm.chat_id=? AND cm.user_id<>? LIMIT 1',[$chat['id'],$userId]);return $other['display_name']??'Личная переписка'; }
-function channel_public_url(array|string $channel): string { $username=is_array($channel)?(string)($channel['username']??''):(string)$channel;return $username!==''?app_url('/c/'.rawurlencode($username)):''; }
-function channel_post_public_url(array $chat,int $messageId): string { $username=(string)($chat['username']??'');$chatId=(int)($chat['id']??$chat['chat_id']??0);return $username!==''?app_url('/c/'.rawurlencode($username).'/post/'.$messageId):app_url('/messages/chat-'.$chatId.'/post/'.$messageId); }
-function channel_avatar_url(int $chatId): string { return app_url('/channel-avatar/'.$chatId); }
-function chat_avatar_html(array $chat,?array $avatarUser=null,string $class='avatar'): string {
-    if(($chat['type']??'')==='direct'&&$avatarUser)return avatar_html($avatarUser,$class);
-    if(!empty($chat['avatar_path']))return '<span class="'.e($class).' avatar-photo"><img src="'.e(channel_avatar_url((int)$chat['id'])).'" alt="'.e((string)($chat['title']??'Канал')).'" loading="lazy"></span>';
-    return '<span class="'.e($class).' channel-avatar">#</span>';
-}
-function channel_can_post(array $chat,array $membership): bool {
-    if(($chat['type']??'')!=='channel')return true;
-    return Auth::isAdmin()||($membership['role']??'')==='owner'||!empty($membership['can_post']);
-}
-function channel_can_manage(array $membership,string $permission='can_manage_settings'): bool {
-    return Auth::isAdmin()||($membership['role']??'')==='owner'||(($membership['role']??'')==='admin'&&!empty($membership[$permission]));
-}
-function message_moderation_permissions(int $chatId): array { static $cache=[];if(isset($cache[$chatId]))return $cache[$chatId];if(Auth::isAdmin())return $cache[$chatId]=['edit'=>true,'delete'=>true];$chat=DB::one('SELECT type FROM chats WHERE id=?',[$chatId]);$member=chat_member($chatId);if(($chat['type']??'')!=='channel'||!$member)return $cache[$chatId]=['edit'=>false,'delete'=>false];return $cache[$chatId]=['edit'=>channel_can_manage($member,'can_edit_posts'),'delete'=>channel_can_manage($member,'can_delete_posts')];}
 
-function chat_list_for_user(int $uid,bool $includeArchived=false): array {
-    $archiveClause=$includeArchived?'':' AND cm.is_archived=0';
-    $rows=DB::all("SELECT c.*,cm.last_read_message_id,cm.cleared_before_message_id,cm.is_muted,cm.is_pinned,cm.is_archived,cm.is_hidden,
-        (SELECT MAX(id) FROM messages m WHERE m.chat_id=c.id AND m.deleted_at IS NULL AND m.reply_to_id IS NULL AND m.id>COALESCE(cm.cleared_before_message_id,0)) last_message_id,
-        (SELECT body FROM messages m WHERE m.chat_id=c.id AND m.deleted_at IS NULL AND m.reply_to_id IS NULL AND m.id>COALESCE(cm.cleared_before_message_id,0) ORDER BY id DESC LIMIT 1) last_body,
-        (SELECT type FROM messages m WHERE m.chat_id=c.id AND m.deleted_at IS NULL AND m.reply_to_id IS NULL AND m.id>COALESCE(cm.cleared_before_message_id,0) ORDER BY id DESC LIMIT 1) last_type,
-        (SELECT created_at FROM messages m WHERE m.chat_id=c.id AND m.deleted_at IS NULL AND m.reply_to_id IS NULL AND m.id>COALESCE(cm.cleared_before_message_id,0) ORDER BY id DESC LIMIT 1) last_at,
-        (SELECT COUNT(*) FROM messages m WHERE m.chat_id=c.id AND m.deleted_at IS NULL AND m.reply_to_id IS NULL AND m.id>GREATEST(COALESCE(cm.last_read_message_id,0),COALESCE(cm.cleared_before_message_id,0)) AND m.sender_id<>?) unread
-        FROM chats c JOIN chat_members cm ON cm.chat_id=c.id
-        WHERE cm.user_id=? AND cm.is_hidden=0 AND c.deleted_at IS NULL AND c.type='direct'".$archiveClause."
-        ORDER BY cm.is_pinned DESC,last_at DESC,c.id DESC",[$uid,$uid]);
-    foreach($rows as &$item){
-        $item['display_title']=chat_title($item,$uid);$item['avatar_user']=null;
-        if($item['type']==='direct')$item['avatar_user']=DB::one('SELECT u.id,u.display_name,u.username,u.avatar_path,u.is_verified,u.verification_label,u.last_seen_at FROM chat_members cm JOIN users u ON u.id=cm.user_id WHERE cm.chat_id=? AND cm.user_id<>? LIMIT 1',[$item['id'],$uid]);
-        if(($item['last_type']??'')==='sticker')$item['last_body']='Стикер';
-        if(($item['last_type']??'')==='file')$item['last_body']='Вложение';
-    }
-    unset($item);$rows=array_values(array_filter($rows,fn($item)=>($item['type']??'')!=='direct'||empty($item['avatar_user']['id'])||!users_blocked($uid,(int)$item['avatar_user']['id'])));return $rows;
-}
-function chat_unread_count(int $uid): int {
-    try{
-        return (int)(DB::one("SELECT COUNT(*) c FROM messages m JOIN chats c ON c.id=m.chat_id AND c.deleted_at IS NULL JOIN chat_members cm ON cm.chat_id=m.chat_id AND cm.user_id=? WHERE cm.is_hidden=0 AND m.deleted_at IS NULL AND m.reply_to_id IS NULL AND m.sender_id<>? AND m.id>GREATEST(COALESCE(cm.last_read_message_id,0),COALESCE(cm.cleared_before_message_id,0))",[$uid,$uid])['c']??0);
-    }catch(Throwable $e){log_error($e);return 0;}
-}
 function load_chat_context(int $chatId,int $uid): array {
     $membership=require_chat_member($chatId);
     $chat=DB::one('SELECT * FROM chats WHERE id=? AND deleted_at IS NULL',[$chatId]);
@@ -344,14 +286,7 @@ function load_chat_context(int $chatId,int $uid): array {
 }
 
 function safe_message_html(string $text): string { $text=e($text);$text=preg_replace('~(https?://[^\s<]+)~u','<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',$text)??$text;return nl2br($text); }
-function message_preview(array $message): string {
-    if(($message['type']??'')==='sticker')return 'Стикер';
-    if(($message['type']??'')==='file')return '📎 '.($message['original_name']??'Файл');
-    if(($message['type']??'')==='track')return 'Аудиовложение недоступно';
-    $body=trim(strip_tags((string)($message['body']??'')));
-    return $body!==''?utf8_substr($body,0,140):'Новое сообщение';
-}
-function message_payload(array $message): array { return ['id'=>(int)$message['id'],'chat_id'=>(int)$message['chat_id'],'sender_id'=>(int)$message['sender_id'],'sender_name'=>$message['display_name']??'','sender_username'=>$message['username']??null,'sender_verified'=>!empty($message['is_verified']),'sender_verification_label'=>$message['verification_label']??null,'sender_avatar'=>avatar_url((int)$message['sender_id'],(string)($message['avatar_path']??'')),'type'=>$message['type'],'body'=>$message['body'],'sticker_code'=>$message['sticker_code'],'reply_to_id'=>$message['reply_to_id']?(int)$message['reply_to_id']:null,'reply_sender_name'=>$message['reply_sender_name']??null,'reply_body'=>$message['reply_body']??null,'forwarded_from_id'=>!empty($message['forwarded_from_id'])?(int)$message['forwarded_from_id']:null,'forwarded_from_name'=>$message['forwarded_from_name']??null,'created_at'=>$message['created_at'],'edited_at'=>$message['edited_at'],'deleted_at'=>$message['deleted_at'],'attachment_id'=>$message['attachment_id']?(int)$message['attachment_id']:null,'media_url'=>!empty($message['attachment_id'])?media_url((int)$message['attachment_id']):null,'file_name'=>$message['original_name']??null,'mime_type'=>$message['mime_type']??null,'file_size'=>$message['file_size']?(int)$message['file_size']:null]; }
+
 
 function permission_defaults(string $role): array {
     $all=['can_send_messages'=>1,'can_send_files'=>1,'can_send_stickers'=>1,'can_send_voice'=>1,'can_edit_messages'=>1,'can_delete_messages'=>1,'can_publish_wall'=>1,'can_comment'=>1];
@@ -386,10 +321,6 @@ function emit_chat_event(int $chatId,string $type,?int $messageId=null,array $pa
     try{return DB::insert('INSERT INTO chat_events (chat_id,event_type,message_id,actor_id,payload_json,created_at) VALUES (?,?,?,?,?,CURRENT_TIMESTAMP)',[$chatId,$type,$messageId,Auth::id()?:null,json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)]);}catch(Throwable $e){log_error($e);return 0;}
 }
 
-function message_row(int $messageId): ?array {
-    $row=DB::one('SELECT m.*,c.type chat_type,c.comments_enabled,c.reactions_enabled,c.sign_messages,u.display_name,u.first_name,u.last_name,u.username,u.avatar_path,u.is_verified,u.verification_label,fu.display_name forwarded_from_name,fu.username forwarded_from_username,fm.created_at forwarded_from_created_at,rm.body reply_body,ru.display_name reply_sender_name,a.id attachment_id,a.original_name,a.stored_path,a.mime_type,a.file_size,(SELECT COUNT(*) FROM messages mc WHERE mc.chat_id=m.chat_id AND mc.thread_root_id=m.id AND mc.deleted_at IS NULL) comments_count FROM messages m JOIN chats c ON c.id=m.chat_id JOIN users u ON u.id=m.sender_id LEFT JOIN messages fm ON fm.id=m.forwarded_from_id LEFT JOIN users fu ON fu.id=fm.sender_id LEFT JOIN messages rm ON rm.id=m.reply_to_id LEFT JOIN users ru ON ru.id=rm.sender_id LEFT JOIN attachments a ON a.message_id=m.id WHERE m.id=?',[$messageId]);
-    return $row;
-}
 
 function app_key_bytes(): string { $raw=(string)cfg('app.key','');$decoded=str_starts_with($raw,'base64:')?base64_decode(substr($raw,7),true):false;if($decoded===false||strlen($decoded)<32)throw new RuntimeException('Ключ приложения не настроен.');return hash('sha256',$decoded,true); }
 function encrypt_secret(string $plain): string { $iv=random_bytes(12);$tag='';$cipher=openssl_encrypt($plain,'aes-256-gcm',app_key_bytes(),OPENSSL_RAW_DATA,$iv,$tag);if($cipher===false)throw new RuntimeException('Не удалось зашифровать секрет.');return base64_encode($iv.$tag.$cipher); }
@@ -542,7 +473,7 @@ function user_notification_create(int $userId,string $title,string $body,string 
     try{return DB::insert("INSERT INTO user_notifications (user_id,type,title,body,url,icon,tag,is_read,created_at) VALUES (?,?,?,?,?,?,?,0,CURRENT_TIMESTAMP)",[$userId,$type,utf8_substr($title,0,190),$body,$url?:null,$icon?:null,$tag?:null]);}catch(Throwable $e){log_error($e);return 0;}
 }
 function user_can_see_core_updates(int $userId): bool { try{$role=(string)(DB::one('SELECT role FROM users WHERE id=? LIMIT 1',[$userId])['role']??'user');return in_array($role,['owner','admin'],true);}catch(Throwable){return false;} }
-function user_notifications(int $userId,int $limit=40): array { try{$filter=user_can_see_core_updates($userId)?'':" AND (tag IS NULL OR tag NOT LIKE 'core-update-%')";return DB::all('SELECT * FROM user_notifications WHERE user_id=?'.$filter.' ORDER BY id DESC LIMIT '.max(1,min(100,$limit)),[$userId]);}catch(Throwable){return [];} }
+
 function user_unread_count(int $userId): int { try{$filter=user_can_see_core_updates($userId)?'':" AND (tag IS NULL OR tag NOT LIKE 'core-update-%')";return (int)(DB::one('SELECT COUNT(*) c FROM user_notifications WHERE user_id=? AND is_read=0'.$filter,[$userId])['c']??0);}catch(Throwable){return 0;} }
 function mark_user_notifications_read(int $userId,array $ids=[]): void { if(!$ids){DB::run('UPDATE user_notifications SET is_read=1,read_at=COALESCE(read_at,CURRENT_TIMESTAMP) WHERE user_id=? AND is_read=0',[$userId]);return;}$ids=array_values(array_unique(array_filter(array_map('intval',$ids))));if(!$ids)return;$marks=implode(',',array_fill(0,count($ids),'?'));DB::run('UPDATE user_notifications SET is_read=1,read_at=COALESCE(read_at,CURRENT_TIMESTAMP) WHERE user_id=? AND id IN ('.$marks.')',array_merge([$userId],$ids)); }
 function queue_user_push(int $userId,string $title,string $body,string $url='',string $icon='',string $tag='',bool $force=false,bool $createBell=true): int {
@@ -684,7 +615,7 @@ function profile_people_blocks(int $profileUserId,int $limit=6): array {
     try{$followers=DB::all("SELECT $base FROM user_follows f JOIN users u ON u.id=f.follower_id WHERE f.followed_id=? AND u.is_active=1 AND NOT EXISTS(SELECT 1 FROM colleague_requests r WHERE r.status='accepted' AND ((r.requester_id=f.follower_id AND r.recipient_id=f.followed_id) OR (r.recipient_id=f.follower_id AND r.requester_id=f.followed_id))) ORDER BY f.created_at DESC LIMIT $limit",[$profileUserId]);}catch(Throwable){$followers=[];}
     return ['online'=>array_slice($online,0,$limit),'colleagues'=>$colleagues,'followers'=>$followers];
 }
-function profile_right_blocks(int $profileUserId): array { return profile_people_blocks($profileUserId,6); }
+
 
 function diagnostic_checks(): array {
     $checks=[];$add=function($name,$ok,$detail,$help)use(&$checks){$checks[]=compact('name','ok','detail','help');};
@@ -754,14 +685,7 @@ function relationship_summary(int $viewerId,int $profileId): array {
         'blocked_between'=>users_blocked($viewerId,$profileId),
     ];
 }
-function profile_counts(int $userId): array {
-    try{return [
-        'colleagues'=>(int)(DB::one("SELECT COUNT(*) c FROM colleague_requests WHERE status='accepted' AND (requester_id=? OR recipient_id=?)",[$userId,$userId])['c']??0),
-        'followers'=>(int)(DB::one("SELECT COUNT(*) c FROM user_follows f WHERE f.followed_id=? AND NOT EXISTS(SELECT 1 FROM colleague_requests r WHERE r.status='accepted' AND ((r.requester_id=f.follower_id AND r.recipient_id=f.followed_id) OR (r.recipient_id=f.follower_id AND r.requester_id=f.followed_id)))",[$userId])['c']??0),
-        'following'=>(int)(DB::one("SELECT COUNT(*) c FROM user_follows f WHERE f.follower_id=? AND NOT EXISTS(SELECT 1 FROM colleague_requests r WHERE r.status='accepted' AND ((r.requester_id=f.follower_id AND r.recipient_id=f.followed_id) OR (r.recipient_id=f.follower_id AND r.requester_id=f.followed_id)))",[$userId])['c']??0),
-        'requests'=>(int)(DB::one("SELECT COUNT(*) c FROM colleague_requests WHERE recipient_id=? AND status='pending'",[$userId])['c']??0),
-    ];}catch(Throwable){return ['colleagues'=>0,'followers'=>0,'following'=>0,'requests'=>0];}
-}
+
 function can_view_profile(array $profile,?int $viewerId): bool {
     $profileId=(int)($profile['id']??0);if($profileId<1)return false;if($viewerId===$profileId||Auth::isAdmin())return true;if($viewerId&&users_blocked($viewerId,$profileId))return false;
     $visibility=raw_user_setting($profileId,'profile_visibility','users');
@@ -802,7 +726,6 @@ function create_backup(): string {
     foreach($tables as $table){try{$rows=DB::all('SELECT * FROM `'.$table.'`');}catch(Throwable){continue;}if($table==='users')foreach($rows as &$row)$row['password_hash']='[REDACTED]';if($table==='api_tokens')foreach($rows as &$row)$row['token_hash']='[REDACTED]';if($table==='webhooks')foreach($rows as &$row)$row['secret_encrypted']='[REDACTED]';if($table==='push_subscriptions')foreach($rows as &$row){$row['endpoint']='[REDACTED]';$row['p256dh']='[REDACTED]';$row['auth_token']='[REDACTED]';}if($table==='settings')foreach($rows as &$row){$key=mb_lower((string)($row['key']??''));if(preg_match('/(?:secret|private|password|token|api[_-]?key)/',$key)&&!str_contains($key,'public'))$row['value']='[REDACTED]';}$zip->addFromString('database/'.$table.'.json',json_encode($rows,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE));}
     $zip->addFromString('README.txt','KOVCHEG CMS backup '.date('c')."\nСекреты и хеши паролей скрыты в JSON-экспорте.");$zip->close();audit('backup.create');return $path;
 }
-
 
 
 function users_blocked(int $a,int $b): bool {
