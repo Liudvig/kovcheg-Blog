@@ -26,6 +26,7 @@ $security=$read('SECURITY.md');
 $growth=$read('routes/blog-growth.php');
 $gitignore=$read('.gitignore');
 $vkMediaMigration=$read('migrations/20260719_vk_media_library.sql');
+$builderMigration=$read('migrations/20260722_blog_builder.sql');
 $legacyPageMigration=$read('migrations/20260806_z_page_category_core.sql');
 $contentCleanupMigration=$read('migrations/20260809_content_model_cleanup.sql');
 
@@ -44,6 +45,10 @@ foreach(['chats','messages','profile_posts','user_follows','colleague_requests',
 }
 $expect(str_contains($vkMediaMigration,'kovcheg_legacy_vk_media_retired'),'Историческая VK media migration должна оставаться retired compatibility marker.');
 $expect(!str_contains($vkMediaMigration,'CREATE TABLE'),'Историческая VK media migration не должна создавать таблицы на новых установках.');
+$expect(!str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS content_patterns'),'Builder migration не должна создавать retired content_patterns.');
+$expect(!str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS site_preset_history'),'Builder migration не должна создавать retired site_preset_history.');
+$expect(str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS content_autosaves'),'Builder compatibility migration должна сохранять autosave schema.');
+$expect(str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS module_migrations'),'Builder compatibility migration должна сохранять module migration registry.');
 
 $requiredRoutes=[
  'routes/blog-content-model.php',
