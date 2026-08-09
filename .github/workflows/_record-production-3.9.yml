@@ -1,0 +1,52 @@
+name: Record KOVCHEG 3.9 production deployment
+
+on:
+  push:
+    branches:
+      - feature/core-cleanup-3.9.0
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/core-cleanup-3.9.0
+          fetch-depth: 0
+      - name: Append verified production record
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          marker = '<!-- KOVCHEG_3_9_PRODUCTION_DEPLOYED_2026_08_09 -->'
+          block = '''\n\n## Production 3.9.0 verified — 2026-08-09\n\n<!-- KOVCHEG_3_9_PRODUCTION_DEPLOYED_2026_08_09 -->\n- production domain: `https://kovchegcms.ru`;\n- production commit: `d461a1b5dd66ebb658446cc0f95b0a7764101f90` (`Fix 3.9 audit for production config`);\n- pre-deploy production commit: `8984755a9afe5d0869563f4f83c57d301bd30a3a`;\n- backup: `/root/kovcheg-blog-backup-3.9.0-20260809-130820`;\n- DB backup created successfully with MariaDB root socket authentication;\n- migrations applied: `20260809_content_model_cleanup.sql`, `20260809_portal_media_widgets_1_0_1.sql`;\n- repeat migration run: `DONE Database is up to date.`;\n- HTTP verification: `/` 200, `/blog` 200, `/portfolio` 200, `/studio` 302;\n- `assets/css/kovcheg-shell.css` -> 200; retired `assets/css/kovcheg-core.css` -> 404;\n- service worker no longer contains legacy `kovcheg-assets-3.0-r1`;\n- production `config/config.php` exists locally and is not tracked by Git;\n- old production social/VK/Builder/tag tables were not destructively dropped.\n\nStatus: **KOVCHEG CMS 3.9.0 PRODUCTION DEPLOYED AND VERIFIED**.\n'''
+
+          files = [
+              Path('README.md'),
+              Path('PROJECT_MEMORY.md'),
+              Path('CHANGELOG.md'),
+              Path('docs/DEVELOPMENT_LOG.md'),
+              Path('docs/MODULE-IMPLEMENTATION-LOG.md'),
+              Path('docs/audits/KOVCHEG_CMS_3.9.0_SOCIAL_RUNTIME_CLEANUP.md'),
+          ]
+
+          for path in files:
+              text = path.read_text(encoding='utf-8')
+              if marker not in text:
+                  path.write_text(text.rstrip() + block + '\n', encoding='utf-8')
+          PY
+
+          if git diff --quiet -- README.md PROJECT_MEMORY.md CHANGELOG.md docs/DEVELOPMENT_LOG.md docs/MODULE-IMPLEMENTATION-LOG.md docs/audits/KOVCHEG_CMS_3.9.0_SOCIAL_RUNTIME_CLEANUP.md; then
+            echo "Production record already present"
+            exit 0
+          fi
+
+          git config user.name "Liudvig"
+          git config user.email "71966781+Liudvig@users.noreply.github.com"
+          git add README.md PROJECT_MEMORY.md CHANGELOG.md docs/DEVELOPMENT_LOG.md docs/MODULE-IMPLEMENTATION-LOG.md docs/audits/KOVCHEG_CMS_3.9.0_SOCIAL_RUNTIME_CLEANUP.md
+          git commit -m "Document KOVCHEG CMS 3.9 production deployment"
+          git push origin HEAD:feature/core-cleanup-3.9.0
