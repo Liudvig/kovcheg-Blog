@@ -1,10 +1,11 @@
 {
-  "name": "KOVCHEG CMS",
+  "name": "KOVCHEG Blog",
   "short_name": "KOVCHEG",
-  "start_url": "./messages",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#17212b",
-  "theme_color": "#17212b",
+  "background_color": "#f4f6f8",
+  "theme_color": "#172a3a",
   "icons": [
     {
       "src": "assets/icons/icon.svg",
