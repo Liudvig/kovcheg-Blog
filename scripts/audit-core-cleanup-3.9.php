@@ -23,13 +23,13 @@ $readme=$read('README.md');
 $security=$read('SECURITY.md');
 $growth=$read('routes/blog-growth.php');
 $gitignore=$read('.gitignore');
-$modernUi=$read('app/modern-ui.php');
 $legacyPageMigration=$read('migrations/20260806_z_page_category_core.sql');
 $contentCleanupMigration=$read('migrations/20260809_content_model_cleanup.sql');
 
 $expect(str_contains($bootstrap,"const APP_VERSION = '3.9.0';"),'APP_VERSION должен быть 3.9.0.');
 $expect(str_contains($bootstrap,"const ASSET_REVISION = '3.9.0-core-cleanup';"),'Неверная ревизия assets 3.9.0.');
 $expect(str_contains($bootstrap,'$sessionLifetime=2592000;'),'Основная сессия должна быть ограничена 30 днями.');
+$expect(!str_contains($bootstrap,"app/modern-ui.php"),'Bootstrap не должен загружать legacy modern UI layer.');
 
 $requiredRoutes=[
  'routes/blog-content-model.php',
@@ -56,6 +56,7 @@ $obsoleteRuntime=[
  'routes/blog-simple-mode.php',
  'app/BlogBuilder.php',
  'app/BlogDemoSite.php',
+ 'app/modern-ui.php',
  'views/studio/content-index.php',
  'views/studio/editor.php',
  'views/studio/entries-index.php',
@@ -92,6 +93,11 @@ $obsoleteRuntime=[
  'views/weather-widget.php',
  'views/weather.php',
  'assets/css/blog-builder.css',
+ 'assets/css/modern-upload.css',
+ 'assets/js/modern-upload.js',
+ 'assets/css/template-polish.css',
+ 'assets/css/layout-repair.css',
+ 'assets/js/layout-repair.js',
 ];
 foreach($obsoleteRuntime as $relative)$expect(!file_exists($root.'/'.$relative),'В дереве остался устаревший путь: '.$relative);
 
@@ -103,7 +109,6 @@ $expect(!str_contains($account,'colleague'),'Личный кабинет всё 
 $expect(!str_contains($accountView,"/profile"),'Личный кабинет всё ещё ведёт на старый профиль.');
 $expect(!str_contains($studio,'studio-body--'.'word'.'press'),'Studio содержит старый внешний класс.');
 $expect(!str_contains($studio,'blog-studio-'.'word'.'press.css'),'Studio загружает старый внешний CSS.');
-$expect(!str_contains($modernUi,'vk-structural-fix'),'Активный UI всё ещё загружает удалённые VK assets.');
 $expect(str_contains($growth,"'/post/'"),'RSS должен использовать канонический /post/{slug}.');
 $expect(str_contains($gitignore,'/config/config.php'),'.gitignore не защищает production config.');
 $expect(str_contains($gitignore,'/storage/uploads/*'),'.gitignore не защищает uploads.');
