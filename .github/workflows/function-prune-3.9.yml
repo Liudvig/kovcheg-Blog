@@ -1,0 +1,48 @@
+name: KOVCHEG 3.9 Social Function Prune
+
+on:
+  push:
+    branches: [feature/core-cleanup-3.9.0]
+    paths:
+      - '.github/workflows/function-prune-3.9.yml'
+      - 'scripts/prune-social-functions-3.9.php'
+
+permissions:
+  contents: write
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Prune unreachable social helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          php scripts/prune-social-functions-3.9.php --write
+          php -l app/functions.php
+          php scripts/report-function-usage-3.9.php
+          git diff --check
+
+      - name: Commit pruned functions
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- app/functions.php; then
+            echo 'No social helper changes required.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/functions.php
+          git commit -m 'Remove unreachable social helper functions'
+          git push origin HEAD:feature/core-cleanup-3.9.0
