@@ -1,0 +1,35 @@
+KOVCHEG function usage audit: 182 definitions, 52 reachable, 130 unreachable, 31 unreachable social candidates, 0 reachable social candidates
+SOCIAL_UNREACHABLE line 210: save_wall_post_photos
+SOCIAL_UNREACHABLE line 223: save_wall_post_videos
+SOCIAL_UNREACHABLE line 237: save_wall_post_documents
+SOCIAL_UNREACHABLE line 253: wall_post_public_url
+SOCIAL_UNREACHABLE line 398: channel_comment_tree
+SOCIAL_UNREACHABLE line 471: notification_type_from_tag
+SOCIAL_UNREACHABLE line 519: push_payload
+SOCIAL_UNREACHABLE line 521: profile_wall_can_post
+SOCIAL_UNREACHABLE line 525: profile_post_media_url
+SOCIAL_UNREACHABLE line 526: story_media_url
+SOCIAL_UNREACHABLE line 527: profile_post_attachments
+SOCIAL_UNREACHABLE line 530: profile_post_comments
+SOCIAL_UNREACHABLE line 540: profile_post_reaction_summary
+SOCIAL_UNREACHABLE line 543: profile_post_share_data
+SOCIAL_UNREACHABLE line 558: profile_post_is_published
+SOCIAL_UNREACHABLE line 567: profile_post_can_view
+SOCIAL_UNREACHABLE line 577: profile_post_state_from_request
+SOCIAL_UNREACHABLE line 590: profile_post_drafts
+SOCIAL_UNREACHABLE line 593: profile_post_for_render
+SOCIAL_UNREACHABLE line 596: profile_wall_posts
+SOCIAL_UNREACHABLE line 608: story_feed_users
+SOCIAL_UNREACHABLE line 611: profile_people_blocks
+SOCIAL_UNREACHABLE line 667: follows_user
+SOCIAL_UNREACHABLE line 670: colleague_request_between
+SOCIAL_UNREACHABLE line 731: users_blocked
+SOCIAL_UNREACHABLE line 742: direct_chat_other_user
+SOCIAL_UNREACHABLE line 745: chat_public_url
+SOCIAL_UNREACHABLE line 768: direct_chat_with
+SOCIAL_UNREACHABLE line 845: message_delete_window_minutes
+SOCIAL_UNREACHABLE line 848: message_can_delete_now
+SOCIAL_UNREACHABLE line 971: message_is_important
+KOVCHEG function usage audit failed: social helper definitions remain in app/functions.php
+
+REPORT_EXIT_CODE=1
