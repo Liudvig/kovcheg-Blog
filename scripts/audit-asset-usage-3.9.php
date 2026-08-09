@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 $root=dirname(__DIR__);
+$errors=[];
 $candidates=[];
 foreach(['assets/css','assets/js'] as $assetDir){
     $base=$root.'/'.$assetDir;
@@ -37,7 +38,6 @@ foreach(['index.php','cron.php','service-worker.js','manifest.webmanifest'] as $
 }
 
 $unreferenced=[];
-$referenced=[];
 foreach($candidates as $asset){
     $basename=basename($asset);
     $needle='/'.ltrim($asset,'/');
@@ -46,9 +46,23 @@ foreach($candidates as $asset){
         if($relative===$asset)continue;
         if(str_contains($content,$needle)||str_contains($content,$asset)||str_contains($content,$basename))$hits[]=$relative;
     }
-    if($hits)$referenced[$asset]=$hits;
-    else $unreferenced[]=$asset;
+    if(!$hits)$unreferenced[]=$asset;
 }
 
-echo "KOVCHEG asset usage report: ".count($candidates)." assets, ".count($unreferenced)." unreferenced\n";
-foreach($unreferenced as $asset)echo "UNREFERENCED: {$asset}\n";
+$retired=[
+    'assets/css/blog-account.css',
+    'assets/css/blog-admin-shell.css',
+    'assets/css/blog-essential-widgets.css',
+    'assets/css/kovcheg-core.css',
+    'assets/js/blog-admin-shell.js',
+    'assets/js/blog-essential-widgets.js',
+];
+foreach($retired as $asset)if(file_exists($root.'/'.$asset))$errors[]='Retired asset returned: '.$asset;
+foreach($unreferenced as $asset)$errors[]='Unreferenced asset: '.$asset;
+
+echo "KOVCHEG asset usage audit: ".count($candidates)." assets, ".count($unreferenced)." unreferenced\n";
+if($errors){
+    fwrite(STDERR,"KOVCHEG asset usage audit failed:\n- ".implode("\n- ",array_values(array_unique($errors)))."\n");
+    exit(1);
+}
+echo "KOVCHEG asset usage audit OK\n";
