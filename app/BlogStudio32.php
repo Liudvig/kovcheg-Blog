@@ -72,7 +72,7 @@ final class Studio32
     {
         $item=Studio::storeMedia($file,$uploaderId);
         if($item&&$folderId>0&&DB::one('SELECT id FROM media_folders WHERE id=?',[$folderId])){
-            DB::run('UPDATE media_library SET folder_id=? WHERE id=?',[$folderId,(int)$item['id']);
+            DB::run('UPDATE media_library SET folder_id=? WHERE id=?',[$folderId,(int)$item['id']]);
             $item['folder_id']=$folderId;
         }
         return $item;
