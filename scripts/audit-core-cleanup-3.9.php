@@ -30,6 +30,7 @@ $expect(str_contains($bootstrap,"const APP_VERSION = '3.9.0';"),'APP_VERSION д�
 $expect(str_contains($bootstrap,"const ASSET_REVISION = '3.9.0-core-cleanup';"),'Неверная ревизия assets 3.9.0.');
 $expect(str_contains($bootstrap,'$sessionLifetime=2592000;'),'Основная сессия должна быть ограничена 30 днями.');
 $expect(!str_contains($bootstrap,"app/modern-ui.php"),'Bootstrap не должен загружать legacy modern UI layer.');
+$expect(!str_contains($bootstrap,'https://vk.com')&&!str_contains($bootstrap,'https://vkvideo.ru'),'CSP не должен разрешать legacy VK/VK Video embeds.');
 
 $requiredRoutes=[
  'routes/blog-content-model.php',
