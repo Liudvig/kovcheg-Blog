@@ -209,8 +209,14 @@ foreach($iterator as $file){
     }
 }
 
-if(file_exists($root.'/config/config.php'))$errors[]='config/config.php не должен быть отслеживаемым файлом CI checkout.';
-if(file_exists($root.'/.env'))$errors[]='.env не должен быть отслеживаемым файлом.';
+$isGitTracked=static function(string $relative)use($root):bool{
+    $output=[];
+    $status=1;
+    exec('git -C '.escapeshellarg($root).' ls-files --error-unmatch -- '.escapeshellarg($relative).' 2>/dev/null',$output,$status);
+    return $status===0;
+};
+if($isGitTracked('config/config.php'))$errors[]='config/config.php не должен быть отслеживаемым файлом Git.';
+if($isGitTracked('.env'))$errors[]='.env не должен быть отслеживаемым файлом Git.';
 
 if($errors){fwrite(STDERR,"KOVCHEG CMS 3.9 cleanup audit failed:\n- ".implode("\n- ",array_values(array_unique($errors)))."\n");exit(1);}
 echo "KOVCHEG CMS 3.9 core cleanup audit OK\n";

@@ -894,3 +894,9 @@ Deploy:
 
 Статус:
 IMPLEMENTED — FINAL CI RUNNING
+
+## 2026-08-09 — Production audit compatibility fix 3.9.0
+
+- Исправлен `scripts/audit-core-cleanup-3.9.php`: production `config/config.php` и `.env` теперь проверяются на отслеживание Git, а не на физическое существование.
+- Причина: production-конфиг обязан существовать локально и исключён через `.gitignore`; прежняя `file_exists()`-проверка давала ложный отказ при deploy.
+- Production deploy 3.9.0 до исправления корректно остановился и откатил файлы на `8984755a9afe5d0869563f4f83c57d301bd30a3a`; backup: `/root/kovcheg-blog-backup-3.9.0-20260809-115407`.
