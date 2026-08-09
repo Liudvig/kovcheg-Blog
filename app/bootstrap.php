@@ -61,7 +61,6 @@ if(PHP_SAPI!=='cli'&&!headers_sent()&&session_id()!=='')setcookie(session_name()
 
 require_once BASE_PATH.'/app/Core.php';
 require_once BASE_PATH.'/app/functions.php';
-require_once BASE_PATH.'/app/modern-ui.php';
 require_once BASE_PATH.'/app/Blog.php';
 require_once BASE_PATH.'/app/BlogStudio.php';
 require_once BASE_PATH.'/app/ClassicEditor.php';
