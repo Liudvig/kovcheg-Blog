@@ -14,6 +14,7 @@ $read=static function(string $relative)use($root,&$errors):string{
 $expect=static function(bool $condition,string $message)use(&$errors):void{if(!$condition)$errors[]=$message;};
 
 $bootstrap=$read('app/bootstrap.php');
+$installer=$read('install.php');
 $index=$read('index.php');
 $layout=$read('views/layout.php');
 $studio=$read('views/studio/layout.php');
@@ -31,6 +32,9 @@ $expect(str_contains($bootstrap,"const ASSET_REVISION = '3.9.0-core-cleanup';"),
 $expect(str_contains($bootstrap,'$sessionLifetime=2592000;'),'Основная сессия должна быть ограничена 30 днями.');
 $expect(!str_contains($bootstrap,"app/modern-ui.php"),'Bootstrap не должен загружать legacy modern UI layer.');
 $expect(!str_contains($bootstrap,'https://vk.com')&&!str_contains($bootstrap,'https://vkvideo.ru'),'CSP не должен разрешать legacy VK/VK Video embeds.');
+$expect(str_contains($installer,"const INSTALL_VERSION = '3.9.0';"),'Installer должен устанавливать KOVCHEG CMS 3.9.0.');
+$expect(str_contains($installer,'install_apply_migrations($pdo);'),'Installer должен применять migration-chain до завершения установки.');
+$expect(!str_contains($installer,'INSERT IGNORE INTO user_permissions'),'Installer не должен создавать legacy social user_permissions.');
 
 $requiredRoutes=[
  'routes/blog-content-model.php',
