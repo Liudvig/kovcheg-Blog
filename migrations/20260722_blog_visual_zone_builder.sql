@@ -1,12 +1,8 @@
--- KOVCHEG Blog 3.5.2 — Visual Zone Builder
--- Copyright © Ланцет Семён Борисович. All rights reserved.
+-- KOVCHEG CMS 3.9.0 compatibility marker.
+--
+-- The historical Visual Zone Builder setting is no longer read by the current
+-- Layout & Widget Engine. The filename is preserved because migrations are
+-- tracked by name. Existing production settings are intentionally left intact;
+-- fresh 3.9 installations must not create this retired flag.
 
-UPDATE themes
-SET version='1.2.0',
-    description='Современная трёхколоночная тема портала с неподвижной шапкой, полностью прорисованными боковыми колонками, центральной прокруткой и визуальным конструктором зон.',
-    updated_at=CURRENT_TIMESTAMP
-WHERE slug='kovcheg-portal';
-
-INSERT INTO settings (`key`,`value`,updated_at)
-VALUES ('portal_visual_zone_builder','1',CURRENT_TIMESTAMP)
-ON DUPLICATE KEY UPDATE `value`='1',updated_at=CURRENT_TIMESTAMP;
+SET @kovcheg_legacy_visual_zone_builder_retired = 1;
