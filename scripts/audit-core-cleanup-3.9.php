@@ -19,6 +19,7 @@ $schema=$read('database/schema.php');
 $index=$read('index.php');
 $layout=$read('views/layout.php');
 $studio=$read('views/studio/layout.php');
+$studio32=$read('app/BlogStudio32.php');
 $account=$read('routes/account.php');
 $accountView=$read('views/account-shell.php');
 $readme=$read('README.md');
@@ -26,6 +27,7 @@ $security=$read('SECURITY.md');
 $growth=$read('routes/blog-growth.php');
 $gitignore=$read('.gitignore');
 $vkMediaMigration=$read('migrations/20260719_vk_media_library.sql');
+$foundationMigration=$read('migrations/20260721_blog_foundation.sql');
 $builderMigration=$read('migrations/20260722_blog_builder.sql');
 $legacyPageMigration=$read('migrations/20260806_z_page_category_core.sql');
 $contentCleanupMigration=$read('migrations/20260809_content_model_cleanup.sql');
@@ -45,6 +47,9 @@ foreach(['chats','messages','profile_posts','user_follows','colleague_requests',
 }
 $expect(str_contains($vkMediaMigration,'kovcheg_legacy_vk_media_retired'),'Историческая VK media migration должна оставаться retired compatibility marker.');
 $expect(!str_contains($vkMediaMigration,'CREATE TABLE'),'Историческая VK media migration не должна создавать таблицы на новых установках.');
+$expect(!str_contains($foundationMigration,'CREATE TABLE IF NOT EXISTS content_tags'),'Foundation migration не должна создавать retired content_tags.');
+$expect(!str_contains($foundationMigration,'CREATE TABLE IF NOT EXISTS content_entry_tags'),'Foundation migration не должна создавать retired content_entry_tags.');
+$expect(!str_contains($studio32,'syncTags'),'Studio32 не должна синхронизировать retired tags.');
 $expect(!str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS content_patterns'),'Builder migration не должна создавать retired content_patterns.');
 $expect(!str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS site_preset_history'),'Builder migration не должна создавать retired site_preset_history.');
 $expect(str_contains($builderMigration,'CREATE TABLE IF NOT EXISTS content_autosaves'),'Builder compatibility migration должна сохранять autosave schema.');
