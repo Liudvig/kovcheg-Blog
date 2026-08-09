@@ -41,26 +41,16 @@ CREATE TABLE IF NOT EXISTS theme_settings (
     PRIMARY KEY(theme_slug,setting_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO content_categories (name,slug,description,sort_order,created_at,updated_at) VALUES
-('Разработки','razrabotki','Ход разработки, технические решения и новые версии.',10,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
-('Проекты','proekty','Отдельные проекты, продукты и эксперименты.',20,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
-('Новости','novosti','Новости автора и проекта.',30,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
-
 INSERT INTO themes (slug,name,version,description,author,is_active,installed_at,updated_at)
-VALUES ('kovcheg-editorial','KOVCHEG Editorial','1.0.0','Редакционная тема для блога и портфолио.','Ланцет Семён Борисович',1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
+VALUES ('kovcheg-editorial','KOVCHEG Editorial','1.0.0','Редакционная тема KOVCHEG Blog.','Ланцет Семён Борисович',1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)
 ON DUPLICATE KEY UPDATE name=VALUES(name),version=VALUES(version),description=VALUES(description),author=VALUES(author),updated_at=CURRENT_TIMESTAMP;
 
 INSERT IGNORE INTO navigation_items (menu_id,parent_id,label,url,target_type,target_id,sort_order,is_enabled,created_at,updated_at)
 SELECT m.id,NULL,'Главная','/','custom',NULL,10,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM navigation_menus m WHERE m.slug='primary';
-INSERT IGNORE INTO navigation_items (menu_id,parent_id,label,url,target_type,target_id,sort_order,is_enabled,created_at,updated_at)
-SELECT m.id,NULL,'Блог','/blog','custom',NULL,20,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM navigation_menus m WHERE m.slug='primary';
-INSERT IGNORE INTO navigation_items (menu_id,parent_id,label,url,target_type,target_id,sort_order,is_enabled,created_at,updated_at)
-SELECT m.id,NULL,'Портфолио','/portfolio','custom',NULL,30,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP FROM navigation_menus m WHERE m.slug='primary';
 
 INSERT INTO settings (`key`,`value`,updated_at) VALUES
-('blog_tagline','Разработки · проекты · опыт',CURRENT_TIMESTAMP),
-('blog_description','Разработки, идеи, опыт и новые проекты.',CURRENT_TIMESTAMP),
-('portfolio_description','Работы, проекты, релизы и результаты.',CURRENT_TIMESTAMP),
+('blog_tagline','Записи · страницы · рубрики',CURRENT_TIMESTAMP),
+('blog_description','Информационный сайт на KOVCHEG CMS.',CURRENT_TIMESTAMP),
 ('comments_auto_approve','0',CURRENT_TIMESTAMP),
 ('blog_posts_per_page','12',CURRENT_TIMESTAMP),
 ('blog_theme','kovcheg-editorial',CURRENT_TIMESTAMP)
