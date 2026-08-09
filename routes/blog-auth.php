@@ -12,6 +12,13 @@ function blog_auth_destination(): string
     return Auth::isAdmin() ? '/studio' : '/account';
 }
 
+function blog_registration_mode(): string
+{
+    $mode = (string)setting('registration_mode', 'closed');
+    if ($mode === 'email_approval') $mode = 'manual';
+    return in_array($mode, ['closed','manual','email_auto'], true) ? $mode : 'closed';
+}
+
 $router->get('/login', function (): void {
     if (Auth::check()) redirect(blog_auth_destination());
     View::render('login', ['title'=>'Вход в KOVCHEG CMS']);
@@ -44,7 +51,7 @@ $router->post('/logout', function (): void {
 $router->get('/register', function (): void {
     if (Auth::check()) redirect(blog_auth_destination());
 
-    $mode = registration_mode();
+    $mode = blog_registration_mode();
     if ($mode === 'closed') abort(404, 'Регистрация сейчас закрыта.');
 
     View::render('register', [
@@ -56,7 +63,7 @@ $router->get('/register', function (): void {
 });
 
 $router->post('/register', function (): void {
-    $mode = registration_mode();
+    $mode = blog_registration_mode();
     if ($mode === 'closed') abort(403, 'Регистрация сейчас закрыта.');
     Csrf::validate();
 
