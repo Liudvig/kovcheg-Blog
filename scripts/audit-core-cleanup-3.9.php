@@ -84,6 +84,13 @@ $obsoleteRuntime=[
  'views/story-viewer.php',
  'views/wall-attachment-control.php',
  'views/wall-composer.php',
+ 'views/people.php',
+ 'views/settings.php',
+ 'views/mobile-navigation.php',
+ 'views/search.php',
+ 'views/site-sidebar.php',
+ 'views/weather-widget.php',
+ 'views/weather.php',
  'assets/css/blog-builder.css',
 ];
 foreach($obsoleteRuntime as $relative)$expect(!file_exists($root.'/'.$relative),'В дереве остался устаревший путь: '.$relative);
