@@ -15,6 +15,7 @@ $expect=static function(bool $condition,string $message)use(&$errors):void{if(!$
 
 $bootstrap=$read('app/bootstrap.php');
 $installer=$read('install.php');
+$schema=$read('database/schema.php');
 $index=$read('index.php');
 $layout=$read('views/layout.php');
 $studio=$read('views/studio/layout.php');
@@ -24,6 +25,7 @@ $readme=$read('README.md');
 $security=$read('SECURITY.md');
 $growth=$read('routes/blog-growth.php');
 $gitignore=$read('.gitignore');
+$vkMediaMigration=$read('migrations/20260719_vk_media_library.sql');
 $legacyPageMigration=$read('migrations/20260806_z_page_category_core.sql');
 $contentCleanupMigration=$read('migrations/20260809_content_model_cleanup.sql');
 
@@ -35,6 +37,13 @@ $expect(!str_contains($bootstrap,'https://vk.com')&&!str_contains($bootstrap,'ht
 $expect(str_contains($installer,"const INSTALL_VERSION = '3.9.0';"),'Installer должен устанавливать KOVCHEG CMS 3.9.0.');
 $expect(str_contains($installer,'install_apply_migrations($pdo);'),'Installer должен применять migration-chain до завершения установки.');
 $expect(!str_contains($installer,'INSERT IGNORE INTO user_permissions'),'Installer не должен создавать legacy social user_permissions.');
+
+$expect(str_contains($schema,'CREATE TABLE IF NOT EXISTS user_remember_tokens'),'Fresh schema должна создавать таблицу постоянного входа.');
+foreach(['chats','messages','profile_posts','user_follows','colleague_requests','stories','push_subscriptions','user_permissions'] as $legacyTable){
+    $expect(!str_contains($schema,'CREATE TABLE IF NOT EXISTS '.$legacyTable.' '),'Fresh schema не должна создавать legacy social table: '.$legacyTable);
+}
+$expect(str_contains($vkMediaMigration,'kovcheg_legacy_vk_media_retired'),'Историческая VK media migration должна оставаться retired compatibility marker.');
+$expect(!str_contains($vkMediaMigration,'CREATE TABLE'),'Историческая VK media migration не должна создавать таблицы на новых установках.');
 
 $requiredRoutes=[
  'routes/blog-content-model.php',
