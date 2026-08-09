@@ -9,6 +9,7 @@ $activeFiles=[
     'index.php',
     'cron.php',
     'app/bootstrap.php',
+    'app/Core.php',
     'app/Blog.php',
     'app/BlogGrowth.php',
     'app/BlogLayout.php',
@@ -50,6 +51,8 @@ $forbiddenPatterns=[
     '/\bpush_deliveries\b/i'=>'push_deliveries table',
     '/\bchat_(?:member|list_for_user|unread_count|public_url|avatar_html)\s*\(/i'=>'legacy chat helper',
     '/\b(?:channel_public_url|channel_post_public_url|message_public_url|wall_post_public_url)\s*\(/i'=>'legacy social URL helper',
+    '/\bBlogEssentialWidgets\b|\bEssentialWidgets::boot\s*\(/'=>'retired Essential Widgets component',
+    '/blog-essential-widgets\.(?:css|js)/i'=>'retired Essential Widgets assets',
 ];
 
 foreach($activeFiles as $relative){
