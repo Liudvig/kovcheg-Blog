@@ -20,8 +20,10 @@ KOVCHEG Blog / KOVCHEG CMS — самостоятельный блоговый �
 - единый front controller: `index.php`;
 - bootstrap: `app/bootstrap.php`;
 - публичный контент: Posts и Pages;
+- рубрики относятся только к Posts;
 - KOVCHEG Studio для управления контентом и сайтом;
 - темы: `themes/kovcheg-portal`, `themes/kovcheg-editorial`, `themes/kovcheg-portfolio`;
+- installer: `install.php` версии 3.9.0 + `database/schema.php` + SQL migration-chain;
 - миграции: `bin/migrate.php` + SQL-файлы из `migrations/`, сортируемые по имени;
 - CI: `.github/workflows/ci.yml`;
 - production-схема: GitHub -> server -> FastPanel -> site.
@@ -32,82 +34,113 @@ KOVCHEG Blog / KOVCHEG CMS — самостоятельный блоговый �
 - удалены `BlogBuilder` и `BlogDemoSite`, старые Studio views и builder assets;
 - удалены старые VK/X CSS/JS assets и social JavaScript layers;
 - удалены `views/templates/vk`, `views/templates/x` и весь доказанно недостижимый root social presentation-layer;
-- корень `views/` теперь содержит только `account-shell.php`, `layout.php`, `login.php`, `register.php` и каталог `studio`;
+- удалён legacy `app/modern-ui.php` и связанные modern-upload/template-polish/layout-repair assets;
+- корень `views/` содержит только `account-shell.php`, `layout.php`, `login.php`, `register.php` и каталог `studio`;
 - общий `views/layout.php` заменён на CMS shell;
 - Studio переведён на собственные названия и текущие редакторы;
 - обновлены PWA manifest и service worker;
-- очищен cron от старых социальных задач;
-- добавлена миграция `20260809_content_model_cleanup.sql`;
+- cron очищен от старых социальных задач и сейчас содержит только scheduled publishing, cleanup, auth/system и webhook jobs;
 - GitHub Actions объединены в единый `ci.yml`;
 - добавлен и усилен `scripts/audit-core-cleanup-3.9.php`;
 - README и SECURITY переведены на KOVCHEG Blog / KOVCHEG CMS 3.9;
 - создана обязательная проектная память и module implementation log.
 
-## Исправления, найденные аудитом 2026-08-09
+## Исправления и cleanup-пакеты 2026-08-09
 
-- commit `f08ea2a4`: активный `app/modern-ui.php` больше не подключает уже удалённые `vk-structural-fix.css/js`;
-- commit `292a8b31`: исправлена опасная legacy-миграция `20260806_z_page_category_core.sql`; Posts больше не преобразуются в Pages, сохраняется только совместимое преобразование старого `portfolio` в Page;
-- commit `09c49896`: cleanup audit усилен regression-проверками миграций и stale assets; исторические журналы и старые audit-файлы исключены только из проверки терминологии, чтобы не переписывать историю проекта;
-- commit `597dc00b`: созданы `PROJECT_MEMORY.md` и `docs/MODULE-IMPLEMENTATION-LOG.md`, обновлён CHANGELOG 3.9.0;
-- commit `7050ba89`: исправлен штатный режим регистрации `manual`, старое `email_approval` сохранено как alias;
-- commit `bb944842`: устранён ложный HTTP smoke failure из-за `pipefail` и `curl | grep -q`;
-- commit `33b50bc2`: удалены полностью недостижимые VK/X view templates;
-- commit `9ec885a4`: Core Cleanup audit запрещает возврат `views/templates/vk` и `views/templates/x`;
-- commit `95c8559f`: `docs/DEVELOPMENT_LOG.md` дополнен полным аудитом и состоянием 3.9.0;
-- commit `c991d7d0`: синхронизированы README, CHANGELOG, PROJECT_MEMORY и module log;
-- commit `877f6472`: удалены 21 доказанно мёртвый root social view;
-- commit `5b1e4752`: audit закрепил запрет на возврат первого пакета root social views;
-- commit `a4fc7528`: удалены оставшиеся legacy social views `people/settings/mobile-navigation/search/site-sidebar/weather*` после проверки их содержимого и недостижимости;
-- commit `7292daca`: audit закрепил запрет на возврат второго пакета legacy social views.
+Ранние пакеты аудита:
+- `f08ea2a4` — исправлены stale VK asset references;
+- `292a8b31` — Posts больше не превращаются в Pages старой миграцией;
+- `09c49896` — усилен cleanup audit;
+- `7050ba89` — исправлен `registration_mode=manual`;
+- `bb944842` — исправлен HTTP smoke pipe handling;
+- `33b50bc2` / `9ec885a4` — удалены и запрещены VK/X view templates;
+- `877f6472`, `5b1e4752`, `a4fc7528`, `7292daca` — удалён и запрещён весь root social presentation-layer.
+
+Глубокая очистка runtime и fresh install:
+- `b92ab7d7` — удалены `app/modern-ui.php` и пять legacy wall/VK/X assets;
+- `58d7cb97` — audit запрещает возврат modern-ui layer;
+- `5dec692e` / `7f57a5df` — VK/VK Video удалены из CSP и добавлен regression guard;
+- `75f71d5d` / `1398483b` — installer переведён на 3.9.0, применяет migration-chain и больше не создаёт legacy `user_permissions`;
+- `ca626ee1` — `database/schema.php` заменён на минимальный CMS/system baseline без social-таблиц; добавлен `user_remember_tokens`;
+- `3ba1007d` — историческая `20260719_vk_media_library.sql` превращена в безопасный compatibility marker без CREATE TABLE;
+- `604ee4a4` / `70501a03` — audit/CI проверяют чистый CMS baseline на MariaDB и MySQL;
+- `1d02ecbf` — из будущих установок удалены `content_patterns`, `site_preset_history` и demo media folder «Портфолио», нужные autosave/media/module части сохранены;
+- `393570ef` / `515cfc0d` — regression guards для retired Builder tables;
+- `9ac9769c` / `ad730daa` — удалены мёртвые preset methods из Studio32 и исправлен найденный при lint синтаксис storeMedia;
+- `33b69f97` / `6c092b43` — fresh install больше не создаёт tag tables, Studio32 больше не синхронизирует tags;
+- `f21ce3b5` / `f197d215` — tag model закреплена audit/CI;
+- `48649b7c` / `591fa891` — fresh install больше не создаёт demo categories, обязательные Blog/Portfolio menu items и portfolio settings;
+- `19bc41ae` — CI проверяет отсутствие demo content после полной migration-chain.
 
 ## Проверенное состояние CI
 
-GitHub Actions run #406 — SUCCESS после исправления migration/auth/runtime/CI проблем.
+Последняя полностью подтверждённая контрольная точка перед обновлением документации:
 
-GitHub Actions run #408 — SUCCESS после удаления VK/X template-layer.
+GitHub Actions run #444 на commit `19bc41aeb58d08abf4a04f656aabbefec9fde121` — SUCCESS.
 
-GitHub Actions run #410 — SUCCESS на синхронизированном docs-HEAD.
+Также SUCCESS: #424, #428, #429, #432, #437, #441.
 
-GitHub Actions run #412 — SUCCESS после первого пакета удаления root social views.
-
-GitHub Actions run #414 — SUCCESS после полной очистки оставшихся root social views и усиления audit.
-
-Подтверждены:
-
+CI подтверждает:
 - PHP syntax;
 - JavaScript syntax;
 - JSON validation;
 - KOVCHEG Core Cleanup audit;
-- MariaDB 11 migrations;
-- MySQL 8.4 migrations;
+- MariaDB 11 migration-chain;
+- MySQL 8.4 migration-chain;
 - HTTP smoke основных public/auth/account/Studio маршрутов;
-- проверка секретов и runtime data.
+- наличие `content_entries` и `user_remember_tokens`;
+- отсутствие fresh social/VK/Builder/tag таблиц;
+- отсутствие portfolio content после cleanup;
+- отсутствие category links у Pages;
+- отсутствие demo categories на новой базе;
+- отсутствие обязательных `/blog`/`/portfolio` menu items;
+- отсутствие `portfolio_description`;
+- проверку секретов и runtime data.
+
+## Fresh install 3.9.0
+
+`install.php` устанавливает версию 3.9.0, создаёт базовый system/CMS schema и затем применяет migration-chain с регистрацией migration filenames.
+
+Новая установка не создаёт:
+- chats/messages;
+- walls/profile posts;
+- follows/colleague requests;
+- stories/push;
+- VK media tables;
+- content patterns/preset history;
+- tags/tag relations;
+- демонстрационные рубрики;
+- обязательные пункты меню Blog/Portfolio.
+
+Новая установка создаёт необходимые system/auth таблицы, включая `user_remember_tokens`, roles, settings, audit, rate-limit, modules/API/webhook infrastructure, а migration-chain добавляет current CMS content/media/layout/growth schema.
 
 ## Важные правила миграций
 
 `bin/migrate.php` определяет уже применённые миграции по имени файла. Исторические имена SQL нельзя переименовывать или удалять без анализа production-таблицы `migrations`.
 
-Новая `20260809_content_model_cleanup.sql` идемпотентна: старый `portfolio` становится Page, категории удаляются у Pages, Posts должны оставаться Posts.
+Поэтому старые migration filenames сохраняются и при необходимости превращаются в безопасные compatibility migrations вместо удаления/переименования.
 
-Production social-таблицы нельзя удалять автоматически только потому, что они больше не нужны новой CMS-модели: сначала backup и проверка наличия пользовательских данных, затем отдельная migration strategy.
+Никакая текущая 3.9 migration не выполняет destructive DROP старых production social/VK/Builder/tag таблиц.
+
+Production legacy-таблицы нельзя удалять автоматически: сначала backup, row-count, проверка пользовательских данных и только затем отдельная migration strategy.
 
 ## Что ещё не завершено
 
-- `app/functions.php` всё ещё содержит старые chat/profile/channel/colleague/push helpers; их нельзя удалять блоком, пока не построена карта вызовов из активных routes/themes/modules/cron/bin;
-- `database/schema.php` для чистой установки всё ещё содержит social baseline (`chats`, `messages`, follows/colleagues и связанные таблицы); baseline нужно очистить отдельно от production migration;
+- `app/functions.php` всё ещё содержит старые chat/profile/channel/colleague/push/wall helpers; файл смешивает их с нужными CMS/system helpers, поэтому массовое удаление без call-map запрещено;
+- `app/Core.php` всё ещё содержит старый fallback выбора `site_template=vk/x`, хотя физические templates уже удалены; этот active-code хвост требует отдельного безопасного cleanup;
+- `migrations/20260722_blog_visual_zone_builder.sql` хранит старые setting flags; нужно проверить реальные ссылки перед retirement;
 - часть CSS-файлов имеет исторические имена, но реально подключается актуальными account/Studio layouts; их нельзя удалять по имени без dependency- и визуального аудита;
-- исторические audit-скрипты и документация прошлых этапов сохраняются как история и не являются активным runtime;
 - production 3.9.0 ещё не подтверждён через SSH/FastPanel: нужны backup, fast-forward update, `php bin/migrate.php`, cache clear, права storage, PHP/DB и реальные HTTP checks.
 
 ## Обязательный порядок дальнейшей работы
 
-1. Проверить HEAD и CI перед каждым новым пакетом.
-2. Построить карту использования старых social helpers в `app/functions.php`.
-3. Удалять только доказанно неиспользуемые helpers небольшими пакетами с отдельными commits.
-4. Очистить schema baseline новой установки без destructive production migration.
-5. Отдельно проверить активные CSS/JS зависимости и только после этого переименовывать или объединять исторические слои.
-6. После каждого пакета запускать CI и обновлять журналы.
-7. После полностью зелёного CI выполнить controlled production deploy через GitHub -> server -> FastPanel, без ручного копирования файлов.
+1. Проверять HEAD и CI перед каждым новым пакетом.
+2. Удалить оставшиеся небольшие active-code compatibility хвосты только после проверки использования.
+3. Построить call-map для старых social helpers в `app/functions.php` через routes/themes/modules/cron/bin.
+4. Удалять только доказанно неиспользуемые helpers небольшими пакетами.
+5. Не создавать destructive DROP для production legacy tables без backup/data audit.
+6. После каждого пакета запускать CI и синхронизировать документацию.
+7. После полностью зелёного CI выполнить controlled production deploy GitHub -> server -> FastPanel без ручного копирования файлов.
 8. После deploy проверить migrations, права, cache, public routes и Studio.
 
 ## Нельзя ломать
@@ -119,4 +152,4 @@ Production social-таблицы нельзя удалять автоматич�
 - branding;
 - темы и публичные canonical URL;
 - историю уже применённых migration filenames;
-- production-данные старых social-таблиц до backup и анализа.
+- production-данные старых social/VK/Builder/tag таблиц до backup и анализа.
