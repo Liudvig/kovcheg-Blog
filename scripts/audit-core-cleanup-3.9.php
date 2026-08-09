@@ -23,6 +23,9 @@ $readme=$read('README.md');
 $security=$read('SECURITY.md');
 $growth=$read('routes/blog-growth.php');
 $gitignore=$read('.gitignore');
+$modernUi=$read('app/modern-ui.php');
+$legacyPageMigration=$read('migrations/20260806_z_page_category_core.sql');
+$contentCleanupMigration=$read('migrations/20260809_content_model_cleanup.sql');
 
 $expect(str_contains($bootstrap,"const APP_VERSION = '3.9.0';"),'APP_VERSION должен быть 3.9.0.');
 $expect(str_contains($bootstrap,"const ASSET_REVISION = '3.9.0-core-cleanup';"),'Неверная ревизия assets 3.9.0.');
@@ -70,11 +73,17 @@ $expect(!str_contains($account,'colleague'),'Личный кабинет всё 
 $expect(!str_contains($accountView,"/profile"),'Личный кабинет всё ещё ведёт на старый профиль.');
 $expect(!str_contains($studio,'studio-body--'.'word'.'press'),'Studio содержит старый внешний класс.');
 $expect(!str_contains($studio,'blog-studio-'.'word'.'press.css'),'Studio загружает старый внешний CSS.');
+$expect(!str_contains($modernUi,'vk-structural-fix'),'Активный UI всё ещё загружает удалённые VK assets.');
 $expect(str_contains($growth,"'/post/'"),'RSS должен использовать канонический /post/{slug}.');
 $expect(str_contains($gitignore,'/config/config.php'),'.gitignore не защищает production config.');
 $expect(str_contains($gitignore,'/storage/uploads/*'),'.gitignore не защищает uploads.');
 $expect(str_contains($readme,'KOVCHEG Blog / KOVCHEG CMS 3.9'),'README не обновлён до 3.9.');
 $expect(str_contains($security,'KOVCHEG Blog / KOVCHEG CMS 3.9'),'SECURITY не обновлён до 3.9.');
+
+$expect(str_contains($legacyPageMigration,"WHERE type = 'portfolio'"),'Legacy migration должна преобразовывать только portfolio в page.');
+$expect(!str_contains($legacyPageMigration,"type IN ('post'"),'Legacy migration не должна преобразовывать записи post в page.');
+$expect(str_contains($contentCleanupMigration,"WHERE type = 'portfolio'"),'Cleanup migration должна сохранять записи post.');
+$expect(str_contains($contentCleanupMigration,"WHERE e.type = 'page'"),'Cleanup migration должна удалить рубрики только у страниц.');
 
 $forbidden=[
     'Word'.'Press',
@@ -84,6 +93,21 @@ $forbidden=[
     'Joo'.'mla',
     'Dru'.'pal',
 ];
+
+// Historical records are intentionally preserved verbatim. They document how the
+// product evolved and are not loaded by the application runtime. Active source,
+// current documentation and migrations remain subject to the terminology scan.
+$historicalAllowlist=[
+    'docs/DEVELOPMENT_LOG.md',
+    'docs/development/KOVCHEG_CMS_3.8.0.md',
+    'docs/releases/KOVCHEG_BLOG_3.5.6.md',
+    'docs/releases/KOVCHEG_CMS_3.8.0.md',
+    'docs/releases/KOVCHEG_BLOG_3.6.0.md',
+    'scripts/audit-cms-core-3.8.php',
+    'scripts/audit-entry-routing.php',
+    'scripts/audit-page-category-core.php',
+];
+
 $extensions=['php','md','css','js','json','yml','yaml','sql','txt'];
 $iterator=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root,FilesystemIterator::SKIP_DOTS));
 foreach($iterator as $file){
@@ -92,6 +116,7 @@ foreach($iterator as $file){
     $relative=str_replace('\\','/',substr($path,strlen($root)+1));
     if(str_starts_with($relative,'.git/'))continue;
     if($relative==='scripts/audit-core-cleanup-3.9.php')continue;
+    if(in_array($relative,$historicalAllowlist,true))continue;
     $ext=strtolower(pathinfo($relative,PATHINFO_EXTENSION));
     if(!in_array($ext,$extensions,true))continue;
     $data=@file_get_contents($path);
