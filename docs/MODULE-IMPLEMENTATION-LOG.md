@@ -27,12 +27,13 @@
 | SEO / growth | ACTIVE | sitemap, robots, RSS, redirects, scheduled publishing |
 | PWA | ACTIVE | `manifest.webmanifest`, `service-worker.js` |
 | Cron | ACTIVE | публикация по расписанию, cleanup, webhook/system jobs |
-| CI | ACTIVE | единый `.github/workflows/ci.yml`, итоговые run #406/#408 SUCCESS |
-| Core Cleanup audit | ACTIVE | `scripts/audit-core-cleanup-3.9.php`, включая migration/VK-X regression guards |
-| Legacy VK/X view templates | REMOVED | `views/templates/vk` и `views/templates/x` удалены в `33b50bc2` |
-| Root social views | LEGACY / REVIEW | feed/messenger/profile/channel/wall/reaction layers ещё требуют проверки ссылок |
+| CI | ACTIVE | единый `.github/workflows/ci.yml`, run #414 SUCCESS после полной view-cleanup |
+| Core Cleanup audit | ACTIVE | `scripts/audit-core-cleanup-3.9.php`, migration/assets/social-view regression guards |
+| Legacy VK/X view templates | REMOVED | `views/templates/vk` и `views/templates/x` удалены |
+| Root social views | REMOVED | корень `views/` очищен от feed/messenger/profile/channel/wall/people/settings/weather social UI |
 | Social helpers in app/functions.php | LEGACY / REVIEW | chat/profile/channel/colleague/push helpers не удалять до карты вызовов |
 | Social DB baseline | LEGACY / REVIEW | `database/schema.php` ещё содержит social tables; production data не удалять без backup |
+| Historical CSS naming | ACTIVE / REVIEW | часть старых имён реально используется account/Studio layouts, массово не удалять |
 
 ## Удалено из активного продукта в 3.9.0
 
@@ -41,10 +42,19 @@
 - старые VK/X CSS themes и fixes;
 - старые social JavaScript layers;
 - legacy `views/templates/vk` и `views/templates/x`;
+- весь доказанно недостижимый root social presentation-layer;
 - profile-banner и vk-media helpers;
 - дублирующие GitHub Actions workflows;
 - старые внешние названия Studio и редакторов;
 - социальные задачи cron.
+
+После view-cleanup корень `views/` содержит только:
+
+- `account-shell.php`;
+- `layout.php`;
+- `login.php`;
+- `register.php`;
+- `studio/`.
 
 ## Исправления текущего этапа
 
@@ -52,17 +62,17 @@
 - legacy page migration больше не меняет Posts в Pages;
 - `registration_mode=manual` снова является штатным режимом;
 - HTTP smoke workflow больше не получает ложный `curl: (23)` при `pipefail`;
-- cleanup audit проверяет отсутствие VK/X template-layer и migration regressions.
+- cleanup audit проверяет отсутствие VK/X template-layer, root social views и migration regressions.
 
 ## Остаточный legacy, требующий отдельного анализа
 
-В репозитории всё ещё присутствует часть старых root view-файлов социальной версии: `feed`, `messenger`, `profile`, `channel`, `wall`, avatar/reaction layers и связанные presentation helpers.
+Presentation-layer социальной версии из `views/` удалён полностью после проверки активного `index.php`, routes, `Blog::render()`, hooks и модулей.
 
-Они не должны удаляться массово без проверки ссылок из текущих routes, hooks и общих helpers. Активный `index.php` подключает только текущие CMS route-файлы, однако следующий cleanup-пакет должен документально подтвердить недостижимость каждого удаляемого root view.
+`app/functions.php` всё ещё содержит большой набор социальных функций. Их нужно разделить на реально используемые system/CMS helpers и полностью устаревшие chat/profile/channel/colleague/push helpers. Удаление всего блока без call-map запрещено.
 
-`app/functions.php` содержит старые социальные функции. Их нужно разделить на реально используемые system/CMS helpers и полностью устаревшие chat/profile/channel/colleague/push helpers.
+`database/schema.php` всё ещё создаёт часть social tables на чистой установке. Baseline новой установки нужно очищать отдельно. Для уже существующей production базы destructive DROP нельзя делать без backup, row-count и проверки фактических данных.
 
-`database/schema.php` всё ещё создаёт часть social tables на чистой установке. Baseline новой установки нужно очищать отдельно. Для уже существующей production базы destructive DROP нельзя делать без backup и проверки данных.
+Часть CSS-файлов имеет исторические названия, но реально используется актуальными layouts. Например, `blog-profile-portal.css` обслуживает новый `/account`, а Studio всё ещё подключает несколько старых CSS-слоёв. Это отдельный visual/dependency cleanup, а не повод удалять их по названию.
 
 Исторические audit-скрипты и release/development документация сохраняются как журнал проекта. Исторический журнал не переписывается ради терминологического lint.
 
@@ -78,7 +88,13 @@
 
 GitHub Actions run #406 — SUCCESS.
 
-GitHub Actions run #408 после удаления VK/X view templates и усиления cleanup audit — SUCCESS.
+GitHub Actions run #408 — SUCCESS после удаления VK/X view templates.
+
+GitHub Actions run #410 — SUCCESS после синхронизации документации.
+
+GitHub Actions run #412 — SUCCESS после первого пакета root social view cleanup.
+
+GitHub Actions run #414 — SUCCESS после удаления оставшихся social views и усиления audit.
 
 Подтверждены:
 
