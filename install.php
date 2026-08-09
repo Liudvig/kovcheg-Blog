@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 const INSTALL_ROOT = __DIR__;
-const INSTALL_VERSION = '3.0';
+const INSTALL_VERSION = '3.9.0';
 
 if (is_file(INSTALL_ROOT.'/config/config.php')) {
     header('Location: index.php', true, 302);
@@ -28,6 +28,38 @@ $_SESSION['install_csrf'] ??= bin2hex(random_bytes(32));
 
 function install_h(string $value): string { return htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); }
 function install_value(string $key, string $default = ''): string { return (string)($_POST[$key] ?? $default); }
+function install_exec_sql(PDO $pdo,string $sql,string $source): void {
+    foreach (preg_split('/;\s*(?:\r?\n|$)/',$sql) ?: [] as $statement) {
+        $statement=trim($statement);
+        if($statement==='')continue;
+        try{$pdo->exec($statement);}catch(Throwable $error){throw new RuntimeException('Ошибка SQL в '.$source.': '.$error->getMessage(),0,$error);}
+    }
+}
+function install_apply_migrations(PDO $pdo): int {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS migrations (
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        migration VARCHAR(190) NOT NULL UNIQUE,
+        batch INT NOT NULL DEFAULT 1,
+        applied_at DATETIME NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $files=glob(INSTALL_ROOT.'/migrations/*.sql') ?: [];
+    sort($files,SORT_STRING);
+    $batch=(int)($pdo->query('SELECT COALESCE(MAX(batch),0) FROM migrations')->fetchColumn() ?: 0)+1;
+    $applied=0;
+    foreach($files as $file){
+        $name=basename($file);
+        $check=$pdo->prepare('SELECT id FROM migrations WHERE migration=? LIMIT 1');
+        $check->execute([$name]);
+        if($check->fetchColumn())continue;
+        $sql=file_get_contents($file);
+        if($sql===false||trim($sql)==='')throw new RuntimeException('Миграция отсутствует или пуста: '.$name);
+        install_exec_sql($pdo,$sql,'migrations/'.$name);
+        $record=$pdo->prepare('INSERT INTO migrations (migration,batch,applied_at) VALUES (?,?,CURRENT_TIMESTAMP)');
+        $record->execute([$name,$batch]);
+        $applied++;
+    }
+    return $applied;
+}
 
 $errors=[];
 $success=false;
@@ -72,10 +104,9 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD']??'GET')) === 'POST') {
             );
             $schema=require INSTALL_ROOT.'/database/schema.php';
             if (!is_string($schema)||trim($schema)==='') throw new RuntimeException('Схема установки отсутствует.');
-            foreach (preg_split('/;\s*(?:\r?\n|$)/',$schema) as $statement) {
-                $statement=trim($statement);
-                if ($statement!=='') $pdo->exec($statement);
-            }
+            install_exec_sql($pdo,$schema,'database/schema.php');
+            install_apply_migrations($pdo);
+
             $existing=$pdo->query('SELECT id FROM users LIMIT 1')->fetch();
             if (!$existing) {
                 $algorithm=defined('PASSWORD_ARGON2ID')?PASSWORD_ARGON2ID:PASSWORD_DEFAULT;
@@ -84,8 +115,6 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD']??'GET')) === 'POST') {
                 if ($hash===false) throw new RuntimeException('Не удалось защитить пароль владельца.');
                 $insert=$pdo->prepare("INSERT INTO users (email,username,display_name,password_hash,role,is_verified,is_active,approval_status,approved_at,created_at,updated_at) VALUES (?,?,?,?, 'owner',1,1,'approved',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)");
                 $insert->execute([$email,$username,$displayName,$hash]);
-                $ownerId=(int)$pdo->lastInsertId();
-                $pdo->prepare('INSERT IGNORE INTO user_permissions (user_id,updated_at) VALUES (?,CURRENT_TIMESTAMP)')->execute([$ownerId]);
             }
 
             $scheme=$secure?'https':'http';
