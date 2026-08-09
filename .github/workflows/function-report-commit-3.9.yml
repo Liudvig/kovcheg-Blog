@@ -1,0 +1,41 @@
+name: KOVCHEG 3.9 Function Report Commit
+
+on:
+  push:
+    branches: [feature/core-cleanup-3.9.0]
+    paths:
+      - '.github/workflows/function-report-commit-3.9.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Generate report
+        shell: bash
+        run: |
+          set +e
+          mkdir -p docs/audits
+          php scripts/report-function-usage-3.9.php > docs/audits/TEMP_FUNCTION_USAGE_3.9.txt 2>&1
+          status=$?
+          printf '\nREPORT_EXIT_CODE=%s\n' "$status" >> docs/audits/TEMP_FUNCTION_USAGE_3.9.txt
+          exit 0
+      - name: Commit report
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/audits/TEMP_FUNCTION_USAGE_3.9.txt
+          git commit -m 'Record temporary function usage report'
+          git push origin HEAD:feature/core-cleanup-3.9.0
