@@ -90,7 +90,7 @@ jobs:
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM content_entry_categories ec JOIN content_entries e ON e.id=ec.entry_id WHERE e.type='page';" | grep -qx '0'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='content_entries';" | grep -qx '1'
             MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='user_remember_tokens';" | grep -qx '1'
-            for legacy_table in chats messages profile_posts user_follows colleague_requests stories push_subscriptions vk_media_items vk_media_albums; do
+            for legacy_table in chats messages profile_posts user_follows colleague_requests stories push_subscriptions vk_media_items vk_media_albums content_patterns site_preset_history; do
               MYSQL_PWD="$password" mysql --protocol=tcp -h 127.0.0.1 -P "$port" -u root "$database" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name='${legacy_table}';" | grep -qx '0'
             done
           }
