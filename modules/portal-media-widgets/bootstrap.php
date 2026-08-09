@@ -31,7 +31,7 @@ final class Widgets
 
         Layout::registerWidget('portal.video-carousel', [
             'label'=>'Карусель видео',
-            'description'=>'YouTube, VK Видео, Rutube и Vimeo в безопасном слайдере.',
+            'description'=>'YouTube, Rutube и Vimeo в безопасном слайдере.',
             'module'=>'portal-media-widgets',
             'defaults'=>['title'=>'Видео','items'=>'','autoplay'=>0,'interval'=>8000],
             'fields'=>[
@@ -45,12 +45,12 @@ final class Widgets
 
         Layout::registerWidget('portal.content-slider', [
             'label'=>'Слайдер контента',
-            'description'=>'Автоматически показывает свежие статьи, страницы или проекты.',
+            'description'=>'Автоматически показывает свежие записи или страницы.',
             'module'=>'portal-media-widgets',
             'defaults'=>['title'=>'Рекомендуем','content_type'=>'post','limit'=>6,'show_excerpt'=>1,'autoplay'=>1,'interval'=>6000],
             'fields'=>[
                 'title'=>['label'=>'Заголовок','type'=>'text','maxlength'=>180],
-                'content_type'=>['label'=>'Тип материалов','type'=>'select','options'=>['post'=>'Статьи','portfolio'=>'Портфолио','page'=>'Страницы','all'=>'Все материалы']],
+                'content_type'=>['label'=>'Тип материалов','type'=>'select','options'=>['post'=>'Записи','page'=>'Страницы','all'=>'Все материалы']],
                 'limit'=>['label'=>'Количество','type'=>'number','min'=>2,'max'=>20],
                 'show_excerpt'=>['label'=>'Показывать описание','type'=>'checkbox'],
                 'autoplay'=>['label'=>'Автоматическое листание','type'=>'checkbox'],
@@ -89,7 +89,7 @@ final class Widgets
 
     private static function contentSlider(array $settings,array $instance): string
     {
-        $type=in_array((string)($settings['content_type']??'post'),['post','portfolio','page','all'],true)?(string)$settings['content_type']:'post';
+        $type=in_array((string)($settings['content_type']??'post'),['post','page','all'],true)?(string)$settings['content_type']:'post';
         $limit=max(2,min(20,(int)($settings['limit']??6)));
         $where="e.status='published' AND e.deleted_at IS NULL AND e.visibility='public'";$params=[];
         if($type!=='all'){$where.=' AND e.type=?';$params[]=$type;}
@@ -136,7 +136,6 @@ final class Widgets
         if(preg_match('~(?:youtu\.be/|youtube(?:-nocookie)?\.com/(?:watch\?v=|embed/|shorts/))([A-Za-z0-9_-]{6,})~i',$url,$m))return 'https://www.youtube-nocookie.com/embed/'.$m[1].'?rel=0';
         if(preg_match('~(?:vimeo\.com/(?:video/)?)((?:\d){5,})~i',$url,$m))return 'https://player.vimeo.com/video/'.$m[1];
         if(preg_match('~rutube\.ru/(?:video|play/embed)/([A-Za-z0-9_-]+)~i',$url,$m))return 'https://rutube.ru/play/embed/'.$m[1];
-        if(preg_match('~(?:vk\.com|vkvideo\.ru)/video(-?\d+)_(\d+)~i',$url,$m))return 'https://vk.com/video_ext.php?oid='.$m[1].'&id='.$m[2].'&hd=2';
         return '';
     }
 }
