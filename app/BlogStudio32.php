@@ -72,7 +72,7 @@ final class Studio32
     {
         $item=Studio::storeMedia($file,$uploaderId);
         if($item&&$folderId>0&&DB::one('SELECT id FROM media_folders WHERE id=?',[$folderId])){
-            DB::run('UPDATE media_library SET folder_id=? WHERE id=?',[$folderId,(int)$item['id']]);
+            DB::run('UPDATE media_library SET folder_id=? WHERE id=?',[$folderId,(int)$item['id']);
             $item['folder_id']=$folderId;
         }
         return $item;
@@ -93,32 +93,6 @@ final class Studio32
         $normalized=ClassicEditor::normalizePayload($contentJson);
         $key=$entryId>0?'entry:'.$entryId:'new';
         DB::run('INSERT INTO content_autosaves (entry_id,user_id,autosave_key,title,excerpt,content_json,saved_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE entry_id=VALUES(entry_id),title=VALUES(title),excerpt=VALUES(excerpt),content_json=VALUES(content_json),saved_at=CURRENT_TIMESTAMP',[$entryId?:null,$userId,$key,mb_substr(trim($title),0,255),mb_substr(trim($excerpt),0,2000),$normalized]);
-    }
-
-    public static function presets():array
-    {
-        $result=[];
-        foreach(glob(BASE_PATH.'/presets/*.json')?:[] as $file){
-            try{$data=json_decode((string)file_get_contents($file),true,512,JSON_THROW_ON_ERROR);}catch(Throwable){continue;}
-            if(!is_array($data)||empty($data['slug'])||empty($data['name']))continue;
-            $result[]=$data;
-        }
-        usort($result,static fn($a,$b)=>strcmp((string)$a['name'],(string)$b['name']));
-        return $result;
-    }
-
-    public static function applyPreset(string $slug,int $userId):void
-    {
-        Studio::require('site');
-        $preset=null;
-        foreach(self::presets() as $candidate)if((string)$candidate['slug']===$slug){$preset=$candidate;break;}
-        if(!$preset)abort(404,'Пресет не найден.');
-        $settings=is_array($preset['settings']??null)?$preset['settings']:[];
-        $allowed=['blog_theme','site_name','blog_tagline','blog_description','blog_footer_text','seo_description','search_indexing'];
-        $before=[];
-        foreach($allowed as $key){if(!array_key_exists($key,$settings))continue;$before[$key]=(string)setting($key,'');Studio::setSetting($key,mb_substr((string)$settings[$key],0,1000));}
-        DB::run('INSERT INTO site_preset_history (user_id,preset_slug,settings_json,created_at) VALUES (?,?,?,CURRENT_TIMESTAMP)',[$userId,$slug,json_encode($before,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)]);
-        audit('cms.preset.apply','site_preset',null,['slug'=>$slug]);
     }
 
     public static function changeUserRole(int $userId,string $role,int $actorId):void
