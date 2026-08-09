@@ -16,11 +16,9 @@ function kovcheg_parse_functions(string $source): array
     $tokens=token_get_all($source);
     $definitions=[];
     $count=count($tokens);
-    $line=1;
 
     for($i=0;$i<$count;$i++){
         $token=$tokens[$i];
-        if(is_array($token))$line=$token[2];
         if(!is_array($token)||$token[0]!==T_FUNCTION)continue;
 
         $j=$i+1;
@@ -30,7 +28,7 @@ function kovcheg_parse_functions(string $source): array
             if($candidate==='&'){$j++;continue;}
             break;
         }
-        if($j>=$count||!is_array($tokens[$j])||$tokens[$j][0]!==T_STRING)continue; // closure
+        if($j>=$count||!is_array($tokens[$j])||$tokens[$j][0]!==T_STRING)continue;
         $name=$tokens[$j][1];
         $functionLine=$tokens[$j][2];
 
@@ -119,9 +117,23 @@ foreach($definitions as $name=>$meta)if(!isset($reachable[$name]))$unreachable[$
 uksort($unreachable,static fn(string $a,string $b):int=>$unreachable[$a]['line']<=>$unreachable[$b]['line']);
 
 $socialPattern='/^(?:chat|channel|message|wall|profile|colleague|follow|story|push|notification|user_notifications|direct_chat|users_blocked|block_user|unblock_user|feed_|reaction_|save_wall|send_push|web_push)/i';
-$social=[];
-foreach($unreachable as $name=>$meta)if(preg_match($socialPattern,$name))$social[$name]=$meta;
+$socialUnreachable=[];
+$socialReachable=[];
+foreach($unreachable as $name=>$meta)if(preg_match($socialPattern,$name))$socialUnreachable[$name]=$meta;
+foreach($reachable as $name=>$_)if(preg_match($socialPattern,$name))$socialReachable[$name]=$definitions[$name];
 
-echo 'KOVCHEG function usage report: '.count($definitions).' definitions, '.count($reachable).' reachable, '.count($unreachable).' unreachable, '.count($social)." social candidates\n";
-foreach($social as $name=>$meta)echo 'SOCIAL_UNREACHABLE line '.$meta['line'].': '.$name."\n";
-echo "KOVCHEG function usage report complete\n";
+$reachableOrdered=[];
+foreach($reachable as $name=>$_)$reachableOrdered[$name]=$definitions[$name];
+uksort($reachableOrdered,static fn(string $a,string $b):int=>$reachableOrdered[$a]['line']<=>$reachableOrdered[$b]['line']);
+uksort($socialReachable,static fn(string $a,string $b):int=>$socialReachable[$a]['line']<=>$socialReachable[$b]['line']);
+
+echo 'KOVCHEG function usage audit: '.count($definitions).' definitions, '.count($reachable).' reachable, '.count($unreachable).' unreachable, '.count($socialUnreachable)." unreachable social candidates, ".count($socialReachable)." reachable social candidates\n";
+
+if($socialReachable||$socialUnreachable){
+    foreach($socialReachable as $name=>$meta)fwrite(STDERR,'SOCIAL_REACHABLE line '.$meta['line'].': '.$name."\n");
+    foreach($socialUnreachable as $name=>$meta)fwrite(STDERR,'SOCIAL_UNREACHABLE line '.$meta['line'].': '.$name."\n");
+    fwrite(STDERR,"KOVCHEG function usage audit failed: social helper definitions remain in app/functions.php\n");
+    exit(1);
+}
+
+echo "KOVCHEG function usage audit OK: no social helper definitions remain\n";
