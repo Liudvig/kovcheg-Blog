@@ -207,40 +207,6 @@ function optimize_existing_image(string $source,string $relativeBase,int $maxWid
 }
 
 
-function save_wall_post_photos(array $files,int $postId,int $userId,int $startOrder=0): array {
-    $stored=[];$count=min(10,count($files['name']??[]));
-    for($i=0;$i<$count;$i++){
-        if((int)($files['error'][$i]??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK)continue;
-        if((int)($files['size'][$i]??0)>12*1024*1024)throw new RuntimeException('Фотография должна быть не больше 12 МБ.');
-        $base='wall/'.$userId.'/'.date('Ymd').'-'.bin2hex(random_bytes(8));
-        $result=optimize_uploaded_image((string)$files['tmp_name'][$i],$base,1920,1920,82);
-        $stored[]=$result['relative'];
-        $name=basename((string)($files['name'][$i]??'image'));
-        DB::run('INSERT INTO profile_post_attachments (post_id,stored_path,mime_type,file_size,sort_order,original_name,created_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)',[$postId,$result['relative'],$result['mime'],$result['size'],$startOrder+$i,$name]);
-    }
-    return $stored;
-}
-function save_wall_post_videos(array $files,int $postId,int $userId,int $startOrder=50): array {
-    $stored=[];$count=min(4,count($files['name']??[]));$max=min(100,(int)setting('max_upload_mb','25'))*1024*1024;
-    for($i=0;$i<$count;$i++){
-        if((int)($files['error'][$i]??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK)continue;
-        if((int)($files['size'][$i]??0)>$max)throw new RuntimeException('Видео превышает допустимый размер.');
-        $tmp=(string)($files['tmp_name'][$i]??'');$name=basename((string)($files['name'][$i]??'video.mp4'));$mime=(new finfo(FILEINFO_MIME_TYPE))->file($tmp)?:'application/octet-stream';
-        if(!in_array($mime,['video/mp4','video/webm'],true))throw new RuntimeException('Для публикаций поддерживаются видео MP4 и WebM.');
-        $ext=$mime==='video/webm'?'webm':'mp4';$relative='wall-video/'.$userId.'/'.date('Y/m').'/'.bin2hex(random_bytes(16)).'.'.$ext;$dest=BASE_PATH.'/storage/uploads/'.$relative;
-        if(!is_dir(dirname($dest))&&!mkdir(dirname($dest),0755,true)&&!is_dir(dirname($dest)))throw new RuntimeException('Не удалось создать папку видео.');
-        if(!move_uploaded_file($tmp,$dest)&&!copy($tmp,$dest))throw new RuntimeException('Не удалось сохранить видео.');
-        $size=(int)filesize($dest);$stored[]=$relative;DB::run('INSERT INTO profile_post_attachments (post_id,stored_path,mime_type,file_size,sort_order,original_name,created_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)',[$postId,$relative,$mime,$size,$startOrder+$i,$name]);
-    }
-    return $stored;
-}
-function save_wall_post_documents(array $files,int $postId,int $userId,int $startOrder=100): array {
-    $stored=[];$count=min(10,count($files['name']??[]));$max=(int)setting('max_upload_mb','25')*1024*1024;$allowed=array_filter(array_map('trim',explode(',',(string)setting('allowed_mimes','application/pdf,text/plain,application/zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))));
-    for($i=0;$i<$count;$i++){
-        if((int)($files['error'][$i]??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK)continue;if((int)($files['size'][$i]??0)>$max)throw new RuntimeException('Документ превышает допустимый размер.');$tmp=(string)$files['tmp_name'][$i];$name=basename((string)($files['name'][$i]??'document'));$mime=(new finfo(FILEINFO_MIME_TYPE))->file($tmp)?:'application/octet-stream';if(str_starts_with($mime,'image/'))throw new RuntimeException('Изображения прикрепляйте через пункт «Изображение».');if(!in_array($mime,$allowed,true))throw new RuntimeException('Формат документа не разрешён администратором.');$ext=strtolower(pathinfo($name,PATHINFO_EXTENSION));if(preg_match('/^(php|phtml|phar|cgi|pl|sh|exe|js)$/',$ext))throw new RuntimeException('Этот тип файла запрещён.');$relative='wall-docs/'.$userId.'/'.date('Y/m').'/'.bin2hex(random_bytes(16)).($ext?'.'.$ext:'');$dest=BASE_PATH.'/storage/uploads/'.$relative;if(!is_dir(dirname($dest)))mkdir(dirname($dest),0755,true);if(!move_uploaded_file($tmp,$dest))throw new RuntimeException('Не удалось сохранить документ.');$size=(int)filesize($dest);$stored[]=$relative;DB::run('INSERT INTO profile_post_attachments (post_id,stored_path,mime_type,file_size,sort_order,original_name,created_at) VALUES (?,?,?,?,?,?,CURRENT_TIMESTAMP)',[$postId,$relative,$mime,$size,$startOrder+$i,$name]);
-    }
-    return $stored;
-}
 function delete_uploaded_relatives(array $paths): void { foreach($paths as $path)if(is_string($path)&&$path!==''&&!str_contains($path,'..'))@unlink(BASE_PATH.'/storage/uploads/'.$path); }
 
 
@@ -250,7 +216,7 @@ function avatar_url(int $userId,?string $avatarPath=null): string {
 }
 function media_url(int $attachmentId): string { return app_url('/media/'.$attachmentId); }
 function user_public_url(string $username): string { return app_url('/@'.rawurlencode(ltrim($username,'@'))); }
-function wall_post_public_url(string $username,int $postId): string { return app_url('/wall/@'.rawurlencode(ltrim($username,'@')).'/'.$postId); }
+
 
 function verified_badge(array $user,string $class='verified-badge'): string { return !empty($user['is_verified'])?'<span class="'.e($class).'" title="'.e((string)($user['verification_label']?:'Подтверждённый профиль')).'" aria-label="Подтверждённый профиль">✓</span>':''; }
 function normalize_username(string $value): string { return strtolower(trim(ltrim($value,'@'))); }
@@ -395,17 +361,6 @@ function vapid_jwt(string $endpoint): array {
     $port=isset($parts['port'])?':'.(int)$parts['port']:'';$aud=$scheme.'://'.$host.$port;$header=b64url_encode(json_encode(['typ'=>'JWT','alg'=>'ES256'],JSON_UNESCAPED_SLASHES));$claims=b64url_encode(json_encode(['aud'=>$aud,'exp'=>time()+43200,'sub'=>$keys['subject']],JSON_UNESCAPED_SLASHES));$data=$header.'.'.$claims;$private=openssl_pkey_get_private(decrypt_secret($keys['private']));if($private===false)throw new RuntimeException('Не удалось открыть ключ Web Push.');$signature='';if(!openssl_sign($data,$signature,$private,OPENSSL_ALGO_SHA256))throw new RuntimeException('Не удалось подписать Web Push.');return ['token'=>$data.'.'.b64url_encode(ecdsa_der_to_jose($signature)),'public'=>$keys['public']];
 }
 
-function channel_comment_tree(array $rows,int $rootId): array {
-    $groups=[];
-    foreach($rows as $row){$parent=(int)($row['reply_to_id']??$rootId);$groups[$parent][]=$row;}
-    $build=function(int $parent,int $depth=0)use(&$build,&$groups):array{
-        if($depth>30)return [];$out=[];
-        foreach($groups[$parent]??[] as $row){$row['replies']=$build((int)$row['id'],$depth+1);$out[]=$row;}
-        return $out;
-    };
-    return $build($rootId);
-}
-
 
 /* KOVCHEG CMS runtime services. */
 function comment_reaction_context(string $context): string {
@@ -468,7 +423,7 @@ function send_web_push_wakeup(array $subscription,int $timeout=6): array {
     $context=stream_context_create(['http'=>['method'=>'POST','header'=>implode("\r\n",$headers),'content'=>'','timeout'=>$timeout,'ignore_errors'=>true]]);$response=@file_get_contents($endpoint,false,$context);$line=$http_response_header[0]??'';preg_match('/\s(\d{3})\s/',$line,$m);$code=(int)($m[1]??0);return ['ok'=>$code>=200&&$code<300,'code'=>$code,'error'=>$response===false?'HTTP request failed':substr((string)$response,0,500)];
 }
 function raw_user_setting(int $userId,string $key,string $default=''): string { try{return (string)(DB::one('SELECT `value` FROM user_settings WHERE user_id=? AND `key`=?',[$userId,$key])['value']??$default);}catch(Throwable){return $default;} }
-function notification_type_from_tag(string $tag): string { if(str_starts_with($tag,'chat-'))return 'message';if(str_starts_with($tag,'admin-')||str_starts_with($tag,'registration-'))return 'system';if(str_starts_with($tag,'colleague-')||str_starts_with($tag,'social-'))return 'social';if(str_starts_with($tag,'wall-'))return 'wall';if(str_starts_with($tag,'channel-'))return 'channel';return 'info'; }
+
 function user_notification_create(int $userId,string $title,string $body,string $url='',string $icon='',string $tag='',string $type='info'): int {
     try{return DB::insert("INSERT INTO user_notifications (user_id,type,title,body,url,icon,tag,is_read,created_at) VALUES (?,?,?,?,?,?,?,0,CURRENT_TIMESTAMP)",[$userId,$type,utf8_substr($title,0,190),$body,$url?:null,$icon?:null,$tag?:null]);}catch(Throwable $e){log_error($e);return 0;}
 }
@@ -516,36 +471,8 @@ function mark_admin_notifications_read(int $userId,array $ids=[]): void {
     if(!$ids){$ids=array_map('intval',array_column(admin_notifications($userId,100),'id'));}
     foreach(array_unique(array_filter(array_map('intval',$ids))) as $id)DB::run('INSERT IGNORE INTO admin_notification_reads (notification_id,user_id,read_at) VALUES (?,?,CURRENT_TIMESTAMP)',[$id,$userId]);
 }
-function push_payload(string $title,string $body,string $url='',string $icon=''): array { return compact('title','body','url','icon')+['tag'=>'kovcheg-'.hash('sha256',$title.'|'.$url)]; }
 
-function profile_wall_can_post(array $profileUser,int $viewerId): bool {
-    if($viewerId===(int)$profileUser['id'])return true;$policy=raw_user_setting((int)$profileUser['id'],'wall_post_policy','colleagues');
-    if($policy==='everyone')return Auth::check();if($policy==='colleagues')return are_colleagues($viewerId,(int)$profileUser['id']);return false;
-}
-function profile_post_media_url(int $attachmentId): string { return app_url('/wall-media/'.$attachmentId); }
-function story_media_url(int $storyId): string { return app_url('/story/'.$storyId.'/media'); }
-function profile_post_attachments(int $postId): array {
-    try{$rows=DB::all("SELECT id,post_id,stored_path,mime_type,file_size,sort_order,COALESCE(original_name,'') original_name FROM profile_post_attachments WHERE post_id=? ORDER BY sort_order,id",[$postId]);foreach($rows as &$row)$row['url']=profile_post_media_url((int)$row['id']);unset($row);return $rows;}catch(Throwable){return [];}
-}
-function profile_post_comments(int $postId,int $limit=8): array {
-    try{
-        $rows=DB::all('SELECT c.*,u.display_name,u.username,u.avatar_path,u.is_verified,u.verification_label FROM profile_post_comments c JOIN users u ON u.id=c.user_id WHERE c.post_id=? AND c.deleted_at IS NULL ORDER BY c.id ASC LIMIT '.max(10,min(150,$limit*10)),[$postId]);
-        $byId=[];$roots=[];
-        foreach($rows as $row){$row['replies']=[];$byId[(int)$row['id']]=$row;}
-        foreach($byId as $id=>&$row){$parent=(int)($row['parent_id']??0);if($parent&&isset($byId[$parent]))$byId[$parent]['replies'][]=&$row;else $roots[]=&$row;}unset($row);
-        if(count($roots)>$limit)$roots=array_slice($roots,-$limit);
-        return $roots;
-    }catch(Throwable){return [];}
-}
-function profile_post_reaction_summary(int $postId,int $viewerId=0): array {
-    try{$items=DB::all('SELECT emoji,COUNT(*) count,MAX(CASE WHEN user_id=? THEN 1 ELSE 0 END) mine FROM profile_post_reactions WHERE post_id=? GROUP BY emoji ORDER BY COUNT(*) DESC,MIN(created_at)',[$viewerId,$postId]);$mine=null;$total=0;foreach($items as $item){$total+=(int)$item['count'];if(!empty($item['mine']))$mine=$item['emoji'];}return ['items'=>$items,'mine'=>$mine,'total'=>$total];}catch(Throwable){return ['items'=>[],'mine'=>null,'total'=>0];}
-}
-function profile_post_share_data(int $postId): ?array {
-    try{
-        $row=DB::one('SELECT p.id,p.body,p.created_at,p.user_id,p.author_id,p.visibility,p.status,p.publish_at,a.display_name author_name,a.username author_username,a.avatar_path,a.is_verified,a.verification_label,t.username wall_username FROM profile_posts p JOIN users a ON a.id=p.author_id JOIN users t ON t.id=p.user_id WHERE p.id=? AND p.deleted_at IS NULL',[$postId]);
-        if(!$row||!profile_post_can_view($row,Auth::check()?Auth::id():0))return null;$row['attachments']=profile_post_attachments($postId);return $row;
-    }catch(Throwable){return null;}
-}
+
 function enrich_profile_posts(array $posts): array {
     foreach($posts as &$post){
         $post['attachments']=profile_post_attachments((int)$post['id']);
@@ -555,47 +482,8 @@ function enrich_profile_posts(array $posts): array {
         $post['repost']=!empty($post['repost_post_id'])?profile_post_share_data((int)$post['repost_post_id']):null;
     }unset($post);return $posts;
 }
-function profile_post_is_published(array $post): bool {
-    $status=(string)($post['status']??'published');
-    if($status==='draft')return false;
-    if($status==='scheduled'){
-        $publishAt=(string)($post['publish_at']??'');
-        return $publishAt!==''&&strtotime($publishAt)!==false&&strtotime($publishAt)<=time();
-    }
-    return true;
-}
-function profile_post_can_view(array $post,?int $viewerId=null): bool {
-    if(!profile_post_is_published($post))return false;
-    $viewerId=$viewerId??(Auth::check()?Auth::id():0);$authorId=(int)($post['author_id']??0);$wallId=(int)($post['user_id']??0);
-    if($viewerId>0&&($viewerId===$authorId||$viewerId===$wallId||Auth::isAdmin()))return true;
-    $visibility=(string)($post['visibility']??'everyone');
-    if($visibility==='everyone')return true;
-    if($visibility==='users')return $viewerId>0;
-    if($visibility==='colleagues')return $viewerId>0&&are_colleagues($viewerId,$authorId);
-    return false;
-}
-function profile_post_state_from_request(int $authorId,int $wallUserId): array {
-    $visibility=in_array((string)($_POST['visibility']??'everyone'),['everyone','users','colleagues','only_me'],true)?(string)$_POST['visibility']:'everyone';
-    $mode=in_array((string)($_POST['publish_mode']??'now'),['now','scheduled','draft'],true)?(string)$_POST['publish_mode']:'now';
-    if($authorId!==$wallUserId&&$mode!=='now')$mode='now';
-    $status='published';$publishAt=null;
-    if($mode==='draft')$status='draft';
-    elseif($mode==='scheduled'){
-        $raw=trim((string)($_POST['publish_at']??''));$dt=DateTimeImmutable::createFromFormat('Y-m-d\TH:i',$raw,new DateTimeZone(date_default_timezone_get()));
-        if(!$dt||$dt->getTimestamp()<=time()+60)throw new RuntimeException('Выберите время публикации минимум на две минуты позже текущего.');
-        $status='scheduled';$publishAt=$dt->format('Y-m-d H:i:00');
-    }
-    return compact('visibility','status','publishAt','mode');
-}
-function profile_post_drafts(int $authorId,int $limit=50): array {
-    try{$rows=DB::all("SELECT p.id,p.body,p.status,p.visibility,p.publish_at,p.created_at,p.updated_at,(SELECT COUNT(*) FROM profile_post_attachments a WHERE a.post_id=p.id) attachment_count FROM profile_posts p WHERE p.author_id=? AND p.deleted_at IS NULL AND (p.status='draft' OR (p.status='scheduled' AND p.publish_at>CURRENT_TIMESTAMP)) ORDER BY COALESCE(p.publish_at,p.updated_at,p.created_at) DESC LIMIT ".max(1,min(100,$limit)),[$authorId]);return $rows;}catch(Throwable){return [];}
-}
-function profile_post_for_render(int $postId): ?array {
-    try{$row=DB::one('SELECT p.*,a.display_name author_name,a.username author_username,a.avatar_path,a.is_verified,a.verification_label,t.display_name wall_name,t.username wall_username FROM profile_posts p JOIN users a ON a.id=p.author_id JOIN users t ON t.id=p.user_id WHERE p.id=? AND p.deleted_at IS NULL',[$postId]);if(!$row)return null;$rows=enrich_profile_posts([$row]);return $rows[0]??null;}catch(Throwable){return null;}
-}
-function profile_wall_posts(int $profileUserId,int $limit=40): array {
-    try{$fetch=max(40,min(300,$limit*4));$rows=DB::all('SELECT p.*,u.display_name,u.username,u.avatar_path,u.is_verified,u.verification_label,(SELECT COUNT(*) FROM profile_post_likes l WHERE l.post_id=p.id) likes_count,(SELECT COUNT(*) FROM profile_post_likes l WHERE l.post_id=p.id AND l.user_id=?) liked_by_me FROM profile_posts p JOIN users u ON u.id=p.author_id WHERE p.user_id=? AND p.deleted_at IS NULL ORDER BY p.id DESC LIMIT '.$fetch,[Auth::id(),$profileUserId]);$rows=array_values(array_filter($rows,fn($row)=>profile_post_can_view($row,Auth::check()?Auth::id():0)));return enrich_profile_posts(array_slice($rows,0,max(1,min(100,$limit))));}catch(Throwable){return [];}
-}
+
+
 function current_avatar_history(int $userId): ?array { try{return DB::one('SELECT * FROM user_avatar_history WHERE user_id=? AND is_current=1 ORDER BY id DESC LIMIT 1',[$userId]);}catch(Throwable){return null;} }
 function avatar_reaction_summary(int $userId,int $viewerId=0): array {
     $photo=current_avatar_history($userId);if(!$photo)return ['photo_id'=>0,'items'=>[],'mine'=>null,'total'=>0];
@@ -605,16 +493,6 @@ function active_stories_for_user(int $userId,int $viewerId=0): array {
     try{$rows=DB::all("SELECT s.*,CASE WHEN v.story_id IS NULL THEN 0 ELSE 1 END viewed,(SELECT COUNT(*) FROM story_views sv WHERE sv.story_id=s.id AND sv.user_id<>s.user_id) view_count FROM user_stories s LEFT JOIN story_views v ON v.story_id=s.id AND v.user_id=? WHERE s.user_id=? AND s.deleted_at IS NULL AND s.expires_at>CURRENT_TIMESTAMP ORDER BY s.id",[$viewerId,$userId]);foreach($rows as &$row)$row['media_url']=story_media_url((int)$row['id']);unset($row);return $rows;}catch(Throwable){return [];}
 }
 function has_active_story(int $userId): bool { try{return DB::one('SELECT id FROM user_stories WHERE user_id=? AND deleted_at IS NULL AND expires_at>CURRENT_TIMESTAMP LIMIT 1',[$userId])!==null;}catch(Throwable){return false;} }
-function story_feed_users(int $viewerId,int $limit=30): array {
-    try{$rows=DB::all("SELECT u.id,u.display_name,u.username,u.avatar_path,u.is_verified,u.verification_label,COUNT(s.id) story_count,SUM(CASE WHEN v.story_id IS NULL THEN 1 ELSE 0 END) unseen_count FROM users u JOIN user_stories s ON s.user_id=u.id AND s.deleted_at IS NULL AND s.expires_at>CURRENT_TIMESTAMP LEFT JOIN story_views v ON v.story_id=s.id AND v.user_id=? WHERE u.id=? OR EXISTS(SELECT 1 FROM colleague_requests r WHERE r.status='accepted' AND ((r.requester_id=? AND r.recipient_id=u.id) OR (r.recipient_id=? AND r.requester_id=u.id))) GROUP BY u.id ORDER BY (u.id=?) DESC,unseen_count DESC,MAX(s.id) DESC LIMIT ".max(1,min(100,$limit)),[$viewerId,$viewerId,$viewerId,$viewerId,$viewerId]);return $rows;}catch(Throwable){return [];}
-}
-function profile_people_blocks(int $profileUserId,int $limit=6): array {
-    $limit=max(1,min(12,$limit));$base="u.id,u.display_name,u.username,u.avatar_path,u.is_verified,u.verification_label,u.last_seen_at";
-    try{$colleagues=DB::all("SELECT $base FROM colleague_requests r JOIN users u ON u.id=IF(r.requester_id=?,r.recipient_id,r.requester_id) WHERE (r.requester_id=? OR r.recipient_id=?) AND r.status='accepted' AND u.is_active=1 ORDER BY u.last_seen_at DESC,u.display_name LIMIT $limit",[$profileUserId,$profileUserId,$profileUserId]);}catch(Throwable){$colleagues=[];}
-    $online=array_values(array_filter($colleagues,fn($u)=>online($u['last_seen_at']??null)));
-    try{$followers=DB::all("SELECT $base FROM user_follows f JOIN users u ON u.id=f.follower_id WHERE f.followed_id=? AND u.is_active=1 AND NOT EXISTS(SELECT 1 FROM colleague_requests r WHERE r.status='accepted' AND ((r.requester_id=f.follower_id AND r.recipient_id=f.followed_id) OR (r.recipient_id=f.follower_id AND r.requester_id=f.followed_id))) ORDER BY f.created_at DESC LIMIT $limit",[$profileUserId]);}catch(Throwable){$followers=[];}
-    return ['online'=>array_slice($online,0,$limit),'colleagues'=>$colleagues,'followers'=>$followers];
-}
 
 
 function diagnostic_checks(): array {
@@ -664,12 +542,8 @@ function are_colleagues(int $a,int $b): bool {
     if($a<1||$b<1||$a===$b)return $a===$b;
     try{return DB::one("SELECT id FROM colleague_requests WHERE status='accepted' AND ((requester_id=? AND recipient_id=?) OR (requester_id=? AND recipient_id=?)) LIMIT 1",[$a,$b,$b,$a])!==null;}catch(Throwable){return false;}
 }
-function follows_user(int $followerId,int $followedId): bool {
-    try{return DB::one('SELECT 1 FROM user_follows WHERE follower_id=? AND followed_id=? LIMIT 1',[$followerId,$followedId])!==null;}catch(Throwable){return false;}
-}
-function colleague_request_between(int $a,int $b): ?array {
-    try{return DB::one("SELECT * FROM colleague_requests WHERE ((requester_id=? AND recipient_id=?) OR (requester_id=? AND recipient_id=?)) ORDER BY id DESC LIMIT 1",[$a,$b,$b,$a]);}catch(Throwable){return null;}
-}
+
+
 function relationship_summary(int $viewerId,int $profileId): array {
     $request=colleague_request_between($viewerId,$profileId);$colleagues=$request&&($request['status']??'')==='accepted';
     return [
@@ -728,10 +602,6 @@ function create_backup(): string {
 }
 
 
-function users_blocked(int $a,int $b): bool {
-    if($a<1||$b<1||$a===$b)return false;
-    try{return DB::one('SELECT blocker_id FROM user_blocks WHERE (blocker_id=? AND blocked_id=?) OR (blocker_id=? AND blocked_id=?) LIMIT 1',[$a,$b,$b,$a])!==null;}catch(Throwable){return false;}
-}
 function blocked_by_me(int $targetId,int $viewerId=0): bool {
     $viewerId=$viewerId?:Auth::id();if($viewerId<1||$targetId<1)return false;
     try{return DB::one('SELECT blocker_id FROM user_blocks WHERE blocker_id=? AND blocked_id=? LIMIT 1',[$viewerId,$targetId])!==null;}catch(Throwable){return false;}
@@ -739,15 +609,8 @@ function blocked_by_me(int $targetId,int $viewerId=0): bool {
 function block_list(int $userId): array {
     try{return DB::all("SELECT u.id,u.username,u.display_name,u.avatar_path,u.is_verified,u.verification_label,b.created_at FROM user_blocks b JOIN users u ON u.id=b.blocked_id WHERE b.blocker_id=? ORDER BY b.created_at DESC",[$userId]);}catch(Throwable){return [];}
 }
-function direct_chat_other_user(int $chatId,int $viewerId): ?array {
-    return DB::one('SELECT u.id,u.username,u.display_name,u.avatar_path,u.is_verified,u.verification_label FROM chat_members cm JOIN users u ON u.id=cm.user_id WHERE cm.chat_id=? AND cm.user_id<>? LIMIT 1',[$chatId,$viewerId]);
-}
-function chat_public_url(int|array $chat,int $viewerId=0): string {
-    $viewerId=$viewerId?:Auth::id();$row=is_array($chat)?$chat:DB::one('SELECT id,type,username FROM chats WHERE id=?',[(int)$chat]);
-    if(!$row)return app_url('/messages');$id=(int)($row['id']??0);$type=(string)($row['type']??'direct');
-    if($type==='channel'){$username=(string)($row['username']??'');return $username!==''?app_url('/messages/c/'.rawurlencode($username)):app_url('/messages/chat-'.$id);}
-    $other=direct_chat_other_user($id,$viewerId);$username=(string)($other['username']??'');return $username!==''?app_url('/messages/@'.rawurlencode($username)):app_url('/messages/chat-'.$id);
-}
+
+
 function require_unblocked_chat(int $chatId,int $viewerId=0): void {
     $viewerId=$viewerId?:Auth::id();$chat=DB::one('SELECT type FROM chats WHERE id=?',[$chatId]);if(($chat['type']??'')!=='direct')return;$other=direct_chat_other_user($chatId,$viewerId);if($other&&users_blocked($viewerId,(int)$other['id']))abort(403,'Переписка недоступна: один из пользователей находится в чёрном списке.');
 }
@@ -765,13 +628,7 @@ function video_embeds_from_text(string $text): array {
 function avatar_comments(int $profileUserId): array {
     try{$rows=DB::all('SELECT c.*,u.display_name,u.username,u.avatar_path,u.is_verified,u.verification_label FROM avatar_comments c JOIN users u ON u.id=c.user_id WHERE c.profile_user_id=? AND c.deleted_at IS NULL ORDER BY c.id ASC',[$profileUserId]);$by=[];$roots=[];foreach($rows as $row){$row['replies']=[];$by[(int)$row['id']]=$row;}foreach($by as $id=>$row){$parent=(int)($row['parent_id']??0);if($parent&&isset($by[$parent]))$by[$parent]['replies'][]=&$by[$id];else $roots[]=&$by[$id];}return $roots;}catch(Throwable){return [];}
 }
-function direct_chat_with(int $otherId,int $ownerId=0): int {
-    $ownerId=$ownerId?:Auth::id();if(users_blocked($ownerId,$otherId))abort(403,'Пользователь находится в чёрном списке или заблокировал вас.');
-    $existing=DB::one("SELECT c.id FROM chats c JOIN chat_members a ON a.chat_id=c.id AND a.user_id=? JOIN chat_members b ON b.chat_id=c.id AND b.user_id=? WHERE c.type='direct' AND c.deleted_at IS NULL LIMIT 1",[$ownerId,$otherId]);
-    if($existing)return (int)$existing['id'];
-    DB::pdo()->beginTransaction();
-    try{$id=DB::insert("INSERT INTO chats (type,title,owner_id,created_at,updated_at) VALUES ('direct',NULL,?,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)",[$ownerId]);DB::run("INSERT INTO chat_members (chat_id,user_id,role,joined_at) VALUES (?,?,'owner',CURRENT_TIMESTAMP),(?,?,'member',CURRENT_TIMESTAMP)",[$id,$ownerId,$id,$otherId]);DB::pdo()->commit();return $id;}catch(Throwable $e){DB::pdo()->rollBack();throw $e;}
-}
+
 
 function distribution_exclusion_reason(string $relative,bool $includeModules=true): ?string {
     $relative=str_replace('\\','/',ltrim($relative,'/'));
@@ -842,17 +699,8 @@ function api_user_public(?array $user): array { $username=$user['username']??nul
 
 
 /* KOVCHEG CMS runtime services. */
-function message_delete_window_minutes(): int {
-    return max(0,min(525600,(int)setting('message_delete_window_minutes','120')));
-}
-function message_can_delete_now(array $message,bool $moderatorOverride=false): bool {
-    if(Auth::isAdmin()||$moderatorOverride)return true;
-    if((int)($message['sender_id']??0)!==Auth::id()||!can_do('can_delete_messages'))return false;
-    $minutes=message_delete_window_minutes();
-    if($minutes<=0)return false;
-    $created=strtotime((string)($message['created_at']??''));
-    return $created>0&&$created>=time()-($minutes*60);
-}
+
+
 function weather_cache_dir(): string {
     $dir=BASE_PATH.'/storage/cache/weather';
     if(!is_dir($dir))@mkdir($dir,0755,true);
@@ -968,10 +816,7 @@ function weather_long_icon(float $maxTemperature,float $precipitation): string {
 }
 
 /* KOVCHEG CMS runtime services. */
-function message_is_important(int $messageId,int $userId=0): bool {
-    $userId=$userId?:Auth::id();if($messageId<1||$userId<1)return false;
-    try{return DB::one('SELECT 1 FROM message_bookmarks WHERE message_id=? AND user_id=? LIMIT 1',[$messageId,$userId])!==null;}catch(Throwable){return false;}
-}
+
 function social_audience(int $actorId,int $limit=500): array {
     if($actorId<1)return [];$limit=max(1,min(1000,$limit));
     try{$rows=DB::all("SELECT DISTINCT target_id FROM (SELECT CASE WHEN cr.requester_id=? THEN cr.recipient_id ELSE cr.requester_id END target_id FROM colleague_requests cr WHERE cr.status='accepted' AND (cr.requester_id=? OR cr.recipient_id=?) UNION SELECT follower_id target_id FROM user_follows WHERE followed_id=?) q JOIN users u ON u.id=q.target_id WHERE q.target_id<>? AND u.is_active=1 AND u.approval_status='approved' AND NOT EXISTS(SELECT 1 FROM user_blocks b WHERE (b.blocker_id=? AND b.blocked_id=q.target_id) OR (b.blocker_id=q.target_id AND b.blocked_id=?)) LIMIT $limit",[$actorId,$actorId,$actorId,$actorId,$actorId,$actorId,$actorId]);return array_values(array_unique(array_map('intval',array_column($rows,'target_id'))));}catch(Throwable){return [];}
