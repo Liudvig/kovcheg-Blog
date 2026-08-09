@@ -12,56 +12,79 @@ KOVCHEG Blog / KOVCHEG CMS очищается от наследия старой
 - удалены старые дублирующие route bundles;
 - удалены `BlogBuilder` и `BlogDemoSite` и связанные старые Studio views;
 - общий `views/layout.php` заменён на чистую CMS shell-оболочку;
-- удалены старые VK/X CSS/JS assets и social helpers;
-- после аудита из `app/modern-ui.php` удалены ссылки на уже удалённые `vk-structural-fix.css/js`;
+- удалены старые VK/X CSS/JS assets;
 - удалены legacy-каталоги `views/templates/vk` и `views/templates/x`;
 - после проверки активных routes, renderer, hooks и modules удалён весь недостижимый root social presentation-layer: feed/messenger/profile/channel/wall/people/settings/mobile-navigation/social-search/weather views;
 - после cleanup корень `views/` содержит только актуальные `layout`, `account`, `login`, `register` и `studio`;
-- cleanup audit запрещает возврат удалённых social views в активное дерево.
+- удалён глобальный legacy `app/modern-ui.php` и связанные `modern-upload`, `template-polish`, `layout-repair` CSS/JS;
+- VK/VK Video удалены из CSP;
+- cleanup audit запрещает возврат удалённых social views и modern-ui assets в активное дерево.
 
 ### Studio, PWA и cron
 
 - Studio переведён на собственные названия и текущий content editor;
 - добавлен `assets/css/blog-studio-content.css`;
+- удалены мёртвые preset methods из `BlogStudio32`;
+- Studio больше не синхронизирует retired tag model;
 - обновлены `manifest.webmanifest` и `service-worker.js`;
-- cron очищен от старых социальных задач, сохранены scheduled publishing, cleanup, webhook и system jobs;
+- cron очищен от старых социальных задач, сохранены scheduled publishing, cleanup, auth/system и webhook jobs;
 - исправлен режим регистрации `manual`, старое значение `email_approval` сохранено как совместимый alias.
 
-### База данных
+### Fresh install и база данных
 
+- installer переведён с устаревшей версии 3.0 на KOVCHEG CMS 3.9.0;
+- `install.php` теперь применяет текущую цепочку `migrations/*.sql` и фиксирует migration filenames до завершения установки;
+- installer больше не создаёт старые social `user_permissions`;
+- `database/schema.php` заменён на минимальный CMS/system baseline вместо старого social baseline;
+- fresh baseline создаёт users/settings/roles, `user_remember_tokens`, modules/API/webhook infrastructure, admin notifications, audit и auth rate-limit;
+- fresh baseline больше не создаёт chats/messages, walls/profile posts, follows/colleague requests, stories/push и другие social structures;
+- добавлена отсутствовавшая таблица `user_remember_tokens`, используемая постоянным входом;
 - старая content-model миграция заменена на `20260809_content_model_cleanup.sql`;
 - legacy `portfolio` преобразуется в Page, категории сохраняются только у Posts;
 - исправлена `20260806_z_page_category_core.sql`: она больше не преобразует все Posts в Pages;
-- историческое имя migration-файла сохранено, потому что `bin/migrate.php` учитывает применённые миграции по имени файла;
-- отдельно обнаружен остаточный social baseline в `database/schema.php`; destructive cleanup production БД отложен до backup и проверки фактических данных.
+- исторические migration filenames сохраняются, потому что `bin/migrate.php` учитывает применённые миграции по имени файла;
+- `20260719_vk_media_library.sql` сохранена по имени, но превращена в безопасный compatibility marker и больше не создаёт VK tables;
+- `20260722_blog_builder.sql` сохраняет нужные media/autosave/module compatibility structures, но больше не создаёт `content_patterns` и `site_preset_history`;
+- fresh install больше не создаёт `content_tags` и `content_entry_tags`;
+- fresh install больше не создаёт demo categories, обязательные пункты меню «Блог»/«Портфолио» и `portfolio_description`;
+- historical Visual Zone Builder migration сохранена по имени как retired compatibility marker и больше не создаёт старый setting;
+- destructive cleanup существующей production БД не выполняется: старые production-таблицы можно удалять только после backup, row-count и анализа данных.
 
 ### CI и безопасность
 
 - дублирующие GitHub Actions workflows объединены в `.github/workflows/ci.yml`;
 - CI проверяет PHP, JavaScript, JSON, MariaDB, MySQL, HTTP smoke и отсутствие секретов/runtime data;
-- добавлен `scripts/audit-core-cleanup-3.9.php`;
-- cleanup audit усилен проверкой stale assets, VK/X templates, root social views и безопасностью content migrations;
+- добавлен и последовательно усилен `scripts/audit-core-cleanup-3.9.php`;
+- cleanup audit проверяет stale assets, social/VK views, fresh installer, database baseline, retired migrations, content migration safety и отсутствие demo/tag/Builder слоя;
+- CI на MariaDB 11 и MySQL 8.4 после полной migration-chain проверяет наличие current CMS/auth tables и отсутствие social/VK/Builder/tag tables;
+- CI отдельно проверяет отсутствие demo categories, `/blog`/`/portfolio` menu seeds и `portfolio_description` на fresh database;
 - исторические release/development журналы не переписываются ради терминологического lint и отделены от проверки активного runtime;
 - исправлен ложный HTTP smoke failure из-за `set -o pipefail` и `curl | grep -q`;
 - GitHub Actions run #406 завершён SUCCESS;
-- GitHub Actions run #408 после удаления VK/X view templates завершён SUCCESS;
-- GitHub Actions run #410 на синхронизированном docs-HEAD завершён SUCCESS;
-- GitHub Actions run #412 после первого пакета root social view cleanup завершён SUCCESS;
-- GitHub Actions run #414 после полной очистки оставшихся root social views завершён SUCCESS.
+- run #408 после удаления VK/X view templates завершён SUCCESS;
+- run #414 после полной очистки root social views завершён SUCCESS;
+- run #424 после удаления legacy modern-ui завершён SUCCESS;
+- run #428 после исправления installer migration flow завершён SUCCESS;
+- run #429 после замены fresh database baseline завершён SUCCESS;
+- run #432 после anti-social DB assertions завершён SUCCESS;
+- run #437 после Studio32 cleanup/hotfix завершён SUCCESS;
+- run #441 после retirement tag model завершён SUCCESS;
+- run #444 на commit `19bc41ae` после удаления demo content из fresh install завершён SUCCESS.
 
 ### Документация
 
 - обновлены README и SECURITY под KOVCHEG Blog / KOVCHEG CMS 3.9;
 - создан и актуализирован `PROJECT_MEMORY.md`;
 - создан и актуализирован `docs/MODULE-IMPLEMENTATION-LOG.md`;
-- обновлён `docs/DEVELOPMENT_LOG.md`;
+- обновляется `docs/DEVELOPMENT_LOG.md`;
 - добавлен аудит `docs/audits/KOVCHEG_CMS_3.9.0_CORE_CLEANUP_AUDIT.md`.
 
 ### Осталось до завершения 3.9.0
 
 - построить call-map и удалить только доказанно неиспользуемые social helpers из `app/functions.php`;
-- очистить baseline schema новой установки от social-таблиц без опасного удаления production-данных;
+- отдельно убрать небольшие compatibility-хвосты active code, включая старый `site_template=vk/x` fallback, только безопасным точечным изменением;
 - отдельно проверить исторически названные, но реально используемые CSS-слои account/Studio перед переименованием или консолидацией;
+- провести data audit старых production social/VK/Builder/tag tables перед любым destructive SQL;
 - проверить production deploy через GitHub -> server -> FastPanel;
 - проверить production PHP, DB migrations, storage permissions, cache и HTTP routes.
 
